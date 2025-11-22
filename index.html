@@ -61,6 +61,39 @@
         .nav-flex { display: flex; justify-content: space-between; align-items: center; }
         .logo { font-size: 24px; color: var(--primary); }
 
+        /* --- BARRA DE BUSCA --- */
+        .search-container {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .search-box {
+            width: 100%;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 50px;
+            padding: 12px 20px;
+            color: #fff;
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+        .search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(255, 159, 28, 0.2);
+        }
+        .search-input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            width: 100%;
+            font-size: 16px;
+            outline: none;
+        }
+        .search-icon { color: var(--text-gray); }
+
         /* --- CATEGORIAS --- */
         .category-nav {
             position: sticky;
@@ -241,6 +274,16 @@
         </div>
     </header>
 
+    <div class="container">
+        <!-- Barra de Busca -->
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="search-input" placeholder="O que você procura hoje?" oninput="searchProducts(this.value)">
+            </div>
+        </div>
+    </div>
+
     <!-- Navegação Categorias -->
     <nav class="category-nav">
         <ul class="category-list" id="category-list">
@@ -387,7 +430,11 @@
             { id: 30, name: "Batata Frita (G)", price: 20.00, category: "bebidas", desc: "Porção Grande." },
             { id: 31, name: "Batata Recheada", price: 35.00, category: "bebidas", desc: "Batata frita, bacon e calabresa." },
             { id: 32, name: "Sucos Naturais", price: 0.00, category: "bebidas", desc: "Valores a consultar." },
-            { id: 33, name: "Refrigerantes", price: 0.00, category: "bebidas", desc: "Lata, 1L, 1.5L e 2L. Valores a consultar." }
+            // Refrigerantes Separados
+            { id: 33, name: "Refrigerante Lata", price: 0.00, category: "bebidas", desc: "350ml. Sabor a combinar." },
+            { id: 34, name: "Refrigerante 1 Litro", price: 0.00, category: "bebidas", desc: "Sabor a combinar." },
+            { id: 35, name: "Refrigerante 1.5 Litros", price: 0.00, category: "bebidas", desc: "Sabor a combinar." },
+            { id: 36, name: "Refrigerante 2 Litros", price: 0.00, category: "bebidas", desc: "Sabor a combinar." }
         ];
 
         const categories = [
@@ -435,14 +482,44 @@
             }
         }
 
-        // Renderizar Menu
-        function renderMenu(filter = 'all') {
-            const container = document.getElementById('menu-container');
-            const itemsToShow = filter === 'all' ? menuData : menuData.filter(i => i.category === filter);
+        // Função de Busca Global
+        function searchProducts(query) {
+            const term = query.toLowerCase().trim();
             
+            // Remove classe 'active' de todos os botões de categoria se houver busca
+            const catButtons = document.querySelectorAll('.cat-btn');
+            
+            if (term.length > 0) {
+                catButtons.forEach(btn => btn.classList.remove('active'));
+                // Filtra globalmente
+                const filtered = menuData.filter(item => 
+                    item.name.toLowerCase().includes(term) || 
+                    item.desc.toLowerCase().includes(term)
+                );
+                renderGrid(filtered, term);
+            } else {
+                // Se limpar a busca, volta para 'Todos'
+                filterMenu('all', document.querySelector('.cat-btn'));
+            }
+        }
+
+        // Renderizar Grade de Produtos (Genérico)
+        function renderGrid(items, searchTerm = '') {
+            const container = document.getElementById('menu-container');
+            
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #aaa;">
+                        <i class="fas fa-search" style="font-size: 40px; margin-bottom: 10px;"></i>
+                        <p>Nenhum produto encontrado para "${searchTerm}"</p>
+                    </div>
+                `;
+                return;
+            }
+
             container.innerHTML = `
                 <div class="menu-grid">
-                    ${itemsToShow.map(item => {
+                    ${items.map(item => {
                         const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
                         return `
                         <div class="menu-item">
@@ -462,9 +539,23 @@
             `;
         }
 
+        // Renderizar Menu (por Categoria) - Usa renderGrid agora
+        function renderMenu(filter = 'all') {
+            // Limpa campo de busca ao trocar de categoria
+            document.getElementById('search-input').value = '';
+            
+            const itemsToShow = filter === 'all' ? menuData : menuData.filter(i => i.category === filter);
+            renderGrid(itemsToShow);
+        }
+
         function filterMenu(catId, btnElement) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
+            // Se o btnElement for null (chamada manual), tenta pegar o botão "Todos" ou o correspondente
+            if (btnElement) {
+                btnElement.classList.add('active');
+            } else {
+                // Fallback visual opcional
+            }
             renderMenu(catId);
         }
 
