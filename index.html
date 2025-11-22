@@ -161,7 +161,8 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
-            margin-top: 30px;
+            margin-top: 15px;
+            margin-bottom: 30px;
         }
 
         .menu-item {
@@ -179,6 +180,16 @@
         .item-price { color: var(--primary); font-weight: 700; font-size: 18px; }
         .item-desc { font-size: 13px; color: var(--text-gray); margin-bottom: 15px; flex-grow: 1; }
         
+        /* Títulos de Seção */
+        .category-separator {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 24px;
+            color: var(--primary);
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+        }
+
         /* Botões de Ação (Adicionar e Qty) */
         .btn-container {
             margin-top: auto;
@@ -408,7 +419,7 @@
         </div>
     </div>
 
-    <!-- Modal Chef Bot IA (Agora Offline) -->
+    <!-- Modal Chef Bot IA (Offline) -->
     <div class="modal-overlay" id="chef-bot-modal">
         <div class="modal-content" style="height: 80vh;">
             <div class="modal-header">
@@ -528,17 +539,63 @@
                 container.innerHTML = `<div style="text-align: center; padding: 40px; color: #aaa;"><i class="fas fa-search" style="font-size: 40px; margin-bottom: 10px;"></i><p>Nenhum produto encontrado para "${searchTerm}"</p></div>`;
                 return;
             }
-            container.innerHTML = `<div class="menu-grid">${items.map(item => {
-                const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
-                return `<div class="menu-item"><div class="item-content"><div class="item-header"><span class="item-title">${item.name}</span><span class="item-price">${priceDisplay}</span></div><p class="item-desc">${item.desc}</p><div class="btn-container" id="btn-container-${item.id}">${getButtonHtml(item.id)}</div></div></div>`
-            }).join('')}</div>`;
+            container.innerHTML = `<div class="menu-grid">${items.map(item => createItemCard(item)).join('')}</div>`;
         }
 
+        // Nova função auxiliar para criar o card do produto (evita repetição)
+        function createItemCard(item) {
+             const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
+             return `
+                <div class="menu-item">
+                    <div class="item-content">
+                        <div class="item-header">
+                            <span class="item-title">${item.name}</span>
+                            <span class="item-price">${priceDisplay}</span>
+                        </div>
+                        <p class="item-desc">${item.desc}</p>
+                        <div class="btn-container" id="btn-container-${item.id}">
+                            ${getButtonHtml(item.id)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Função Modificada: Renderiza por Categoria com Títulos se for 'all'
         function renderMenu(filter = 'all') {
             document.getElementById('search-input').value = '';
             document.getElementById('search-helper').classList.add('hidden');
-            const itemsToShow = filter === 'all' ? menuData : menuData.filter(i => i.category === filter);
-            renderGrid(itemsToShow);
+            
+            const container = document.getElementById('menu-container');
+            container.innerHTML = ''; // Limpa tudo
+
+            if (filter === 'all') {
+                // Modo Todos: Itera categorias e cria seções
+                categories.forEach(cat => {
+                    const items = menuData.filter(i => i.category === cat.id);
+                    
+                    if (items.length > 0) {
+                        // Cria título da seção
+                        const title = document.createElement('h3');
+                        title.className = 'brand-font category-separator';
+                        title.innerText = cat.label;
+                        container.appendChild(title);
+
+                        // Cria grid
+                        const grid = document.createElement('div');
+                        grid.className = 'menu-grid';
+                        grid.innerHTML = items.map(item => createItemCard(item)).join('');
+                        container.appendChild(grid);
+                    }
+                });
+            } else {
+                // Modo Filtrado: Mostra apenas a grid
+                const items = menuData.filter(i => i.category === filter);
+                const grid = document.createElement('div');
+                grid.className = 'menu-grid';
+                grid.innerHTML = items.map(item => createItemCard(item)).join('');
+                container.appendChild(grid);
+            }
         }
 
         function filterMenu(catId, btnElement) {
