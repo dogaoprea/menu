@@ -335,9 +335,6 @@
     <header>
         <div class="container nav-flex">
             <div class="logo brand-font">DOGÃO PREÁ</div>
-            <div class="header-actions">
-                <button class="icon-btn" onclick="toggleSettings()"><i class="fas fa-cog"></i></button>
-            </div>
         </div>
     </header>
 
@@ -348,8 +345,8 @@
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" class="search-input" id="search-input" placeholder="O que procuras hoje?" oninput="searchProducts(this.value)">
             </div>
-            <button class="ai-btn" onclick="toggleChefBot()" title="Falar com Chef Dogão IA">
-                <i class="fas fa-sparkles"></i>
+            <button class="ai-btn" onclick="toggleChefBot()" title="Falar com Chef Dogão">
+                <i class="fas fa-comment-dots"></i>
             </button>
         </div>
         <!-- Aviso de Busca (Dinâmico) -->
@@ -411,23 +408,7 @@
         </div>
     </div>
 
-    <!-- Modal Configurações -->
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal-content" style="height: auto; min-height: 40vh;">
-            <div class="modal-header">
-                <h2 class="brand-font">Configurações</h2>
-                <button class="close-modal" onclick="toggleSettings()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Gemini API Key (Opcional)</label>
-                <input type="password" id="gemini-key" class="form-input" placeholder="Chave manual (se necessária)">
-                <small style="color: #666; display: block; margin-top: 5px;">O sistema usa a chave padrão automaticamente.</small>
-            </div>
-            <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%;">SALVAR</button>
-        </div>
-    </div>
-
-    <!-- Modal Chef Bot IA -->
+    <!-- Modal Chef Bot IA (Agora Offline) -->
     <div class="modal-overlay" id="chef-bot-modal">
         <div class="modal-content" style="height: 80vh;">
             <div class="modal-header">
@@ -435,11 +416,11 @@
                 <button class="close-modal" onclick="toggleChefBot()"><i class="fas fa-times"></i></button>
             </div>
             <div class="chat-messages" id="chat-messages">
-                <div class="message bot">Olá! Sou o Chef Dogão 🤖. Não sabes o que pedir? Diz-me o tamanho da tua fome ou o que gostas de comer! 🍔</div>
+                <div class="message bot">Olá! Sou o Chef Dogão 🤖. Não sabes o que pedir? Diz-me se tens muita fome ou diz "Cardápio" para ver opções! 🍔</div>
             </div>
             <div class="typing-indicator" id="typing-indicator">Chef Dogão está a pensar...</div>
             <div class="input-area">
-                <input type="text" id="chat-input" class="form-input" placeholder="Ex: Tenho 20 reais e muita fome..." onkeypress="handleChatKey(event)">
+                <input type="text" id="chat-input" class="form-input" placeholder="Ex: Quero algo com bacon..." onkeypress="handleChatKey(event)">
                 <button class="chat-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
@@ -495,14 +476,10 @@
         ];
 
         let cart = [];
-        const apiKey = ""; // A plataforma injeta a chave automaticamente se estiver vazio
 
         window.onload = () => {
             renderCategories();
             renderMenu();
-            // Load saved key (opcional)
-            const savedKey = localStorage.getItem('dogao_gemini_key');
-            if(savedKey) document.getElementById('gemini-key').value = savedKey;
         };
 
         function renderCategories() {
@@ -625,10 +602,6 @@
             document.getElementById('cart-modal').classList.toggle('open');
         }
         
-        function toggleSettings() {
-            document.getElementById('settings-modal').classList.toggle('open');
-        }
-
         function toggleChefBot() {
             document.getElementById('chef-bot-modal').classList.toggle('open');
         }
@@ -637,13 +610,6 @@
             const el = document.getElementById('address-section');
             if (show) el.classList.remove('hidden');
             else el.classList.add('hidden');
-        }
-
-        function saveSettings() {
-            const key = document.getElementById('gemini-key').value;
-            localStorage.setItem('dogao_gemini_key', key);
-            toggleSettings();
-            alert('Chave API guardada!');
         }
 
         function getLocation() {
@@ -711,54 +677,74 @@
             window.open(url, '_blank');
         }
 
-        /* --- LÓGICA GEMINI API --- */
+        /* --- LÓGICA DO CHATBOT (REGRAS SIMPLES) --- */
         function handleChatKey(e) { if(e.key === 'Enter') sendMessage(); }
 
-        async function sendMessage() {
+        function sendMessage() {
             const input = document.getElementById('chat-input');
-            const msg = input.value.trim();
+            const msg = input.value.trim().toLowerCase();
             const messagesContainer = document.getElementById('chat-messages');
-            // Usa chave local ou deixa vazio para o ambiente injetar
-            const keyToUse = localStorage.getItem('dogao_gemini_key') || apiKey;
 
             if (!msg) return;
 
-            // Add User Message
-            messagesContainer.innerHTML += `<div class="message user">${msg}</div>`;
+            // Adiciona mensagem do usuário
+            messagesContainer.innerHTML += `<div class="message user">${input.value}</div>`;
             input.value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // Show Typing
+            // Mostra indicador de digitação
             document.getElementById('typing-indicator').style.display = 'block';
 
-            try {
-                const menuContext = JSON.stringify(menuData.map(i => ({name: i.name, desc: i.desc, price: i.price})));
-                const systemPrompt = `Tu és o Chef Dogão, um assistente virtual muito engraçado, informal e com sotaque brasileiro (nordestino leve) da lanchonete 'Dogão Preá'. O teu objetivo é sugerir itens do menu com base na fome ou gosto do cliente. O menu é: ${menuContext}. Sê breve, usa emojis e sugere sempre algo específico. Se o cliente falar de valores, respeita os preços.`;
-
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${keyToUse}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Cliente disse: "${msg}". O que respondes?` }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] }
-                    })
-                });
-
-                if (!response.ok) throw new Error(response.statusText);
-
-                const data = await response.json();
-                const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpa, a cozinha está uma loucura! Não entendi.";
+            // Simula delay de processamento
+            setTimeout(() => {
+                let responseText = "";
                 
-                // Add AI Message
-                messagesContainer.innerHTML += `<div class="message bot">${aiText}</div>`;
+                // Lógica de respostas predefinidas
+                if (msg.includes('oi') || msg.includes('olá') || msg.includes('ola')) {
+                    responseText = "Olá! 👋 Eu sou o Chef Dogão. Diz-me o que queres comer hoje! Tenho sanduíches, hot-dogs, pastéis e muito mais!";
+                } 
+                else if (msg.includes('fome') || msg.includes('grande') || msg.includes('gigante')) {
+                    // Sugere os maiores itens
+                    const bigItems = menuData.filter(i => i.name.includes('X-Tudo') || i.name.includes('Dogão') || i.name.includes('Lanchão'));
+                    const item = bigItems[Math.floor(Math.random() * bigItems.length)];
+                    responseText = `Se a fome é grande, encara um **${item.name}**! 💪 Custa só R$ ${item.price.toFixed(2).replace('.',',')}.`;
+                }
+                else if (msg.includes('bacon')) {
+                    const baconItems = menuData.filter(i => i.name.toLowerCase().includes('bacon') || i.desc.toLowerCase().includes('bacon'));
+                    const item = baconItems[Math.floor(Math.random() * baconItems.length)];
+                    responseText = `Hummm... bacon é vida! 🥓 Que tal um **${item.name}**? (${item.desc})`;
+                }
+                else if (msg.includes('frango')) {
+                    const chickenItems = menuData.filter(i => i.name.toLowerCase().includes('frango') || i.desc.toLowerCase().includes('frango'));
+                    const item = chickenItems[Math.floor(Math.random() * chickenItems.length)];
+                    responseText = `Para quem curte frango, o **${item.name}** é top! 🍗`;
+                }
+                else if (msg.includes('barato') || msg.includes('econômico') || msg.includes('10')) {
+                    const cheapItems = menuData.filter(i => i.price <= 10 && i.price > 0);
+                    const item = cheapItems[Math.floor(Math.random() * cheapItems.length)];
+                    responseText = `Temos opções ótimas para o bolso! O **${item.name}** sai por apenas R$ ${item.price.toFixed(2).replace('.',',')}. 🤑`;
+                }
+                else if (msg.includes('beber') || msg.includes('sede') || msg.includes('refri') || msg.includes('suco')) {
+                    responseText = "Para beber temos Sucos Naturais e Refrigerantes (Lata até 2L). 🥤 Vai querer um geladinho?";
+                }
+                else if (msg.includes('pastel') || msg.includes('pastéis')) {
+                    responseText = "Os nossos pastéis são fritinhos na hora! Temos de Carne, Queijo, Misto e Frango. 🥟";
+                }
+                else if (msg.includes('cardápio') || msg.includes('menu')) {
+                    responseText = "Podes ver todo o cardápio deslizando a tela! Temos Sanduíches, Hot-dogs, Pastéis e Bebidas. O que te apetece? 😋";
+                }
+                else {
+                    // Resposta genérica sugerindo algo aleatório
+                    const randomItem = menuData[Math.floor(Math.random() * menuData.length)];
+                    responseText = `Não tenho certeza se entendi, mas aposto que ias adorar um **${randomItem.name}**! 😍`;
+                }
 
-            } catch (error) {
-                console.error(error);
-                messagesContainer.innerHTML += `<div class="message bot" style="color: #ff4444;">Ocorreu um erro. Se estiveres a usar o app fora da plataforma, verifica a chave API nas configurações.</div>`;
-            } finally {
+                // Adiciona resposta do bot
+                messagesContainer.innerHTML += `<div class="message bot">${responseText}</div>`;
                 document.getElementById('typing-indicator').style.display = 'none';
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
+
+            }, 1000);
         }
     </script>
 </body>
