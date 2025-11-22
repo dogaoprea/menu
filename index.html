@@ -192,6 +192,19 @@
         .geo-status { font-size: 12px; color: #aaa; margin-top: 5px; text-align: center; }
         .geo-success { color: var(--whatsapp); }
 
+        .delivery-fee-notice {
+            background-color: rgba(255, 159, 28, 0.15);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .cart-total { font-size: 24px; color: var(--primary); text-align: right; margin: 20px 0; border-top: 1px solid #333; padding-top: 15px; }
         
         .btn-whatsapp { width: 100%; background: var(--whatsapp); color: #fff; padding: 15px; border-radius: 10px; font-size: 18px; }
@@ -271,6 +284,13 @@
 
                 <!-- Campo de Endereço (Condicional) -->
                 <div id="address-section" class="form-group hidden">
+                    
+                    <!-- Novo aviso de Taxa de Entrega -->
+                    <div class="delivery-fee-notice">
+                        <i class="fas fa-info-circle"></i>
+                        <span>A taxa de entrega será calculada e informada no WhatsApp após o envio do pedido.</span>
+                    </div>
+
                     <label class="form-label">Localização*</label>
                     <button type="button" class="geo-btn" onclick="getLocation()">
                         <i class="fas fa-map-marker-alt"></i> Usar Localização Atual (GPS)
@@ -300,21 +320,53 @@
     </div>
 
     <script>
-        // --- DADOS DO CARDÁPIO ---
+        // --- DADOS DO CARDÁPIO ATUALIZADOS (Baseado no PDF) ---
         const menuData = [
+            // Sanduíches Econômicos & Tradicionais
             { id: 1, name: "Queijo e Ovos", price: 10.00, category: "sanduiches", desc: "Pão, queijo e ovos." },
-            { id: 2, name: "Hambúrguer", price: 10.00, category: "sanduiches", desc: "Pão, carne e salada." },
-            { id: 3, name: "X-Burguer", price: 12.00, category: "sanduiches", desc: "Pão, carne e queijo." },
-            { id: 4, name: "X-Salada", price: 12.00, category: "sanduiches", desc: "Pão, carne, queijo e salada." },
-            { id: 5, name: "X-Tudo", price: 18.00, category: "especiais", desc: "O GIGANTE: Carne, frango, bacon, ovos..." },
-            { id: 6, name: "X-Bacon", price: 15.00, category: "especiais", desc: "Carne, queijo e muito bacon." },
-            { id: 7, name: "Dogão Pão Árabe", price: 18.00, category: "especiais", desc: "Pão árabe completo." },
-            { id: 8, name: "Hot-Dog Simples", price: 12.00, category: "hotdogs", desc: "Salsicha, molho, batata." },
-            { id: 9, name: "Hot-Scooby", price: 14.00, category: "hotdogs", desc: "2 Salsichas e queijo." },
-            { id: 10, name: "Pastel Carne", price: 12.00, category: "pasteis", desc: "Carne moída temperada." },
-            { id: 11, name: "Pastel Queijo", price: 10.00, category: "pasteis", desc: "Muito queijo derretido." },
-            { id: 12, name: "Fritas (P)", price: 15.00, category: "bebidas", desc: "Porção individual." },
-            { id: 13, name: "Coca-Cola Lata", price: 5.00, category: "bebidas", desc: "350ml gelada." }
+            { id: 2, name: "Hambúrguer", price: 10.00, category: "sanduiches", desc: "Pão, carne de hambúrguer e salada." },
+            { id: 3, name: "Misto Quente", price: 10.00, category: "sanduiches", desc: "Pão, queijo e presunto." },
+            { id: 4, name: "X-Burguer", price: 12.00, category: "sanduiches", desc: "Pão, carne de hambúrguer e queijo." },
+            { id: 5, name: "Frango Simples", price: 12.00, category: "sanduiches", desc: "Pão, frango, queijo, salada e milho verde." },
+            { id: 6, name: "Calabresa Simples", price: 12.00, category: "sanduiches", desc: "Pão, calabresa, queijo e salada." },
+            { id: 7, name: "Americano", price: 12.00, category: "sanduiches", desc: "Pão, queijo, presunto, ovos e salada." },
+            { id: 8, name: "X-Salada", price: 12.00, category: "sanduiches", desc: "Pão, carne de hambúrguer, queijo e salada." },
+            
+            // Sanduíches Especiais
+            { id: 9, name: "Baurú", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, presunto e salada." },
+            { id: 10, name: "X-Egg", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, ovos e salada." },
+            { id: 11, name: "X-Calabresa", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, calabresa e salada." },
+            { id: 12, name: "X-Frango", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, frango e salada." },
+            { id: 13, name: "X-Bacon", price: 15.00, category: "sanduiches", desc: "Pão, carne, queijo, bacon e salada." },
+            { id: 14, name: "X-Frango Bacon", price: 15.00, category: "sanduiches", desc: "Pão, carne, queijo, frango, bacon e salada." },
+            
+            // Gigantes / Pão Árabe
+            { id: 15, name: "X-Tudo", price: 18.00, category: "especiais", desc: "Pão, carne, queijo, frango, presunto, ovos, bacon e salada." },
+            { id: 16, name: "Sandubob", price: 16.00, category: "especiais", desc: "Pão árabe, 2 carnes, queijo, ovos e salada." },
+            { id: 17, name: "Dogão (Pão Árabe)", price: 18.00, category: "especiais", desc: "Pão árabe, carne caseira, queijo, frango, bacon, calabresa, salada." },
+            { id: 18, name: "Lanchão (Pão Árabe)", price: 18.00, category: "especiais", desc: "Pão árabe, carne, queijo, frango, ovos, bacon, salada." },
+
+            // Hot Dogs
+            { id: 19, name: "Hot-Dog Simples", price: 12.00, category: "hotdogs", desc: "Pão, molho carne, salsicha, salada, batata, milho." },
+            { id: 20, name: "Hot-Scooby", price: 14.00, category: "hotdogs", desc: "Pão, molho carne, 2 salsichas, salada, batata, milho, queijo." },
+
+            // Pastéis (Divididos por tamanho)
+            { id: 21, name: "Pastel Misto (P)", price: 10.00, category: "pasteis", desc: "Tamanho Pequeno." },
+            { id: 22, name: "Pastel Misto (G)", price: 12.00, category: "pasteis", desc: "Tamanho Grande." },
+            { id: 23, name: "Pastel Queijo (P)", price: 10.00, category: "pasteis", desc: "Tamanho Pequeno." },
+            { id: 24, name: "Pastel Queijo (G)", price: 12.00, category: "pasteis", desc: "Tamanho Grande." },
+            { id: 25, name: "Pastel Carne (P)", price: 12.00, category: "pasteis", desc: "Tamanho Pequeno." },
+            { id: 26, name: "Pastel Carne (G)", price: 14.00, category: "pasteis", desc: "Tamanho Grande." },
+            { id: 27, name: "Pastel Frango/Queijo (P)", price: 12.00, category: "pasteis", desc: "Tamanho Pequeno." },
+            { id: 28, name: "Pastel Frango/Queijo (G)", price: 14.00, category: "pasteis", desc: "Tamanho Grande." },
+
+            // Batatas & Bebidas (Extras)
+            { id: 29, name: "Batata Frita (P)", price: 15.00, category: "bebidas", desc: "Porção Pequena." },
+            { id: 30, name: "Batata Frita (G)", price: 20.00, category: "bebidas", desc: "Porção Grande." },
+            { id: 31, name: "Batata Recheada", price: 35.00, category: "bebidas", desc: "Batata frita, bacon e calabresa." },
+            // Bebidas com valor a consultar (Preço 0.00 para lógica)
+            { id: 32, name: "Sucos Naturais", price: 0.00, category: "bebidas", desc: "Valores a consultar." },
+            { id: 33, name: "Refrigerantes", price: 0.00, category: "bebidas", desc: "Lata, 1L, 1.5L e 2L. Valores a consultar." }
         ];
 
         const categories = [
@@ -322,7 +374,7 @@
             { id: 'especiais', label: 'Especiais' },
             { id: 'hotdogs', label: 'Hot Dogs' },
             { id: 'pasteis', label: 'Pastéis' },
-            { id: 'bebidas', label: 'Bebidas' }
+            { id: 'bebidas', label: 'Acompanhamentos' }
         ];
 
         // --- ESTADO DO APP ---
@@ -348,12 +400,15 @@
             
             container.innerHTML = `
                 <div class="menu-grid">
-                    ${itemsToShow.map(item => `
+                    ${itemsToShow.map(item => {
+                        // Lógica para exibir "Consultar" se preço for 0
+                        const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
+                        return `
                         <div class="menu-item">
                             <div class="item-content">
                                 <div class="item-header">
                                     <span class="item-title">${item.name}</span>
-                                    <span class="item-price">R$ ${item.price.toFixed(2).replace('.',',')}</span>
+                                    <span class="item-price">${priceDisplay}</span>
                                 </div>
                                 <p class="item-desc">${item.desc}</p>
                                 <button class="btn add-btn" onclick="addToCart(${item.id})">
@@ -361,7 +416,7 @@
                                 </button>
                             </div>
                         </div>
-                    `).join('')}
+                    `}).join('')}
                 </div>
             `;
         }
@@ -414,7 +469,6 @@
             } else {
                 floatBtn.classList.add('hidden');
                 document.getElementById('checkout-form').style.display = 'none';
-                // Se estiver vazio e modal aberto, pode fechar ou mostrar msg vazio
             }
 
             // Atualiza Lista no Modal
@@ -422,11 +476,13 @@
             if (cart.length === 0) {
                 list.innerHTML = '<p style="text-align: center; color: #666; margin: 20px;">Carrinho vazio...</p>';
             } else {
-                list.innerHTML = cart.map(item => `
+                list.innerHTML = cart.map(item => {
+                    const itemTotal = item.price > 0 ? `R$ ${(item.price * item.qty).toFixed(2).replace('.',',')}` : "A Consultar";
+                    return `
                     <div class="cart-item-row">
                         <div class="cart-item-info">
                             <h4>${item.name}</h4>
-                            <span>R$ ${(item.price * item.qty).toFixed(2).replace('.',',')}</span>
+                            <span>${itemTotal}</span>
                         </div>
                         <div class="qty-controls">
                             <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
@@ -434,10 +490,10 @@
                             <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
             }
             
-            document.getElementById('modal-total').innerText = `Total: R$ ${totalPrice.toFixed(2).replace('.',',')}`;
+            document.getElementById('modal-total').innerText = `Total Estimado: R$ ${totalPrice.toFixed(2).replace('.',',')}`;
         }
 
         function toggleCart() {
@@ -507,15 +563,24 @@
             msg += `💰 *Pagamento:* ${payment}\n\n`;
             
             msg += `*ITENS:*\n`;
+            let hasConsultItem = false;
+
             cart.forEach(item => {
-                msg += `${item.qty}x ${item.name} (R$ ${(item.price * item.qty).toFixed(2)})\n`;
+                const priceTxt = item.price > 0 ? `(R$ ${(item.price * item.qty).toFixed(2)})` : "(Consultar)";
+                msg += `${item.qty}x ${item.name} ${priceTxt}\n`;
+                if(item.price === 0) hasConsultItem = true;
             });
 
             const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
-            msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
+            msg += `\n*TOTAL ESTIMADO: R$ ${total.toFixed(2).replace('.',',')}*`;
+            
+            if(hasConsultItem) {
+                msg += `\n⚠️ _Contém itens a consultar valor._`;
+            }
             
             if (addressMsg) {
                 msg += `\n\n*LOCAL DE ENTREGA:*${addressMsg}`;
+                msg += `\n⚠️ _Taxa de entrega a calcular._`;
             }
 
             // Enviar
