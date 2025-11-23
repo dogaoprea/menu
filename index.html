@@ -438,6 +438,14 @@
             display: flex; align-items: center; gap: 10px;
         }
 
+        /* Novo estilo para o aviso de tempo */
+        .delivery-time-notice {
+            background-color: rgba(37, 211, 102, 0.1); /* Tom esverdeado/whatsapp */
+            border-left: 3px solid var(--whatsapp); color: var(--text-main);
+            padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 10px;
+        }
+
         .cart-total { font-size: 22px; color: var(--primary); text-align: right; margin: 20px 0; border-top: 1px dashed var(--border-color); padding-top: 15px; font-weight: 800; }
         
         /* Botão de WhatsApp com Contorno e Sombra Reforçados */
@@ -682,6 +690,13 @@
                         <i class="fas fa-info-circle" style="font-size: 20px;"></i>
                         <span>A taxa de entrega será calculada no WhatsApp.</span>
                     </div>
+                    
+                    <!-- Novo Informe de Tempo de Entrega -->
+                    <div class="delivery-time-notice">
+                        <i class="fas fa-clock" style="font-size: 20px; color: var(--whatsapp);"></i>
+                        <span><strong>Previsão: 30 a 60 min.</strong><br>Tentaremos entregar o quanto antes! 🚀</span>
+                    </div>
+
                     <label class="form-label">Endereço</label>
                     <button type="button" class="geo-btn" onclick="getLocation()">
                         <i class="fas fa-map-marker-alt"></i> Usar Localização Atual
@@ -707,11 +722,19 @@
                     </select>
                 </div>
 
-                <!-- Aviso PIX (Visível por padrão pois PIX é a 1ª opção) -->
+                <!-- Aviso PIX -->
                 <div id="pix-section" class="form-group">
                     <div class="delivery-fee-notice" style="background-color: rgba(37, 211, 102, 0.1); border-color: var(--whatsapp); color: var(--text-main);">
                         <i class="fas fa-qrcode" style="font-size: 24px; color: var(--whatsapp);"></i>
                         <span style="font-size: 12px; line-height: 1.4;">A chave PIX será enviada no WhatsApp após conferência do valor. <br><strong>O envio/retirada depende do comprovante.</strong></span>
+                    </div>
+                </div>
+
+                <!-- Aviso Taxa Cartão (NOVO) -->
+                <div id="card-fee-section" class="form-group hidden">
+                    <div class="delivery-fee-notice" style="background-color: rgba(59, 130, 246, 0.1); border-color: #60a5fa; color: var(--text-main);">
+                        <i class="fas fa-credit-card" style="font-size: 24px; color: #60a5fa;"></i>
+                        <span style="font-size: 12px; line-height: 1.4;">ℹ️ <strong>Tarifa de Cartão:</strong> Há uma pequena tarifa de processamento para pagamentos com cartão. O valor será acrescido ao total após o envio do pedido pelo WhatsApp.</span>
                     </div>
                 </div>
 
@@ -1040,16 +1063,20 @@
         function togglePaymentInfo(value) {
             const changeSection = document.getElementById('change-section');
             const pixSection = document.getElementById('pix-section');
+            const cardSection = document.getElementById('card-fee-section');
             
             // Esconde tudo primeiro
             changeSection.classList.add('hidden');
             pixSection.classList.add('hidden');
+            cardSection.classList.add('hidden');
 
             // Mostra o relevante
             if (value === 'Dinheiro') {
                 changeSection.classList.remove('hidden');
             } else if (value === 'PIX') {
                 pixSection.classList.remove('hidden');
+            } else if (value === 'Cartão de Crédito' || value === 'Cartão de Débito') {
+                cardSection.classList.remove('hidden');
             }
         }
 
