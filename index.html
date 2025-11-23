@@ -104,6 +104,7 @@
         .btn { cursor: pointer; border: none; outline: none; transition: 0.2s; font-weight: 700; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary { background-color: var(--primary); color: #000; padding: 12px 25px; }
         .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
+        .hidden { display: none !important; }
         
         /* --- HEADER COMPACTO --- */
         header {
@@ -687,18 +688,25 @@
                 <!-- Novo Campo de Observações -->
                 <div class="form-group">
                     <label class="form-label">Observações</label>
-                    <textarea id="order-observations" class="form-input" rows="2" placeholder="Ex: Sem cebola, capricha no molho, troco para 50..."></textarea>
+                    <textarea id="order-observations" class="form-input" rows="2" placeholder="Ex: Sem cebola, capricha no molho..."></textarea>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Pagamento</label>
-                    <select id="payment-method" class="form-select">
+                    <select id="payment-method" class="form-select" onchange="toggleChangeField(this.value)">
                         <option value="PIX">PIX (Agilidade)</option>
                         <option value="Cartão de Crédito">Cartão de Crédito</option>
                         <option value="Cartão de Débito">Cartão de Débito</option>
-                        <option value="Dinheiro">Dinheiro (Precisa de troco?)</option>
+                        <option value="Dinheiro">Dinheiro</option>
                     </select>
                 </div>
+
+                <!-- Campo de Troco Dinâmico -->
+                <div id="change-section" class="form-group hidden">
+                    <label class="form-label">Troco para quanto?</label>
+                    <input type="text" id="change-amount" class="form-input" placeholder="Ex: 50,00">
+                </div>
+
                 <button class="btn btn-whatsapp" onclick="finalizeOrder()">
                     <i class="fab fa-whatsapp"></i> ENVIAR PEDIDO NO WHATSAPP
                 </button>
@@ -996,6 +1004,15 @@
             if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
         }
 
+        function toggleChangeField(value) {
+            const changeSection = document.getElementById('change-section');
+            if (value === 'Dinheiro') {
+                changeSection.classList.remove('hidden');
+            } else {
+                changeSection.classList.add('hidden');
+            }
+        }
+
         function getLocation() {
             const status = document.getElementById('geo-status');
             const mapsInput = document.getElementById('maps-link');
@@ -1022,6 +1039,7 @@
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
             const payment = document.getElementById('payment-method').value;
             const observations = document.getElementById('order-observations').value; // Captura observação
+            const changeAmount = document.getElementById('change-amount').value;
             
             if (!name) return alert("Por favor, digite seu nome.");
             if (!typeRadio) return alert("Escolha o tipo de entrega.");
@@ -1039,8 +1057,13 @@
             let msg = `*NOVO PEDIDO - DOGÃO PREÁ*\n----------------------------\n`;
             msg += `👤 *Cliente:* ${name}\n`;
             msg += `📦 *Tipo:* ${type}\n`;
-            msg += `💰 *Pagamento:* ${payment}\n\n`;
-            msg += `*ITENS:*\n`;
+            msg += `💰 *Pagamento:* ${payment}\n`;
+
+            if (payment === 'Dinheiro' && changeAmount) {
+                msg += `💵 *Troco para:* R$ ${changeAmount}\n`;
+            }
+
+            msg += `\n*ITENS:*\n`;
             
             let hasConsultItem = false;
             cart.forEach(item => {
