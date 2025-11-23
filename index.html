@@ -30,7 +30,7 @@
             --bg-body: #0f0f0f;
             --bg-card: #1a1a1a;
             --bg-element: #252525;
-            --bg-header: rgba(15, 15, 15, 0.85);
+            --bg-header: rgba(15, 15, 15, 0.95); /* Header um pouco mais opaco */
             --text-main: #ffffff;
             --text-muted: #a0a0a0;
             --border-color: #333;
@@ -44,7 +44,7 @@
             --bg-body: #f0f2f5;
             --bg-card: #ffffff;
             --bg-element: #e4e6eb;
-            --bg-header: rgba(255, 255, 255, 0.85);
+            --bg-header: rgba(255, 255, 255, 0.95);
             --text-main: #1c1e21;
             --text-muted: #65676b;
             --border-color: #e4e6eb;
@@ -59,7 +59,7 @@
                 --bg-body: #f0f2f5;
                 --bg-card: #ffffff;
                 --bg-element: #e4e6eb;
-                --bg-header: rgba(255, 255, 255, 0.85);
+                --bg-header: rgba(255, 255, 255, 0.95);
                 --text-main: #1c1e21;
                 --text-muted: #65676b;
                 --border-color: #e4e6eb;
@@ -99,14 +99,8 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 159, 28, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 159, 28, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 159, 28, 0); }
-        }
-
         /* --- UTILITARIOS --- */
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; } /* Padding reduzido */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
         .btn { cursor: pointer; border: none; outline: none; transition: 0.2s; font-weight: 700; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary { background-color: var(--primary); color: #000; padding: 12px 25px; }
         .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
@@ -121,18 +115,18 @@
             top: 0;
             z-index: 100;
             border-bottom: var(--glass-border);
-            padding: 10px 0; /* Padding reduzido */
+            padding: 10px 0;
             transition: background-color 0.3s, border-color 0.3s;
         }
         .nav-flex { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); } /* Fonte logo reduzida */
+        .logo { font-size: 24px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); }
         
         .header-actions { display: flex; gap: 10px; }
         .icon-btn { 
             background: var(--bg-element); 
             color: var(--text-main); 
             border: none; 
-            width: 36px; height: 36px; /* Botão menor */
+            width: 36px; height: 36px; 
             border-radius: 50%; 
             cursor: pointer; 
             display: flex; align-items: center; justify-content: center; 
@@ -150,9 +144,9 @@
         .search-box {
             width: 100%;
             background-color: var(--bg-element);
-            border: 1px solid transparent; /* Borda mais fina */
+            border: 1px solid transparent;
             border-radius: 12px;
-            padding: 10px 15px; /* Padding reduzido */
+            padding: 10px 15px;
             color: var(--text-main);
             font-size: 14px;
             display: flex;
@@ -199,8 +193,8 @@
             color: #fff;
             border: none;
             border-radius: 12px;
-            width: 44px; /* Menor */
-            height: 44px; /* Menor */
+            width: 44px;
+            height: 44px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -213,46 +207,67 @@
         .ai-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(118, 75, 162, 0.6); }
         .ai-btn:active { transform: scale(0.95); }
 
-        /* --- CATEGORIAS COMPACTAS --- */
+        /* --- CATEGORIAS MULTILINHA (SEM ROLAGEM) --- */
         .category-nav {
             position: sticky;
-            top: 60px; /* Ajustado para header menor */
+            top: 60px;
             background-color: var(--bg-body);
             z-index: 90;
-            padding: 8px 0;
-            overflow-x: auto;
-            white-space: nowrap;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
             transition: background-color 0.3s;
-            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
         }
-        .category-list { display: flex; gap: 8px; padding: 2px 15px; list-style: none; }
+        
+        .category-list { 
+            display: flex; 
+            flex-wrap: wrap; /* Permite quebra de linha */
+            justify-content: center; /* Centraliza os botões */
+            gap: 8px; 
+            padding: 0 5px; 
+            list-style: none; 
+        }
+
         .cat-btn {
             background: var(--bg-element); 
             border: 1px solid transparent; 
             color: var(--text-muted);
-            padding: 6px 16px; /* Mais compacto */
-            border-radius: 20px; 
-            font-size: 13px; 
+            padding: 8px 14px; /* Ajuste fino para caber melhor */
+            border-radius: 12px; /* Um pouco menos arredondado para encaixar melhor em grade */
+            font-size: 12px; 
             font-weight: 600;
             transition: all 0.3s;
             white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-grow: 1; /* Botões ocupam espaço disponível */
+            justify-content: center;
+            min-width: auto; /* Remove largura mínima fixa */
         }
+        
+        /* Ajuste para telas muito pequenas */
+        @media (max-width: 360px) {
+            .cat-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+        }
+
         .cat-btn:hover { color: var(--text-main); background: var(--bg-card); }
-        .cat-btn.active { background: var(--primary); color: #000; box-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); transform: scale(1.02); }
+        .cat-btn.active { background: var(--primary); color: #000; box-shadow: 0 2px 8px rgba(255, 159, 28, 0.3); transform: scale(1.02); }
 
         /* --- GRID DE PRODUTOS COMPACTA --- */
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Cartões mais estreitos */
-            gap: 12px; /* Gap reduzido */
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
             margin-top: 15px;
             margin-bottom: 30px;
         }
 
         .menu-item {
             background-color: var(--bg-card);
-            border-radius: 12px; /* Raio menor */
+            border-radius: 12px;
             border: 1px solid var(--border-color);
             overflow: hidden;
             display: flex;
@@ -262,6 +277,7 @@
             animation: fadeInUp 0.5s ease-out forwards;
             opacity: 0;
         }
+        
         /* Stagger animation */
         .menu-item:nth-child(1) { animation-delay: 0.05s; }
         .menu-item:nth-child(2) { animation-delay: 0.1s; }
@@ -278,12 +294,12 @@
             content: '';
             position: absolute;
             left: 0; top: 0; bottom: 0;
-            width: 3px; /* Faixa mais fina */
+            width: 3px;
             background: var(--primary);
             opacity: 0.5;
         }
 
-        .item-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; } /* Padding reduzido */
+        .item-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
         .item-title { font-weight: 700; font-size: 16px; color: var(--text-main); line-height: 1.2; }
         .item-price { color: var(--primary); font-weight: 700; font-size: 16px; white-space: nowrap; margin-left: 8px; }
@@ -292,7 +308,7 @@
         .category-separator {
             margin-top: 25px;
             margin-bottom: 10px;
-            font-size: 22px; /* Título menor */
+            font-size: 22px;
             color: var(--text-main);
             display: flex;
             align-items: center;
@@ -306,7 +322,7 @@
         }
 
         /* Botões de Ação Compactos */
-        .btn-container { margin-top: auto; height: 36px; } /* Altura reduzida */
+        .btn-container { margin-top: auto; height: 36px; }
 
         .add-btn {
             width: 100%; height: 100%; background: var(--bg-element); color: var(--text-main); 
