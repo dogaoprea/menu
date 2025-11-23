@@ -81,6 +81,12 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
+        /* CLASSE PARA TRAVAR ROLAGEM */
+        body.no-scroll {
+            overflow: hidden;
+            height: 100vh;
+        }
+
         h1, h2, h3, .brand-font {
             font-family: 'Bebas Neue', sans-serif;
             text-transform: uppercase;
@@ -1005,8 +1011,26 @@
             document.getElementById('modal-total').innerText = `Total: R$ ${totalPrice.toFixed(2).replace('.',',')}`;
         }
 
-        function toggleCart() { document.getElementById('cart-modal').classList.toggle('open'); }
-        function toggleChefBot() { document.getElementById('chef-bot-modal').classList.toggle('open'); }
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            modal.classList.toggle('open');
+            if (modal.classList.contains('open')) {
+                document.body.classList.add('no-scroll');
+            } else {
+                document.body.classList.remove('no-scroll');
+            }
+        }
+
+        function toggleChefBot() {
+            const modal = document.getElementById('chef-bot-modal');
+            modal.classList.toggle('open');
+            if (modal.classList.contains('open')) {
+                document.body.classList.add('no-scroll');
+            } else {
+                document.body.classList.remove('no-scroll');
+            }
+        }
+
         function toggleAddressField(show) {
             const el = document.getElementById('address-section');
             if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
