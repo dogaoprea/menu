@@ -44,7 +44,7 @@
             --bg-body: #f0f2f5;
             --bg-card: #ffffff;
             --bg-element: #e4e6eb;
-            --bg-header: rgba(255, 255, 255, 0.95);
+            --bg-header: rgba(255, 255, 255, 0.85);
             --text-main: #1c1e21;
             --text-muted: #65676b;
             --border-color: #e4e6eb;
@@ -59,7 +59,7 @@
                 --bg-body: #f0f2f5;
                 --bg-card: #ffffff;
                 --bg-element: #e4e6eb;
-                --bg-header: rgba(255, 255, 255, 0.95);
+                --bg-header: rgba(255, 255, 255, 0.85);
                 --text-main: #1c1e21;
                 --text-muted: #65676b;
                 --border-color: #e4e6eb;
@@ -106,7 +106,7 @@
         .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
         .hidden { display: none !important; }
         
-        /* --- HEADER COMPACTO --- */
+        /* --- HEADER --- */
         header {
             background-color: var(--bg-header);
             backdrop-filter: blur(12px);
@@ -134,7 +134,7 @@
         }
         .icon-btn:hover { background: var(--primary); color: #000; }
 
-        /* --- BARRA DE BUSCA COMPACTA --- */
+        /* --- BARRA DE BUSCA --- */
         .search-container {
             margin-top: 15px;
             margin-bottom: 10px;
@@ -171,7 +171,6 @@
         }
         .search-icon { color: var(--text-muted); font-size: 14px; }
 
-        /* Aviso de busca */
         .search-helper {
             margin-top: 8px;
             background-color: var(--info-bg);
@@ -187,7 +186,6 @@
         }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Botão Mágico AI */
         .ai-btn {
             background: var(--ai-gradient);
             color: #fff;
@@ -207,7 +205,7 @@
         .ai-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(118, 75, 162, 0.6); }
         .ai-btn:active { transform: scale(0.95); }
 
-        /* --- CATEGORIAS MULTILINHA --- */
+        /* --- CATEGORIAS --- */
         .category-nav {
             position: sticky;
             top: 60px;
@@ -246,27 +244,24 @@
         }
         
         @media (max-width: 360px) {
-            .cat-btn {
-                padding: 6px 10px;
-                font-size: 11px;
-            }
+            .cat-btn { padding: 6px 10px; font-size: 11px; }
         }
 
         .cat-btn:hover { color: var(--text-main); background: var(--bg-card); }
         .cat-btn.active { background: var(--primary); color: #000; box-shadow: 0 2px 8px rgba(255, 159, 28, 0.3); transform: scale(1.02); }
 
-        /* --- GRID DE PRODUTOS COMPACTA --- */
+        /* --- GRID DE PRODUTOS --- */
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Cartões mais estreitos */
-            gap: 12px; /* Gap reduzido */
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
             margin-top: 15px;
             margin-bottom: 30px;
         }
 
         .menu-item {
             background-color: var(--bg-card);
-            border-radius: 12px; /* Raio menor */
+            border-radius: 12px;
             border: 1px solid var(--border-color);
             overflow: hidden;
             display: flex;
@@ -276,26 +271,14 @@
             animation: fadeInUp 0.5s ease-out forwards;
             opacity: 0;
         }
-        /* Stagger animation */
+        
         .menu-item:nth-child(1) { animation-delay: 0.05s; }
         .menu-item:nth-child(2) { animation-delay: 0.1s; }
         .menu-item:nth-child(3) { animation-delay: 0.15s; }
         .menu-item:nth-child(n+4) { animation-delay: 0.2s; }
 
-        .menu-item:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
-            border-color: var(--primary);
-        }
-
-        .menu-item::before {
-            content: '';
-            position: absolute;
-            left: 0; top: 0; bottom: 0;
-            width: 3px;
-            background: var(--primary);
-            opacity: 0.5;
-        }
+        .menu-item:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: var(--primary); }
+        .menu-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); opacity: 0.5; }
 
         .item-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
@@ -312,14 +295,8 @@
             align-items: center;
             gap: 10px;
         }
-        .category-separator::after {
-            content: '';
-            flex-grow: 1;
-            height: 1px;
-            background: var(--border-color);
-        }
+        .category-separator::after { content: ''; flex-grow: 1; height: 1px; background: var(--border-color); }
 
-        /* Botões de Ação Compactos */
         .btn-container { margin-top: auto; height: 36px; }
 
         .add-btn {
@@ -331,7 +308,6 @@
         }
         .add-btn:hover { background: var(--primary); color: #000; }
 
-        /* Botões de Quantidade no Grid */
         .qty-selector {
             display: flex; align-items: center; justify-content: space-between;
             background-color: var(--bg-element); border-radius: 8px;
@@ -347,6 +323,62 @@
         .qty-selector button:hover { color: var(--primary); }
         .qty-selector span { color: var(--primary); font-weight: 700; font-size: 15px; }
 
+        /* --- SUGESTÃO DE BEBIDAS NO CARRINHO --- */
+        .suggestion-box {
+            background: rgba(255, 159, 28, 0.1);
+            border: 1px dashed var(--primary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            animation: fadeInUp 0.3s ease;
+        }
+        .suggestion-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .suggestion-items {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            /* Scrollbar fina */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+        .suggestion-card {
+            background: var(--bg-element);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 110px; /* Cartões compactos */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .suggestion-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .suggestion-name { font-size: 12px; font-weight: 600; color: var(--text-main); line-height: 1.2; }
+        .suggestion-price { font-size: 12px; color: var(--primary); font-weight: 700; }
+        .suggestion-add-btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: auto;
+            width: 100%;
+        }
+
         /* --- CARRINHO FLUTUANTE --- */
         .floating-cart {
             position: fixed; bottom: 20px; right: 15px; left: 15px;
@@ -361,16 +393,11 @@
         }
         .floating-cart:active { transform: scale(0.95); }
         .cart-count { background: #000; color: var(--primary); padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-left: 8px; }
-        .hidden { display: none !important; }
-
-        @keyframes popUp { from { transform: translateY(100px); } to { transform: translateY(0); } }
-
+        
         /* --- MODAL --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); 
-            backdrop-filter: blur(5px);
-            z-index: 2000;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 2000;
             display: flex; justify-content: center; align-items: flex-end;
             opacity: 0; pointer-events: none; transition: 0.3s;
         }
@@ -382,13 +409,12 @@
             height: 90vh;
             border-radius: 20px 20px 0 0;
             padding: 20px;
-            /* Correção de Scroll e Padding extra */
             display: flex; flex-direction: column;
             transform: translateY(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto;
             color: var(--text-main);
             box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
-            padding-bottom: 100px; /* Espaço extra para teclado no mobile */
+            padding-bottom: 100px;
         }
         .modal-overlay.open .modal-content { transform: translateY(0); }
 
@@ -396,27 +422,18 @@
         .close-modal { background: var(--bg-element); border: none; color: var(--text-main); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 18px; }
         .close-modal:hover { background: var(--danger); color: white; }
 
-        /* --- CHECKOUT FORM & CART ITEMS --- */
+        /* --- CHECKOUT --- */
         .cart-items { margin-bottom: 20px; }
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--bg-element); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); }
         .cart-item-info h4 { font-size: 15px; color: var(--text-main); margin-bottom: 2px; }
         .cart-item-info span { font-size: 13px; color: var(--primary); font-weight: 700; }
         
-        /* --- BOTÕES DE QUANTIDADE DO CARRINHO --- */
         .qty-controls { display: flex; align-items: center; gap: 12px; }
         .qty-btn { 
-            background: var(--bg-body); 
-            color: var(--text-main); 
-            width: 36px; 
-            height: 36px; 
-            border-radius: 50%; 
-            border: 1px solid var(--border-color); 
-            cursor: pointer; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            font-size: 14px; 
-            transition: 0.2s;
+            background: var(--bg-body); color: var(--text-main); 
+            width: 36px; height: 36px; border-radius: 50%; 
+            border: 1px solid var(--border-color); cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; font-size: 14px; 
         }
         .qty-btn:active { transform: scale(0.9); background-color: var(--bg-element); }
         
@@ -441,857 +458,10 @@
         .radio-option label i { font-size: 18px; }
         .radio-option input:checked + label { background: rgba(255, 159, 28, 0.15); color: var(--primary); border-color: var(--primary); }
 
-        .geo-btn {
-            background: #25D366; color: #fff; width: 100%; margin-top: 10px;
-            border: none; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px;
-        }
+        .geo-btn { background: #25D366; color: #fff; width: 100%; margin-top: 10px; border: none; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; }
         .geo-status { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-align: center; }
 
-        .delivery-fee-notice {
-            background-color: rgba(255, 159, 28, 0.1);
-            border-left: 3px solid var(--primary); color: var(--text-main);
-            padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 10px;
-        }
+        .delivery-fee-notice { background-color: rgba(255, 159, 28, 0.1); border-left: 3px solid var(--primary); color: var(--text-main); padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .delivery-time-notice { background-color: rgba(37, 211, 102, 0.1); border-left: 3px solid var(--whatsapp); color: var(--text-main); padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
 
-        /* Novo estilo para o aviso de tempo */
-        .delivery-time-notice {
-            background-color: rgba(37, 211, 102, 0.1); /* Tom esverdeado/whatsapp */
-            border-left: 3px solid var(--whatsapp); color: var(--text-main);
-            padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 10px;
-        }
-
-        .cart-total { font-size: 22px; color: var(--primary); text-align: right; margin: 20px 0; border-top: 1px dashed var(--border-color); padding-top: 15px; font-weight: 800; }
-        
-        /* Botão de WhatsApp com Contorno e Sombra Reforçados */
-        .btn-whatsapp { 
-            width: 100%; 
-            background: var(--whatsapp); 
-            color: #fff; 
-            padding: 16px; 
-            border-radius: 12px; 
-            font-size: 18px; 
-            font-weight: 700; 
-            border: 2px solid rgba(255,255,255,0.1); /* Contorno sutil */
-            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3); 
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .btn-whatsapp:hover { 
-            transform: translateY(-2px); 
-            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5); 
-        }
-
-        /* Botão "Adicionar mais itens" (Outline Maior) */
-        .btn-outline {
-            width: 100%;
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--text-main);
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 700;
-            margin-top: 15px;
-            margin-bottom: 10px;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            font-size: 15px;
-            cursor: pointer;
-        }
-        .btn-outline:hover {
-            background: rgba(255, 159, 28, 0.1);
-            border-color: var(--primary-dark);
-        }
-
-        /* --- CHAT IA (ESTILO WHATSAPP/TELEGRAM) --- */
-        #chef-bot-modal .modal-content {
-            background: var(--bg-body);
-            padding: 0;
-            height: 85vh;
-        }
-        #chef-bot-modal .modal-header {
-            background: var(--bg-header);
-            padding: 15px;
-            margin-bottom: 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
-            background-size: 20px 20px; /* Pattern sutil */
-        }
-
-        .message { 
-            padding: 10px 14px; 
-            border-radius: 16px; 
-            max-width: 85%; 
-            font-size: 14px; 
-            line-height: 1.4; 
-            position: relative;
-            animation: fadeInUp 0.3s ease;
-        }
-        
-        .message.bot { 
-            background: var(--bg-element); 
-            color: var(--text-main); 
-            align-self: flex-start; 
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .message.user { 
-            background: var(--primary); 
-            color: #000; 
-            align-self: flex-end; 
-            border-bottom-right-radius: 4px;
-            font-weight: 500;
-            box-shadow: 0 2px 10px rgba(255, 159, 28, 0.3);
-        }
-
-        .typing-indicator { 
-            font-size: 11px; color: var(--text-muted); font-style: italic; 
-            margin-bottom: 10px; padding-left: 20px; display: none;
-        }
-
-        /* Quick Replies (Chips) */
-        .quick-replies {
-            display: flex;
-            gap: 8px;
-            padding: 10px 15px;
-            overflow-x: auto;
-            white-space: nowrap;
-            background: var(--bg-card);
-            border-top: 1px solid var(--border-color);
-        }
-        
-        .reply-chip {
-            background: transparent;
-            border: 1px solid var(--primary);
-            color: var(--primary);
-            padding: 6px 14px;
-            border-radius: 18px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .reply-chip:hover { background: var(--primary); color: #000; }
-
-        .input-area { 
-            display: flex; gap: 10px; padding: 12px; 
-            background: var(--bg-card); border-top: 1px solid var(--border-color); 
-        }
-        .chat-input { flex: 1; border-radius: 25px !important; }
-        .chat-btn { 
-            background: var(--ai-gradient); color: white; border: none; 
-            width: 44px; height: 44px; border-radius: 50%; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s;
-        }
-        .chat-btn:active { transform: scale(0.9); }
-
-    </style>
-</head>
-<body>
-
-    <!-- Header -->
-    <header>
-        <div class="container nav-flex">
-            <div class="logo brand-font">DOGÃO PREÁ</div>
-            <div class="header-actions">
-                <!-- Botão de Tema -->
-                <button class="icon-btn" onclick="toggleTheme()" title="Alternar Tema">
-                    <i class="fas fa-sun" id="theme-icon"></i>
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <div class="container">
-        <!-- Barra de Busca + Botão Mágico -->
-        <div class="search-container">
-            <div class="search-box">
-                <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input" id="search-input" placeholder="Pesquisar lanche..." oninput="searchProducts(this.value)">
-            </div>
-            <button class="ai-btn" onclick="toggleChefBot()" title="Falar com Chef Dogão">
-                <i class="fas fa-comment-dots"></i>
-            </button>
-        </div>
-        <!-- Aviso de Busca (Dinâmico - REINTRODUZIDO) -->
-        <div id="search-helper" class="search-helper hidden">
-            <i class="fas fa-info-circle"></i>
-            <span>Marcas e sabores serão combinados no WhatsApp após o pedido.</span>
-        </div>
-    </div>
-
-    <!-- Navegação Categorias -->
-    <nav class="category-nav">
-        <ul class="category-list" id="category-list">
-            <!-- Preenchido via JS -->
-        </ul>
-    </nav>
-
-    <!-- Conteúdo Principal -->
-    <div class="container">
-        <div id="menu-container">
-            <!-- Preenchido via JS -->
-        </div>
-    </div>
-
-    <!-- Botão Flutuante do Carrinho -->
-    <div id="floating-cart" class="floating-cart hidden" onclick="toggleCart()">
-        <span><i class="fas fa-shopping-bag"></i> Sacola <span id="cart-count" class="cart-count">0</span></span>
-        <span id="cart-total-float">R$ 0,00</span>
-    </div>
-
-    <!-- Modal de Checkout -->
-    <div class="modal-overlay" id="cart-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="brand-font">Finalizar Pedido</h2>
-                <button class="close-modal" onclick="toggleCart()"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="cart-items" class="cart-items"><p style="text-align: center; color: var(--text-muted); margin-top: 20px;">Sua sacola está vazia 😔</p></div>
-            
-            <!-- Botão para adicionar mais itens -->
-            <button id="btn-add-more" class="btn-outline" onclick="toggleCart()" style="display: none;">
-                <i class="fas fa-plus"></i> Adicionar mais itens
-            </button>
-
-            <div class="cart-total brand-font" id="modal-total">Total: R$ 0,00</div>
-            
-            <div id="checkout-form" style="display: none;">
-                <div class="form-group">
-                    <label class="form-label">Seu Nome</label>
-                    <input type="text" id="customer-name" class="form-input" placeholder="Como podemos te chamar?">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Tipo de pedido</label>
-                    <div class="radio-group">
-                        <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-delivery" value="Entrega" onchange="toggleAddressField(true)">
-                            <label for="type-delivery"><i class="fas fa-motorcycle"></i> Entrega</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-pickup" value="Retirada" onchange="toggleAddressField(false)">
-                            <label for="type-pickup"><i class="fas fa-box"></i> Retirada</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-eatin" value="Mesa" onchange="toggleAddressField(false)">
-                            <label for="type-eatin"><i class="fas fa-utensils"></i> Mesa</label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="address-section" class="form-group hidden">
-                    <div class="delivery-fee-notice">
-                        <i class="fas fa-info-circle" style="font-size: 20px;"></i>
-                        <span>A taxa de entrega será calculada no WhatsApp.</span>
-                    </div>
-                    
-                    <!-- Novo Informe de Tempo de Entrega -->
-                    <div class="delivery-time-notice">
-                        <i class="fas fa-clock" style="font-size: 20px; color: var(--whatsapp);"></i>
-                        <span><strong>Previsão: 30 a 60 min.</strong><br>Tentaremos entregar o quanto antes! 🚀</span>
-                    </div>
-
-                    <label class="form-label">Endereço</label>
-                    <button type="button" class="geo-btn" onclick="getLocation()">
-                        <i class="fas fa-map-marker-alt"></i> Usar Localização Atual
-                    </button>
-                    <div id="geo-status" class="geo-status"></div>
-                    <textarea id="address-text" class="form-input" rows="2" placeholder="Rua, Número, Bairro, Referência..." style="margin-top: 10px;"></textarea>
-                    <input type="hidden" id="maps-link">
-                </div>
-
-                <!-- Novo Campo de Observações -->
-                <div class="form-group">
-                    <label class="form-label">Observações</label>
-                    <textarea id="order-observations" class="form-input" rows="2" placeholder="Ex: Sem cebola, capricha no molho..."></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Pagamento</label>
-                    <div class="radio-group">
-                        <div class="radio-option">
-                            <input type="radio" name="paymentMethod" id="pay-pix" value="PIX" checked onchange="togglePaymentInfo('PIX')">
-                            <label for="pay-pix"><i class="fas fa-qrcode"></i> PIX</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="paymentMethod" id="pay-credit" value="Cartão de Crédito" onchange="togglePaymentInfo('Cartão de Crédito')">
-                            <label for="pay-credit"><i class="fas fa-credit-card"></i> Crédito</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="paymentMethod" id="pay-debit" value="Cartão de Débito" onchange="togglePaymentInfo('Cartão de Débito')">
-                            <label for="pay-debit"><i class="fas fa-credit-card"></i> Débito</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="paymentMethod" id="pay-cash" value="Dinheiro" onchange="togglePaymentInfo('Dinheiro')">
-                            <label for="pay-cash"><i class="fas fa-money-bill-wave"></i> Dinheiro</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Aviso PIX (Visível por padrão pois PIX é a 1ª opção) -->
-                <div id="pix-section" class="form-group">
-                    <div class="delivery-fee-notice" style="background-color: rgba(37, 211, 102, 0.1); border-color: var(--whatsapp); color: var(--text-main);">
-                        <i class="fas fa-qrcode" style="font-size: 24px; color: var(--whatsapp);"></i>
-                        <span style="font-size: 12px; line-height: 1.4;">A chave PIX será enviada no WhatsApp após conferência do valor. <br><strong>O envio/retirada depende do comprovante.</strong></span>
-                    </div>
-                </div>
-
-                <!-- Aviso Taxa Cartão (NOVO) -->
-                <div id="card-fee-section" class="form-group hidden">
-                    <div class="delivery-fee-notice" style="background-color: rgba(59, 130, 246, 0.1); border-color: #60a5fa; color: var(--text-main);">
-                        <i class="fas fa-credit-card" style="font-size: 24px; color: #60a5fa;"></i>
-                        <span style="font-size: 12px; line-height: 1.4;">ℹ️ <strong>Tarifa de Cartão:</strong> Há uma pequena tarifa de processamento para pagamentos com cartão. O valor será acrescido ao total após o envio do pedido pelo WhatsApp.</span>
-                    </div>
-                </div>
-
-                <!-- Campo de Troco Dinâmico -->
-                <div id="change-section" class="form-group hidden">
-                    <label class="form-label">Troco para quanto?</label>
-                    <input type="tel" id="change-amount" class="form-input" placeholder="Ex: 50" oninput="this.value = this.value.replace(/[^0-9.,]/g, '')">
-                </div>
-
-                <button class="btn btn-whatsapp" onclick="finalizeOrder()">
-                    <i class="fab fa-whatsapp"></i> ENVIAR PEDIDO NO WHATSAPP
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Chef Bot IA Moderno -->
-    <div class="modal-overlay" id="chef-bot-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 40px; height: 40px; background: var(--ai-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🤖</div>
-                    <div>
-                        <h2 class="brand-font" style="margin: 0; font-size: 20px;">Chef Dogão</h2>
-                        <span style="font-size: 12px; color: #25D366; display: flex; align-items: center; gap: 4px;"><i class="fas fa-circle" style="font-size: 8px;"></i> Online</span>
-                    </div>
-                </div>
-                <button class="close-modal" onclick="toggleChefBot()"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <div class="chat-container">
-                <div class="chat-messages" id="chat-messages">
-                    <!-- Mensagens iniciais injetadas via JS -->
-                </div>
-                <div class="typing-indicator" id="typing-indicator">Chef Dogão está digitando...</div>
-                
-                <!-- Botões de Resposta Rápida -->
-                <div class="quick-replies" id="quick-replies">
-                    <!-- Preenchido via JS -->
-                </div>
-
-                <div class="input-area">
-                    <input type="text" id="chat-input" class="form-input chat-input" placeholder="Digite aqui..." onkeypress="handleChatKey(event)">
-                    <button class="chat-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // --- DADOS DO CARDÁPIO ---
-        const menuData = [
-            { id: 1, name: "Queijo e Ovos", price: 10.00, category: "sanduiches", desc: "Pão, queijo e ovos." },
-            { id: 2, name: "Hambúrguer", price: 10.00, category: "sanduiches", desc: "Pão, carne de hambúrguer e salada." },
-            { id: 3, name: "Misto Quente", price: 10.00, category: "sanduiches", desc: "Pão, queijo e presunto." },
-            { id: 4, name: "X-Burguer", price: 12.00, category: "sanduiches", desc: "Pão, carne de hambúrguer e queijo." },
-            { id: 5, name: "Frango Simples", price: 12.00, category: "sanduiches", desc: "Pão, frango, queijo, salada e milho verde." },
-            { id: 6, name: "Calabresa Simples", price: 12.00, category: "sanduiches", desc: "Pão, calabresa, queijo e salada." },
-            { id: 7, name: "Americano", price: 12.00, category: "sanduiches", desc: "Pão, queijo, presunto, ovos e salada." },
-            { id: 8, name: "X-Salada", price: 12.00, category: "sanduiches", desc: "Pão, carne de hambúrguer, queijo e salada." },
-            { id: 9, name: "Baurú", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, presunto e salada." },
-            { id: 10, name: "X-Egg", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, ovos e salada." },
-            { id: 11, name: "X-Calabresa", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, calabresa e salada." },
-            { id: 12, name: "X-Frango", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, frango e salada." },
-            { id: 13, name: "X-Bacon", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, bacon e salada." },
-            { id: 14, name: "X-Frango Bacon", price: 15.00, category: "sanduiches", desc: "Pão, carne, queijo, frango, bacon e salada." },
-            { id: 15, name: "X-Tudo", price: 18.00, category: "especiais", desc: "Pão, carne, queijo, frango, presunto, ovos, bacon e salada." },
-            { id: 16, name: "Sandubob", price: 16.00, category: "especiais", desc: "Pão árabe, 2 carnes, queijo, ovos e salada." },
-            { id: 17, name: "Dogão (Pão Árabe)", price: 18.00, category: "especiais", desc: "Pão árabe, carne caseira, queijo, frango, bacon, calabresa, salada." },
-            { id: 18, name: "Lanchão (Pão Árabe)", price: 18.00, category: "especiais", desc: "Pão árabe, carne, queijo, frango, ovos, bacon, salada." },
-            { id: 19, name: "Hot-Dog Simples", price: 12.00, category: "hotdogs", desc: "Pão, molho carne, salsicha, salada, batata, milho." },
-            { id: 20, name: "Hot-Scooby", price: 14.00, category: "hotdogs", desc: "Pão, molho carne, 2 salsichas, salada, batata, milho, queijo." },
-            { id: 21, name: "Pastel Misto (P)", price: 10.00, category: "pasteis", desc: "Tamanho Pequeno." },
-            { id: 22, name: "Pastel Misto (G)", price: 12.00, category: "pasteis", desc: "Tamanho Grande." },
-            { id: 23, name: "Pastel Queijo (P)", price: 10.00, category: "pasteis", desc: "Tamanho Pequeno." },
-            { id: 24, name: "Pastel Queijo (G)", price: 12.00, category: "pasteis", desc: "Tamanho Grande." },
-            { id: 25, name: "Pastel Carne (P)", price: 12.00, category: "pasteis", desc: "Tamanho Pequeno." },
-            { id: 26, name: "Pastel Carne (G)", price: 14.00, category: "pasteis", desc: "Tamanho Grande." },
-            { id: 27, name: "Pastel Frango/Queijo (P)", price: 12.00, category: "pasteis", desc: "Tamanho Pequeno." },
-            { id: 28, name: "Pastel Frango/Queijo (G)", price: 14.00, category: "pasteis", desc: "Tamanho Grande." },
-            { id: 29, name: "Batata Frita (P)", price: 15.00, category: "porcoes", desc: "Porção Pequena." },
-            { id: 30, name: "Batata Frita (G)", price: 20.00, category: "porcoes", desc: "Porção Grande." },
-            { id: 31, name: "Batata Recheada", price: 35.00, category: "porcoes", desc: "Batata frita, bacon e calabresa." },
-            { id: 32, name: "Sucos Naturais", price: 0.00, category: "bebidas", desc: "Valores a consultar." },
-            { id: 33, name: "Refrigerante Lata", price: 0.00, category: "bebidas", desc: "350ml. Sabor a combinar.", keywords: ["coca", "cola", "fanta", "guarana", "guaraná", "pepsi", "sprite", "sukita", "kuat", "soda", "antarctica"] },
-            { id: 34, name: "Refrigerante 1 Litro", price: 0.00, category: "bebidas", desc: "Sabor a combinar.", keywords: ["coca", "cola", "fanta", "guarana", "guaraná", "pepsi", "sprite", "sukita", "kuat", "soda", "antarctica"] },
-            { id: 35, name: "Refrigerante 1.5 Litros", price: 0.00, category: "bebidas", desc: "Sabor a combinar.", keywords: ["coca", "cola", "fanta", "guarana", "guaraná", "pepsi", "sprite", "sukita", "kuat", "soda", "antarctica"] },
-            { id: 36, name: "Refrigerante 2 Litros", price: 0.00, category: "bebidas", desc: "Sabor a combinar.", keywords: ["coca", "cola", "fanta", "guarana", "guaraná", "pepsi", "sprite", "sukita", "kuat", "soda", "antarctica"] }
-        ];
-
-        // --- CÓDIGO ATUALIZADO PARA CATEGORIAS COM ÍCONES E SEM ROLAGEM ---
-        const categories = [
-            { id: 'sanduiches', label: 'Sanduíches', icon: 'fas fa-burger' },
-            { id: 'especiais', label: 'Especiais', icon: 'fas fa-star' },
-            { id: 'hotdogs', label: 'Hot Dogs', icon: 'fas fa-hotdog' },
-            { id: 'pasteis', label: 'Pastéis', icon: 'fas fa-cheese' },
-            { id: 'porcoes', label: 'Batatas', icon: 'fas fa-utensils' }, // Nova Categoria
-            { id: 'bebidas', label: 'Bebidas', icon: 'fas fa-glass-water' }
-        ];
-
-        let cart = [];
-
-        window.onload = () => {
-            // Tema
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                updateThemeIcon(savedTheme);
-            } else {
-                const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-                if (prefersLight) {
-                    document.documentElement.setAttribute('data-theme', 'light');
-                    updateThemeIcon('light');
-                }
-            }
-
-            renderCategories();
-            renderMenu();
-            initChat(); 
-            setupMobileKeyboardFix(); // Ativa a correção do teclado
-        };
-
-        // --- FIX: TECLADO COBRINDO CAMPOS NO MOBILE ---
-        function setupMobileKeyboardFix() {
-            const formInputs = document.querySelectorAll('#checkout-form input, #checkout-form textarea, #checkout-form select');
-            formInputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    // Pequeno delay para garantir que o teclado abriu
-                    setTimeout(() => {
-                        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 300);
-                });
-            });
-        }
-
-        /* --- TEMA --- */
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        }
-
-        function updateThemeIcon(theme) {
-            const icon = document.getElementById('theme-icon');
-            if (theme === 'light') {
-                icon.classList.remove('fa-sun'); icon.classList.add('fa-moon');
-            } else {
-                icon.classList.remove('fa-moon'); icon.classList.add('fa-sun');
-            }
-        }
-
-        /* --- UI RENDER (CATEGORIAS ATUALIZADAS) --- */
-        function renderCategories() {
-            const list = document.getElementById('category-list');
-            // Adicionei a classe fa-fw para ícones com largura fixa e melhor alinhamento
-            list.innerHTML = `<li><button class="cat-btn active" onclick="filterMenu('all', this)"><i class="fas fa-border-all"></i> Todos</button></li>` + 
-                categories.map(c => `<li><button class="cat-btn" onclick="filterMenu('${c.id}', this)"><i class="${c.icon}"></i> ${c.label}</button></li>`).join('');
-        }
-
-        function getButtonHtml(id) {
-            const itemInCart = cart.find(i => i.id === id);
-            if (itemInCart) {
-                return `<div class="qty-selector"><button onclick="updateQty(${id}, -1)"><i class="fas fa-minus"></i></button><span>${itemInCart.qty}</span><button onclick="updateQty(${id}, 1)"><i class="fas fa-plus"></i></button></div>`;
-            } else {
-                return `<button class="add-btn" onclick="addToCart(${id})">ADICIONAR <i class="fas fa-plus"></i></button>`;
-            }
-        }
-
-        function createItemCard(item) {
-             const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
-             return `
-                <div class="menu-item">
-                    <div class="item-content">
-                        <div class="item-header">
-                            <span class="item-title">${item.name}</span>
-                            <span class="item-price">${priceDisplay}</span>
-                        </div>
-                        <p class="item-desc">${item.desc}</p>
-                        <div class="btn-container" id="btn-container-${item.id}">
-                            ${getButtonHtml(item.id)}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderMenu(filter = 'all') {
-            const container = document.getElementById('menu-container');
-            container.innerHTML = ''; 
-
-            if (filter === 'all') {
-                categories.forEach(cat => {
-                    const items = menuData.filter(i => i.category === cat.id);
-                    if (items.length > 0) {
-                        const title = document.createElement('h3');
-                        title.className = 'brand-font category-separator';
-                        title.innerText = cat.label;
-                        container.appendChild(title);
-
-                        const grid = document.createElement('div');
-                        grid.className = 'menu-grid';
-                        grid.innerHTML = items.map(item => createItemCard(item)).join('');
-                        container.appendChild(grid);
-                    }
-                });
-            } else {
-                const items = menuData.filter(i => i.category === filter);
-                const grid = document.createElement('div');
-                grid.className = 'menu-grid';
-                grid.innerHTML = items.map(item => createItemCard(item)).join('');
-                container.appendChild(grid);
-            }
-        }
-
-        function filterMenu(catId, btnElement) {
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
-            renderMenu(catId);
-        }
-
-        /* --- BUSCA (ATUALIZADA) --- */
-        function searchProducts(query) {
-            const term = query.toLowerCase().trim();
-            const catButtons = document.querySelectorAll('.cat-btn');
-            const helper = document.getElementById('search-helper');
-            
-            // Lógica para mostrar o aviso de refrigerante
-            const sodaBrands = ["coca", "cola", "fanta", "guarana", "guaraná", "pepsi", "sprite", "sukita", "kuat", "soda", "antarctica", "refri"];
-            const isSodaSearch = sodaBrands.some(brand => term.includes(brand));
-
-            if(isSodaSearch) {
-                helper.classList.remove('hidden');
-            } else {
-                helper.classList.add('hidden');
-            }
-            
-            if (term.length > 0) {
-                catButtons.forEach(btn => btn.classList.remove('active'));
-                const filtered = menuData.filter(item => {
-                    const nameMatch = item.name.toLowerCase().includes(term);
-                    const descMatch = item.desc.toLowerCase().includes(term);
-                    const keywordMatch = item.keywords ? item.keywords.some(k => k.includes(term)) : false;
-                    return nameMatch || descMatch || keywordMatch;
-                });
-                
-                const container = document.getElementById('menu-container');
-                if(filtered.length === 0) {
-                    container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted);"><i class="fas fa-search" style="font-size: 40px; margin-bottom: 10px;"></i><p>Nenhum produto encontrado.</p></div>`;
-                } else {
-                    container.innerHTML = `<div class="menu-grid" style="margin-top: 20px;">${filtered.map(item => createItemCard(item)).join('')}</div>`;
-                }
-            } else {
-                helper.classList.add('hidden');
-                filterMenu('all', document.querySelector('.cat-btn'));
-            }
-        }
-
-        /* --- CARRINHO --- */
-        function addToCart(id) {
-            const item = menuData.find(i => i.id === id);
-            const existing = cart.find(i => i.id === id);
-            if (existing) existing.qty++; else cart.push({ ...item, qty: 1 });
-            updateGridButton(id); updateCartUI();
-            if (navigator.vibrate) navigator.vibrate(50);
-        }
-
-        function updateQty(id, change) {
-            const itemIndex = cart.findIndex(i => i.id === id);
-            if (itemIndex > -1) {
-                cart[itemIndex].qty += change;
-                if (cart[itemIndex].qty <= 0) cart.splice(itemIndex, 1);
-            }
-            updateGridButton(id); updateCartUI();
-        }
-
-        function updateGridButton(id) {
-            const container = document.getElementById(`btn-container-${id}`);
-            if (container) container.innerHTML = getButtonHtml(id);
-        }
-
-        function updateCartUI() {
-            const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
-            const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-            
-            const floatBtn = document.getElementById('floating-cart');
-            document.getElementById('cart-count').innerText = totalQty;
-            document.getElementById('cart-total-float').innerText = `R$ ${totalPrice.toFixed(2).replace('.',',')}`;
-            
-            // Elementos do Modal
-            const checkoutForm = document.getElementById('checkout-form');
-            const btnAddMore = document.getElementById('btn-add-more');
-
-            if (totalQty > 0) {
-                floatBtn.classList.remove('hidden');
-                checkoutForm.style.display = 'block';
-                btnAddMore.style.display = 'flex'; // Mostra o botão
-            } else {
-                floatBtn.classList.add('hidden');
-                checkoutForm.style.display = 'none';
-                btnAddMore.style.display = 'none'; // Esconde o botão
-            }
-
-            const list = document.getElementById('cart-items');
-            if (cart.length === 0) {
-                list.innerHTML = '<p style="text-align: center; color: var(--text-muted); margin-top: 20px;">Sua sacola está vazia 😔</p>';
-            } else {
-                list.innerHTML = cart.map(item => {
-                    const itemTotal = item.price > 0 ? `R$ ${(item.price * item.qty).toFixed(2).replace('.',',')}` : "A Consultar";
-                    return `<div class="cart-item-row"><div class="cart-item-info"><h4>${item.name}</h4><span>${itemTotal}</span></div><div class="qty-controls"><button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button><span style="color: var(--text-main); font-weight: bold;">${item.qty}</span><button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button></div></div>`
-                }).join('');
-            }
-            document.getElementById('modal-total').innerText = `Total: R$ ${totalPrice.toFixed(2).replace('.',',')}`;
-        }
-
-        function toggleCart() {
-            const modal = document.getElementById('cart-modal');
-            modal.classList.toggle('open');
-            if (modal.classList.contains('open')) {
-                document.body.classList.add('no-scroll');
-                // Re-anexar listeners caso o modal tenha sido reaberto (garantia extra)
-                setTimeout(setupMobileKeyboardFix, 100);
-            } else {
-                document.body.classList.remove('no-scroll');
-            }
-        }
-
-        function toggleChefBot() {
-            const modal = document.getElementById('chef-bot-modal');
-            modal.classList.toggle('open');
-            if (modal.classList.contains('open')) {
-                document.body.classList.add('no-scroll');
-            } else {
-                document.body.classList.remove('no-scroll');
-            }
-        }
-
-        function toggleAddressField(show) {
-            const el = document.getElementById('address-section');
-            if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
-        }
-
-        /* Nova função para controlar campos de pagamento */
-        function togglePaymentInfo(value) {
-            const changeSection = document.getElementById('change-section');
-            const pixSection = document.getElementById('pix-section');
-            const cardSection = document.getElementById('card-fee-section');
-            
-            // Esconde tudo primeiro
-            changeSection.classList.add('hidden');
-            pixSection.classList.add('hidden');
-            cardSection.classList.add('hidden');
-
-            // Mostra o relevante
-            if (value === 'Dinheiro') {
-                changeSection.classList.remove('hidden');
-            } else if (value === 'PIX') {
-                pixSection.classList.remove('hidden');
-            } else if (value === 'Cartão de Crédito' || value === 'Cartão de Débito') {
-                cardSection.classList.remove('hidden');
-            }
-        }
-
-        function getLocation() {
-            const status = document.getElementById('geo-status');
-            const mapsInput = document.getElementById('maps-link');
-            if (!navigator.geolocation) { status.innerText = "Geolocalização não suportada."; return; }
-            status.innerText = "Buscando...";
-            const options = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const link = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-                    mapsInput.value = link;
-                    status.innerHTML = `<span class="geo-success"><i class="fas fa-check-circle"></i> Localização salva!</span>`;
-                },
-                (error) => {
-                    status.innerText = "Erro no GPS. Digite o endereço abaixo.";
-                    document.getElementById('address-text').focus();
-                }, options
-            );
-        }
-
-        function finalizeOrder() {
-            const name = document.getElementById('customer-name').value;
-            const typeRadio = document.querySelector('input[name="orderType"]:checked');
-            const paymentElement = document.querySelector('input[name="paymentMethod"]:checked');
-            
-            if (!name) return alert("Por favor, digite seu nome.");
-            if (!typeRadio) return alert("Escolha o tipo de pedido.");
-            if (!paymentElement) return alert("Escolha a forma de pagamento.");
-            
-            const payment = paymentElement.value;
-            const observations = document.getElementById('order-observations').value; 
-            const changeAmount = document.getElementById('change-amount').value;
-            
-            const type = typeRadio.value;
-            let addressMsg = "";
-            if (type === 'Entrega') {
-                const mapsLink = document.getElementById('maps-link').value;
-                const addressText = document.getElementById('address-text').value;
-                if (!mapsLink && !addressText) return alert("Para entrega, precisamos do endereço.");
-                if (mapsLink) addressMsg += `\n📍 *GPS:* ${mapsLink}`;
-                if (addressText) addressMsg += `\n🏠 *Endereço:* ${addressText}`;
-            }
-
-            let msg = `*NOVO PEDIDO - DOGÃO PREÁ*\n----------------------------\n`;
-            msg += `👤 *Cliente:* ${name}\n`;
-            msg += `📦 *Tipo:* ${type}\n`;
-            msg += `💰 *Pagamento:* ${payment}\n`;
-
-            if (payment === 'Dinheiro' && changeAmount) {
-                msg += `💵 *Troco para:* R$ ${changeAmount}\n`;
-            }
-
-            msg += `\n*ITENS:*\n`;
-            
-            let hasConsultItem = false;
-            cart.forEach(item => {
-                const priceTxt = item.price > 0 ? `(R$ ${(item.price * item.qty).toFixed(2)})` : "(Consultar)";
-                msg += `${item.qty}x ${item.name} ${priceTxt}\n`;
-                if(item.price === 0) hasConsultItem = true;
-            });
-            
-            const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
-            msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
-            
-            if(hasConsultItem) msg += `\n⚠️ _Contém itens a consultar valor._`;
-
-            // Adiciona observações à mensagem se houver
-            if (observations && observations.trim() !== "") {
-                msg += `\n\n📝 *OBSERVAÇÕES:*\n${observations}`;
-            }
-
-            if (addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}\n⚠️ _Taxa a calcular._`;
-            
-            const phone = "5588996768158";
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-            window.open(url, '_blank');
-        }
-
-        /* --- CHATBOT ATUALIZADO --- */
-        const quickReplies = [
-            { text: "🦁 Muita Fome!", msg: "fome" },
-            { text: "💸 Algo Barato", msg: "barato" },
-            { text: "🥓 Bacon é Vida", msg: "bacon" },
-            { text: "🥤 Estou com Sede", msg: "beber" },
-            { text: "📜 Ver Cardápio", msg: "cardápio" }
-        ];
-
-        function initChat() {
-            const container = document.getElementById('chat-messages');
-            container.innerHTML = `<div class="message bot">Olá! 👋 Eu sou o Chef Dogão. Não sabe o que pedir? Escolha uma opção abaixo ou diga o que gosta! 🍔</div>`;
-            renderQuickReplies();
-        }
-
-        function renderQuickReplies() {
-            const container = document.getElementById('quick-replies');
-            container.innerHTML = quickReplies.map(r => 
-                `<button class="reply-chip" onclick="sendQuickReply('${r.msg}')">${r.text}</button>`
-            ).join('');
-        }
-
-        function sendQuickReply(msg) {
-            document.getElementById('chat-input').value = msg;
-            sendMessage();
-        }
-
-        function handleChatKey(e) { if(e.key === 'Enter') sendMessage(); }
-
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const msg = input.value.trim().toLowerCase();
-            const messagesContainer = document.getElementById('chat-messages');
-
-            if (!msg) return;
-
-            // User Msg
-            messagesContainer.innerHTML += `<div class="message user">${input.value}</div>`;
-            input.value = '';
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            // Typing...
-            document.getElementById('typing-indicator').style.display = 'block';
-
-            setTimeout(() => {
-                let responseText = "";
-                
-                if (msg.includes('oi') || msg.includes('ola')) {
-                    responseText = "E aí! Tudo bem? 👋 O que vai ser hoje? Um X-Tudo caprichado?";
-                } 
-                else if (msg.includes('fome') || msg.includes('grande') || msg.includes('gigante')) {
-                    const bigItems = menuData.filter(i => i.name.includes('X-Tudo') || i.name.includes('Dogão') || i.name.includes('Lanchão'));
-                    const item = bigItems[Math.floor(Math.random() * bigItems.length)];
-                    responseText = `Se a fome é de leão 🦁, vai de **${item.name}**! É gigante e custa R$ ${item.price.toFixed(2).replace('.',',')}.`;
-                }
-                else if (msg.includes('bacon')) {
-                    const baconItems = menuData.filter(i => i.name.toLowerCase().includes('bacon'));
-                    const item = baconItems[Math.floor(Math.random() * baconItems.length)];
-                    responseText = `🥓 Bacon crocante? Temos! O **${item.name}** é perfeito pra você.`;
-                }
-                else if (msg.includes('frango')) {
-                    responseText = `🍗 Franguinho top! Recomendo o **X-Frango Bacon** ou o nosso **Pastel de Frango**.`;
-                }
-                else if (msg.includes('barato') || msg.includes('10')) {
-                    responseText = `🤑 Quer economizar? O **Queijo e Ovos** ou o **Misto Quente** saem por apenas R$ 10,00!`;
-                }
-                else if (msg.includes('beber') || msg.includes('sede') || msg.includes('refri')) {
-                    responseText = "🥤 Para refrescar, temos Sucos Naturais e Refrigerantes de todos os tamanhos!";
-                }
-                else if (msg.includes('pastel')) {
-                    responseText = "🥟 Nossos pastéis são fritos na hora! Misto, Queijo, Carne ou Frango. Qual o tamanho da sua vontade?";
-                }
-                else if (msg.includes('cardápio') || msg.includes('menu')) {
-                    responseText = "📜 O cardápio está logo atrás de mim! É só fechar aqui e rolar a tela para ver tudo.";
-                }
-                else {
-                    const randomItem = menuData[Math.floor(Math.random() * menuData.length)];
-                    responseText = `Hummm... que tal experimentar um **${randomItem.name}**? É um dos meus favoritos! 😋`;
-                }
-
-                messagesContainer.innerHTML += `<div class="message bot">${responseText}</div>`;
-                document.getElementById('typing-indicator').style.display = 'none';
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            }, 800);
-        }
-    </script>
-</body>
-</html>
+        .cart-total { font-size: 22px; color: var(--primary); text-align: right; margin: 2
