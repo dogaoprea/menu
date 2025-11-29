@@ -99,8 +99,14 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 159, 28, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 159, 28, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 159, 28, 0); }
+        }
+
         /* --- UTILITARIOS --- */
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; } /* Padding reduzido */
         .btn { cursor: pointer; border: none; outline: none; transition: 0.2s; font-weight: 700; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary { background-color: var(--primary); color: #000; padding: 12px 25px; }
         .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
@@ -115,18 +121,18 @@
             top: 0;
             z-index: 100;
             border-bottom: var(--glass-border);
-            padding: 10px 0;
+            padding: 10px 0; /* Padding reduzido */
             transition: background-color 0.3s, border-color 0.3s;
         }
         .nav-flex { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); }
+        .logo { font-size: 24px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); } /* Fonte logo reduzida */
         
         .header-actions { display: flex; gap: 10px; }
         .icon-btn { 
             background: var(--bg-element); 
             color: var(--text-main); 
             border: none; 
-            width: 36px; height: 36px; 
+            width: 36px; height: 36px; /* Botão menor */
             border-radius: 50%; 
             cursor: pointer; 
             display: flex; align-items: center; justify-content: center; 
@@ -144,9 +150,9 @@
         .search-box {
             width: 100%;
             background-color: var(--bg-element);
-            border: 1px solid transparent;
+            border: 1px solid transparent; /* Borda mais fina */
             border-radius: 12px;
-            padding: 10px 15px;
+            padding: 10px 15px; /* Padding reduzido */
             color: var(--text-main);
             font-size: 14px;
             display: flex;
@@ -193,8 +199,8 @@
             color: #fff;
             border: none;
             border-radius: 12px;
-            width: 44px;
-            height: 44px;
+            width: 44px; /* Menor */
+            height: 44px; /* Menor */
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -246,7 +252,10 @@
         }
         
         @media (max-width: 360px) {
-            .cat-btn { padding: 6px 10px; font-size: 11px; }
+            .cat-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
         }
 
         .cat-btn:hover { color: var(--text-main); background: var(--bg-card); }
@@ -255,15 +264,15 @@
         /* --- GRID DE PRODUTOS COMPACTA --- */
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Cartões mais estreitos */
+            gap: 12px; /* Gap reduzido */
             margin-top: 15px;
             margin-bottom: 30px;
         }
 
         .menu-item {
             background-color: var(--bg-card);
-            border-radius: 12px;
+            border-radius: 12px; /* Raio menor */
             border: 1px solid var(--border-color);
             overflow: hidden;
             display: flex;
@@ -273,16 +282,28 @@
             animation: fadeInUp 0.5s ease-out forwards;
             opacity: 0;
         }
-        
+        /* Stagger animation */
         .menu-item:nth-child(1) { animation-delay: 0.05s; }
         .menu-item:nth-child(2) { animation-delay: 0.1s; }
         .menu-item:nth-child(3) { animation-delay: 0.15s; }
         .menu-item:nth-child(n+4) { animation-delay: 0.2s; }
 
-        .menu-item:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: var(--primary); }
-        .menu-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); opacity: 0.5; }
+        .menu-item:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+            border-color: var(--primary);
+        }
 
-        .item-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px; /* Faixa mais fina */
+            background: var(--primary);
+            opacity: 0.5;
+        }
+
+        .item-content { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; } /* Padding reduzido */
         .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
         .item-title { font-weight: 700; font-size: 16px; color: var(--text-main); line-height: 1.2; }
         .item-price { color: var(--primary); font-weight: 700; font-size: 16px; white-space: nowrap; margin-left: 8px; }
@@ -291,15 +312,21 @@
         .category-separator {
             margin-top: 25px;
             margin-bottom: 10px;
-            font-size: 22px;
+            font-size: 22px; /* Título menor */
             color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .category-separator::after { content: ''; flex-grow: 1; height: 1px; background: var(--border-color); }
+        .category-separator::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
 
-        .btn-container { margin-top: auto; height: 36px; }
+        /* Botões de Ação Compactos */
+        .btn-container { margin-top: auto; height: 36px; } /* Altura reduzida */
 
         .add-btn {
             width: 100%; height: 100%; background: var(--bg-element); color: var(--text-main); 
@@ -310,6 +337,7 @@
         }
         .add-btn:hover { background: var(--primary); color: #000; }
 
+        /* Botões de Quantidade no Grid */
         .qty-selector {
             display: flex; align-items: center; justify-content: space-between;
             background-color: var(--bg-element); border-radius: 8px;
@@ -394,11 +422,16 @@
         }
         .floating-cart:active { transform: scale(0.95); }
         .cart-count { background: #000; color: var(--primary); padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-left: 8px; }
-        
+        .hidden { display: none !important; }
+
+        @keyframes popUp { from { transform: translateY(100px); } to { transform: translateY(0); } }
+
         /* --- MODAL --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 2000;
+            background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(5px);
+            z-index: 2000;
             display: flex; justify-content: center; align-items: flex-end;
             opacity: 0; pointer-events: none; transition: 0.3s;
         }
@@ -423,18 +456,27 @@
         .close-modal { background: var(--bg-element); border: none; color: var(--text-main); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 18px; }
         .close-modal:hover { background: var(--danger); color: white; }
 
-        /* --- CHECKOUT --- */
+        /* --- CHECKOUT FORM & CART ITEMS --- */
         .cart-items { margin-bottom: 20px; }
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--bg-element); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); }
         .cart-item-info h4 { font-size: 15px; color: var(--text-main); margin-bottom: 2px; }
         .cart-item-info span { font-size: 13px; color: var(--primary); font-weight: 700; }
         
+        /* --- BOTÕES DE QUANTIDADE DO CARRINHO --- */
         .qty-controls { display: flex; align-items: center; gap: 12px; }
         .qty-btn { 
-            background: var(--bg-body); color: var(--text-main); 
-            width: 36px; height: 36px; border-radius: 50%; 
-            border: 1px solid var(--border-color); cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; font-size: 14px; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            border: 1px solid var(--border-color); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            font-size: 14px; 
+            transition: 0.2s;
         }
         .qty-btn:active { transform: scale(0.9); background-color: var(--bg-element); }
         
@@ -459,42 +501,170 @@
         .radio-option label i { font-size: 18px; }
         .radio-option input:checked + label { background: rgba(255, 159, 28, 0.15); color: var(--primary); border-color: var(--primary); }
 
-        .geo-btn { background: #25D366; color: #fff; width: 100%; margin-top: 10px; border: none; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; }
+        .geo-btn {
+            background: #25D366; color: #fff; width: 100%; margin-top: 10px;
+            border: none; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px;
+        }
         .geo-status { font-size: 11px; color: var(--text-muted); margin-top: 6px; text-align: center; }
 
-        .delivery-fee-notice { background-color: rgba(255, 159, 28, 0.1); border-left: 3px solid var(--primary); color: var(--text-main); padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .delivery-time-notice { background-color: rgba(37, 211, 102, 0.1); border-left: 3px solid var(--whatsapp); color: var(--text-main); padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .delivery-fee-notice {
+            background-color: rgba(255, 159, 28, 0.1);
+            border-left: 3px solid var(--primary); color: var(--text-main);
+            padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* Novo estilo para o aviso de tempo */
+        .delivery-time-notice {
+            background-color: rgba(37, 211, 102, 0.1); /* Tom esverdeado/whatsapp */
+            border-left: 3px solid var(--whatsapp); color: var(--text-main);
+            padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 10px;
+        }
 
         .cart-total { font-size: 22px; color: var(--primary); text-align: right; margin: 20px 0; border-top: 1px dashed var(--border-color); padding-top: 15px; font-weight: 800; }
         
+        /* Botão de WhatsApp com Contorno e Sombra Reforçados */
         .btn-whatsapp { 
-            width: 100%; background: var(--whatsapp); color: #fff; padding: 16px; border-radius: 12px; font-size: 18px; font-weight: 700; 
-            border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3); transition: transform 0.2s;
+            width: 100%; 
+            background: var(--whatsapp); 
+            color: #fff; 
+            padding: 16px; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            font-weight: 700; 
+            border: 2px solid rgba(255,255,255,0.1); /* Contorno sutil */
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3); 
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .btn-whatsapp:hover { transform: translateY(-2px); }
+        .btn-whatsapp:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(37, 211, 102, 0.5); 
+        }
 
+        /* Botão "Adicionar mais itens" (Outline Maior) */
         .btn-outline {
-            width: 100%; background: transparent; border: 2px solid var(--primary); color: var(--text-main);
-            padding: 14px; border-radius: 12px; font-weight: 700; margin-top: 15px; margin-bottom: 10px;
-            transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; cursor: pointer;
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--text-main);
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 15px;
+            cursor: pointer;
         }
-        .btn-outline:hover { background: rgba(255, 159, 28, 0.1); border-color: var(--primary-dark); }
+        .btn-outline:hover {
+            background: rgba(255, 159, 28, 0.1);
+            border-color: var(--primary-dark);
+        }
 
-        /* --- CHAT IA --- */
-        #chef-bot-modal .modal-content { background: var(--bg-body); padding: 0; height: 85vh; }
-        #chef-bot-modal .modal-header { background: var(--bg-header); padding: 15px; margin-bottom: 0; border-bottom: 1px solid var(--border-color); }
-        .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background-image: radial-gradient(var(--border-color) 1px, transparent 1px); background-size: 20px 20px; }
-        .message { padding: 10px 14px; border-radius: 16px; max-width: 85%; font-size: 14px; line-height: 1.4; animation: fadeInUp 0.3s ease; }
-        .message.bot { background: var(--bg-element); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 4px; }
-        .message.user { background: var(--primary); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
-        .typing-indicator { font-size: 11px; color: var(--text-muted); font-style: italic; margin-bottom: 10px; padding-left: 20px; display: none; }
-        .quick-replies { display: flex; gap: 8px; padding: 10px 15px; overflow-x: auto; background: var(--bg-card); border-top: 1px solid var(--border-color); }
-        .reply-chip { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        /* --- CHAT IA (ESTILO WHATSAPP/TELEGRAM) --- */
+        #chef-bot-modal .modal-content {
+            background: var(--bg-body);
+            padding: 0;
+            height: 85vh;
+        }
+        #chef-bot-modal .modal-header {
+            background: var(--bg-header);
+            padding: 15px;
+            margin-bottom: 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+            background-size: 20px 20px; /* Pattern sutil */
+        }
+
+        .message { 
+            padding: 10px 14px; 
+            border-radius: 16px; 
+            max-width: 85%; 
+            font-size: 14px; 
+            line-height: 1.4; 
+            position: relative;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        .message.bot { 
+            background: var(--bg-element); 
+            color: var(--text-main); 
+            align-self: flex-start; 
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .message.user { 
+            background: var(--primary); 
+            color: #000; 
+            align-self: flex-end; 
+            border-bottom-right-radius: 4px;
+            font-weight: 500;
+            box-shadow: 0 2px 10px rgba(255, 159, 28, 0.3);
+        }
+
+        .typing-indicator { 
+            font-size: 11px; color: var(--text-muted); font-style: italic; 
+            margin-bottom: 10px; padding-left: 20px; display: none;
+        }
+
+        /* Quick Replies (Chips) */
+        .quick-replies {
+            display: flex;
+            gap: 8px;
+            padding: 10px 15px;
+            overflow-x: auto;
+            white-space: nowrap;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .reply-chip {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 18px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
         .reply-chip:hover { background: var(--primary); color: #000; }
-        .input-area { display: flex; gap: 10px; padding: 12px; background: var(--bg-card); border-top: 1px solid var(--border-color); }
+
+        .input-area { 
+            display: flex; gap: 10px; padding: 12px; 
+            background: var(--bg-card); border-top: 1px solid var(--border-color); 
+        }
         .chat-input { flex: 1; border-radius: 25px !important; }
-        .chat-btn { background: var(--ai-gradient); color: white; border: none; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+        .chat-btn { 
+            background: var(--ai-gradient); color: white; border: none; 
+            width: 44px; height: 44px; border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s;
+        }
         .chat-btn:active { transform: scale(0.9); }
 
     </style>
@@ -506,36 +676,47 @@
         <div class="container nav-flex">
             <div class="logo brand-font">DOGÃO PREÁ</div>
             <div class="header-actions">
-                <button class="icon-btn" onclick="toggleTheme()" title="Alternar Tema"><i class="fas fa-sun" id="theme-icon"></i></button>
+                <!-- Botão de Tema -->
+                <button class="icon-btn" onclick="toggleTheme()" title="Alternar Tema">
+                    <i class="fas fa-sun" id="theme-icon"></i>
+                </button>
             </div>
         </div>
     </header>
 
     <div class="container">
+        <!-- Barra de Busca + Botão Mágico -->
         <div class="search-container">
             <div class="search-box">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" class="search-input" id="search-input" placeholder="Pesquisar lanche..." oninput="searchProducts(this.value)">
             </div>
-            <button class="ai-btn" onclick="toggleChefBot()" title="Falar com Chef Dogão"><i class="fas fa-comment-dots"></i></button>
+            <button class="ai-btn" onclick="toggleChefBot()" title="Falar com Chef Dogão">
+                <i class="fas fa-comment-dots"></i>
+            </button>
         </div>
+        <!-- Aviso de Busca (Dinâmico - REINTRODUZIDO) -->
         <div id="search-helper" class="search-helper hidden">
-            <i class="fas fa-info-circle"></i><span>Marcas e sabores serão combinados no WhatsApp após o pedido.</span>
+            <i class="fas fa-info-circle"></i>
+            <span>Marcas e sabores serão combinados no WhatsApp após o pedido.</span>
         </div>
     </div>
 
+    <!-- Navegação Categorias -->
     <nav class="category-nav">
         <ul class="category-list" id="category-list">
             <!-- Preenchido via JS -->
         </ul>
     </nav>
 
+    <!-- Conteúdo Principal -->
     <div class="container">
         <div id="menu-container">
             <!-- Preenchido via JS -->
         </div>
     </div>
 
+    <!-- Botão Flutuante do Carrinho -->
     <div id="floating-cart" class="floating-cart hidden" onclick="toggleCart()">
         <span><i class="fas fa-shopping-bag"></i> Sacola <span id="cart-count" class="cart-count">0</span></span>
         <span id="cart-total-float">R$ 0,00</span>
@@ -568,6 +749,12 @@
             <div class="cart-total brand-font" id="modal-total">Total: R$ 0,00</div>
             
             <div id="checkout-form" style="display: none;">
+                <!-- CAMPO OBSERVAÇÕES MOVIDO PARA O TOPO -->
+                <div class="form-group">
+                    <label class="form-label">Observações</label>
+                    <textarea id="order-observations" class="form-input" rows="2" placeholder="Ex: Sem cebola, capricha no molho..."></textarea>
+                </div>
+
                 <div class="form-group">
                     <label class="form-label">Seu Nome</label>
                     <input type="text" id="customer-name" class="form-input" placeholder="Como podemos te chamar?">
@@ -595,10 +782,13 @@
                         <i class="fas fa-info-circle" style="font-size: 20px;"></i>
                         <span>A taxa de entrega será calculada no WhatsApp.</span>
                     </div>
+                    
+                    <!-- Novo Informe de Tempo de Entrega -->
                     <div class="delivery-time-notice">
                         <i class="fas fa-clock" style="font-size: 20px; color: var(--whatsapp);"></i>
                         <span><strong>Previsão: 30 a 60 min.</strong><br>Tentaremos entregar o quanto antes! 🚀</span>
                     </div>
+
                     <label class="form-label">Endereço</label>
                     <button type="button" class="geo-btn" onclick="getLocation()">
                         <i class="fas fa-map-marker-alt"></i> Usar Localização Atual
@@ -606,11 +796,6 @@
                     <div id="geo-status" class="geo-status"></div>
                     <textarea id="address-text" class="form-input" rows="2" placeholder="Rua, Número, Bairro, Referência..." style="margin-top: 10px;"></textarea>
                     <input type="hidden" id="maps-link">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Observações</label>
-                    <textarea id="order-observations" class="form-input" rows="2" placeholder="Ex: Sem cebola, capricha no molho..."></textarea>
                 </div>
 
                 <div class="form-group">
@@ -635,6 +820,7 @@
                     </div>
                 </div>
 
+                <!-- Aviso PIX (Visível por padrão pois PIX é a 1ª opção) -->
                 <div id="pix-section" class="form-group">
                     <div class="delivery-fee-notice" style="background-color: rgba(37, 211, 102, 0.1); border-color: var(--whatsapp); color: var(--text-main);">
                         <i class="fas fa-qrcode" style="font-size: 24px; color: var(--whatsapp);"></i>
@@ -642,6 +828,7 @@
                     </div>
                 </div>
 
+                <!-- Aviso Taxa Cartão (NOVO) -->
                 <div id="card-fee-section" class="form-group hidden">
                     <div class="delivery-fee-notice" style="background-color: rgba(59, 130, 246, 0.1); border-color: #60a5fa; color: var(--text-main);">
                         <i class="fas fa-credit-card" style="font-size: 24px; color: #60a5fa;"></i>
@@ -649,6 +836,7 @@
                     </div>
                 </div>
 
+                <!-- Campo de Troco Dinâmico -->
                 <div id="change-section" class="form-group hidden">
                     <label class="form-label">Troco para quanto?</label>
                     <input type="tel" id="change-amount" class="form-input" placeholder="Ex: 50" oninput="this.value = this.value.replace(/[^0-9.,]/g, '')">
@@ -661,19 +849,31 @@
         </div>
     </div>
 
+    <!-- Modal Chef Bot IA Moderno -->
     <div class="modal-overlay" id="chef-bot-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="width: 40px; height: 40px; background: var(--ai-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px;">🤖</div>
-                    <div><h2 class="brand-font" style="margin: 0; font-size: 20px;">Chef Dogão</h2><span style="font-size: 12px; color: #25D366; display: flex; align-items: center; gap: 4px;"><i class="fas fa-circle" style="font-size: 8px;"></i> Online</span></div>
+                    <div>
+                        <h2 class="brand-font" style="margin: 0; font-size: 20px;">Chef Dogão</h2>
+                        <span style="font-size: 12px; color: #25D366; display: flex; align-items: center; gap: 4px;"><i class="fas fa-circle" style="font-size: 8px;"></i> Online</span>
+                    </div>
                 </div>
                 <button class="close-modal" onclick="toggleChefBot()"><i class="fas fa-times"></i></button>
             </div>
+            
             <div class="chat-container">
-                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Mensagens iniciais injetadas via JS -->
+                </div>
                 <div class="typing-indicator" id="typing-indicator">Chef Dogão está digitando...</div>
-                <div class="quick-replies" id="quick-replies"></div>
+                
+                <!-- Botões de Resposta Rápida -->
+                <div class="quick-replies" id="quick-replies">
+                    <!-- Preenchido via JS -->
+                </div>
+
                 <div class="input-area">
                     <input type="text" id="chat-input" class="form-input chat-input" placeholder="Digite aqui..." onkeypress="handleChatKey(event)">
                     <button class="chat-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
@@ -1161,6 +1361,7 @@
                 messagesContainer.innerHTML += `<div class="message bot">${responseText}</div>`;
                 document.getElementById('typing-indicator').style.display = 'none';
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
             }, 800);
         }
     </script>
