@@ -283,11 +283,45 @@
         .suggestion-box { background: rgba(255, 159, 28, 0.1); border: 1px dashed var(--primary); border-radius: 12px; padding: 15px; margin-bottom: 20px; animation: fadeInUp 0.3s ease; }
         .suggestion-title { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         .suggestion-items { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: thin; scrollbar-color: var(--primary) transparent; }
-        .suggestion-card { background: var(--bg-element); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; min-width: 110px; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; transition: 0.2s; }
-        .suggestion-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        
+        .suggestion-card { 
+            background: var(--bg-element); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; /* Arredondamento mais suave */
+            padding: 12px; 
+            min-width: 120px; /* Ligeiramente mais largo */
+            display: flex; flex-direction: column; align-items: center; gap: 8px; 
+            text-align: center; transition: 0.2s; 
+        }
+        .suggestion-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .suggestion-name { font-size: 12px; font-weight: 600; color: var(--text-main); line-height: 1.2; }
-        .suggestion-price { font-size: 12px; color: var(--primary); font-weight: 700; }
-        .suggestion-add-btn { background: var(--primary); color: #000; border: none; border-radius: 20px; padding: 4px 12px; font-size: 10px; font-weight: 700; cursor: pointer; margin-top: auto; width: 100%; }
+        .suggestion-price { font-size: 13px; color: var(--primary); font-weight: 700; }
+        
+        .suggestion-add-btn { 
+            background: var(--primary); 
+            color: #000; 
+            border: none; 
+            border-radius: 8px; 
+            padding: 8px 12px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            margin-top: auto; 
+            width: 100%; 
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            box-shadow: 0 2px 5px rgba(255, 159, 28, 0.2);
+        }
+        
+        .suggestion-add-btn:hover { 
+            background: var(--primary-dark); 
+            transform: translateY(-1px); 
+            box-shadow: 0 4px 10px rgba(255, 159, 28, 0.4); 
+        }
+        
+        .suggestion-add-btn:active { transform: scale(0.95); }
 
         /* --- CARRINHO FLUTUANTE --- */
         .floating-cart {
@@ -296,8 +330,9 @@
             font-weight: 700; font-size: 16px; box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4);
             cursor: pointer; z-index: 1000; transition: all 0.3s; animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .floating-cart > span:first-child { display: flex; align-items: center; gap: 8px; }
         .floating-cart:active { transform: scale(0.95); }
-        .cart-count { background: #000; color: var(--primary); padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-left: 8px; }
+        .cart-count { background: #000; color: var(--primary); padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-left: 0; }
 
         /* --- MODAL --- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 2000; display: flex; justify-content: center; align-items: flex-end; opacity: 0; pointer-events: none; transition: 0.3s; }
@@ -313,9 +348,46 @@
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--bg-element); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); }
         .cart-item-info h4 { font-size: 15px; color: var(--text-main); margin-bottom: 2px; }
         .cart-item-info span { font-size: 13px; color: var(--primary); font-weight: 700; }
+        
+        /* --- CONTROLES DE QUANTIDADE (CARRINHO) --- */
         .qty-controls { display: flex; align-items: center; gap: 12px; }
-        .qty-btn { background: var(--bg-body); color: var(--text-main); width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: 0.2s; }
-        .qty-btn:active { transform: scale(0.9); background-color: var(--bg-element); }
+        
+        .qty-btn { 
+            width: 34px; height: 34px; 
+            border-radius: 50%; 
+            border: none; 
+            cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 12px; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .qty-btn:active { transform: scale(0.9) !important; }
+
+        /* Estilo Botão Menos (-) */
+        .qty-controls button:first-of-type { 
+            background: var(--bg-element); 
+            color: var(--text-muted); 
+            border: 1px solid var(--border-color); 
+        }
+        .qty-controls button:first-of-type:hover { 
+            color: var(--danger); 
+            border-color: var(--danger); 
+            background: rgba(255, 68, 68, 0.1); 
+        }
+
+        /* Estilo Botão Mais (+) */
+        .qty-controls button:last-of-type { 
+            background: var(--primary); 
+            color: #000; 
+            box-shadow: 0 4px 10px rgba(255, 159, 28, 0.25); 
+        }
+        .qty-controls button:last-of-type:hover { 
+            background: var(--primary-dark); 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 15px rgba(255, 159, 28, 0.4); 
+        }
+
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
         .form-input, .form-select { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-family: inherit; font-size: 15px; transition: 0.3s; }
@@ -572,8 +644,8 @@
         ];
 
         const categories = [
+            { id: 'especiais', label: 'Favoritos', icon: 'fas fa-star' },
             { id: 'sanduiches', label: 'Sanduíches', icon: 'fas fa-burger' },
-            { id: 'especiais', label: 'Especiais', icon: 'fas fa-star' },
             { id: 'hotdogs', label: 'Hot Dogs', icon: 'fas fa-hotdog' },
             { id: 'pasteis', label: 'Pastéis', icon: 'fas fa-cheese' },
             { id: 'porcoes', label: 'Batatas', icon: 'fas fa-utensils' },
@@ -776,7 +848,14 @@
             } else {
                 list.innerHTML = cart.map(item => {
                     const itemTotal = item.price > 0 ? `R$ ${(item.price * item.qty).toFixed(2).replace('.',',')}` : "A Consultar";
-                    return `<div class="cart-item-row"><div class="cart-item-info"><h4>${item.name}</h4><span>${itemTotal}</span></div><div class="qty-controls"><button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button><span style="color: var(--text-main); font-weight: bold;">${item.qty}</span><button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button></div></div>`
+                    return `<div class="cart-item-row">
+                        <div class="cart-item-info"><h4>${item.name}</h4><span>${itemTotal}</span></div>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="updateQty(${item.id}, -1)"><i class="fas fa-minus"></i></button>
+                            <span style="color: var(--text-main); font-weight: bold; min-width: 20px; text-align: center;">${item.qty}</span>
+                            <button class="qty-btn" onclick="updateQty(${item.id}, 1)"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>`
                 }).join('');
             }
             document.getElementById('modal-total').innerText = `Total: R$ ${totalPrice.toFixed(2).replace('.',',')}`;
@@ -990,5 +1069,3 @@
     </script>
 </body>
 </html>
-
-
