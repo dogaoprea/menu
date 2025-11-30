@@ -282,7 +282,17 @@
         /* --- SUGESTÃO --- */
         .suggestion-box { background: rgba(255, 159, 28, 0.1); border: 1px dashed var(--primary); border-radius: 12px; padding: 15px; margin-bottom: 20px; animation: fadeInUp 0.3s ease; }
         .suggestion-title { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
-        .suggestion-items { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: thin; scrollbar-color: var(--primary) transparent; }
+        
+        /* Adicionado padding-top para evitar corte do hover */
+        .suggestion-items { 
+            display: flex; 
+            gap: 10px; 
+            overflow-x: auto; 
+            padding-bottom: 5px; 
+            padding-top: 5px; 
+            scrollbar-width: thin; 
+            scrollbar-color: var(--primary) transparent; 
+        }
         
         .suggestion-card { 
             background: var(--bg-element); 
@@ -355,37 +365,46 @@
         .qty-btn { 
             width: 34px; height: 34px; 
             border-radius: 50%; 
-            border: none; 
+            border: 1px solid var(--border-color); 
+            background: var(--bg-element); 
+            color: var(--text-main); 
             cursor: pointer; 
             display: flex; align-items: center; justify-content: center; 
             font-size: 12px; 
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.2s ease;
         }
         
-        .qty-btn:active { transform: scale(0.9) !important; }
+        .qty-btn:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(255, 159, 28, 0.2);
+        }
+        
+        .qty-btn:active { transform: scale(0.9); }
 
-        /* Estilo Botão Menos (-) */
-        .qty-controls button:first-of-type { 
-            background: var(--bg-element); 
-            color: var(--text-muted); 
-            border: 1px solid var(--border-color); 
+        /* Estilo para o campo de observação do item */
+        .item-obs-input {
+            width: 100%;
+            background: var(--bg-body);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: var(--text-main);
+            font-size: 12px;
+            margin-top: 8px;
+            transition: 0.3s;
+            font-family: inherit;
         }
-        .qty-controls button:first-of-type:hover { 
-            color: var(--danger); 
-            border-color: var(--danger); 
-            background: rgba(255, 68, 68, 0.1); 
+        .item-obs-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            background: var(--bg-element);
         }
-
-        /* Estilo Botão Mais (+) */
-        .qty-controls button:last-of-type { 
-            background: var(--primary); 
-            color: #000; 
-            box-shadow: 0 4px 10px rgba(255, 159, 28, 0.25); 
-        }
-        .qty-controls button:last-of-type:hover { 
-            background: var(--primary-dark); 
-            transform: translateY(-2px); 
-            box-shadow: 0 6px 15px rgba(255, 159, 28, 0.4); 
+        .item-obs-input::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
         }
 
         .form-group { margin-bottom: 15px; }
@@ -525,10 +544,7 @@
             <div class="cart-total brand-font" id="modal-total">Total: R$ 0,00</div>
             
             <div id="checkout-form" style="display: none;">
-                <div class="form-group">
-                    <label class="form-label">Observações</label>
-                    <textarea id="order-observations" class="form-input" rows="2" placeholder="Ex: Sem cebola, capricha no molho..."></textarea>
-                </div>
+                <!-- Campo de Observações Gerais REMOVIDO -->
                 <div class="form-group">
                     <label class="form-label">Seu Nome</label>
                     <input type="text" id="customer-name" class="form-input" placeholder="Como podemos te chamar?">
@@ -807,6 +823,13 @@
             updateGridButton(id); updateCartUI();
         }
 
+        function updateItemObs(id, value) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.obs = value;
+            }
+        }
+
         function updateGridButton(id) {
             const container = document.getElementById(`btn-container-${id}`);
             if (container) container.innerHTML = getButtonHtml(id);
@@ -848,13 +871,18 @@
             } else {
                 list.innerHTML = cart.map(item => {
                     const itemTotal = item.price > 0 ? `R$ ${(item.price * item.qty).toFixed(2).replace('.',',')}` : "A Consultar";
-                    return `<div class="cart-item-row">
-                        <div class="cart-item-info"><h4>${item.name}</h4><span>${itemTotal}</span></div>
-                        <div class="qty-controls">
-                            <button class="qty-btn" onclick="updateQty(${item.id}, -1)"><i class="fas fa-minus"></i></button>
-                            <span style="color: var(--text-main); font-weight: bold; min-width: 20px; text-align: center;">${item.qty}</span>
-                            <button class="qty-btn" onclick="updateQty(${item.id}, 1)"><i class="fas fa-plus"></i></button>
+                    const obsValue = item.obs ? item.obs : '';
+                    
+                    return `<div class="cart-item-row" style="flex-direction: column; align-items: stretch;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div class="cart-item-info"><h4>${item.name}</h4><span>${itemTotal}</span></div>
+                            <div class="qty-controls">
+                                <button class="qty-btn" onclick="updateQty(${item.id}, -1)"><i class="fas fa-minus"></i></button>
+                                <span style="color: var(--text-main); font-weight: bold; min-width: 20px; text-align: center;">${item.qty}</span>
+                                <button class="qty-btn" onclick="updateQty(${item.id}, 1)"><i class="fas fa-plus"></i></button>
+                            </div>
                         </div>
+                        <input type="text" class="item-obs-input" placeholder="Alguma observação? Ex: Sem cebola..." value="${obsValue}" oninput="updateItemObs(${item.id}, this.value)">
                     </div>`
                 }).join('');
             }
@@ -935,7 +963,6 @@
             if (!paymentElement) return alert("Escolha a forma de pagamento.");
             
             const payment = paymentElement.value;
-            const observations = document.getElementById('order-observations').value; 
             const changeAmount = document.getElementById('change-amount').value;
             
             const type = typeRadio.value;
@@ -963,6 +990,12 @@
             cart.forEach(item => {
                 const priceTxt = item.price > 0 ? `(R$ ${(item.price * item.qty).toFixed(2)})` : "(Consultar)";
                 msg += `${item.qty}x ${item.name} ${priceTxt}\n`;
+                
+                // Adiciona observação do item se houver
+                if (item.obs && item.obs.trim() !== "") {
+                    msg += `   📝 _Obs: ${item.obs.trim()}_\n`;
+                }
+                
                 if(item.price === 0) hasConsultItem = true;
             });
             
@@ -970,7 +1003,7 @@
             msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
             
             if(hasConsultItem) msg += `\n⚠️ _Contém itens a consultar valor._`;
-            if (observations && observations.trim() !== "") msg += `\n\n📝 *OBSERVAÇÕES:*\n${observations}`;
+            
             if (addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}\n⚠️ _Taxa a calcular._`;
             
             const phone = "5588996768158";
