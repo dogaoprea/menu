@@ -553,19 +553,27 @@
                     <label class="form-label">Tipo de pedido</label>
                     <div class="radio-group">
                         <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-delivery" value="Entrega" onchange="toggleAddressField(true)">
+                            <input type="radio" name="orderType" id="type-delivery" value="Entrega" onchange="toggleOrderType('Entrega')">
                             <label for="type-delivery"><i class="fas fa-motorcycle"></i> Entrega</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-pickup" value="Retirada" onchange="toggleAddressField(false)">
+                            <input type="radio" name="orderType" id="type-pickup" value="Retirada" onchange="toggleOrderType('Retirada')">
                             <label for="type-pickup"><i class="fas fa-box"></i> Retirada</label>
                         </div>
                         <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-eatin" value="Mesa" onchange="toggleAddressField(false)">
+                            <input type="radio" name="orderType" id="type-eatin" value="Mesa" onchange="toggleOrderType('Mesa')">
                             <label for="type-eatin"><i class="fas fa-utensils"></i> Mesa</label>
                         </div>
                     </div>
                 </div>
+                
+                <!-- Novo Campo de Horário de Retirada -->
+                <div id="pickup-time-section" class="form-group hidden">
+                     <label class="form-label">Horário de Retirada (Opcional)</label>
+                     <input type="text" id="pickup-time" class="form-input" placeholder="Ex: 20:30 ou Daqui a 20 min">
+                     <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Informe se prefere retirar em um horário específico.</div>
+                </div>
+
                 <div id="address-section" class="form-group hidden">
                     <div class="delivery-fee-notice"><i class="fas fa-info-circle" style="font-size: 20px;"></i><span>A taxa de entrega será calculada no WhatsApp.</span></div>
                     <div class="delivery-time-notice"><i class="fas fa-clock" style="font-size: 20px; color: var(--whatsapp);"></i><span><strong>Previsão: 30 a 60 min.</strong><br>Tentaremos entregar o quanto antes! 🚀</span></div>
@@ -914,11 +922,24 @@
             else { document.body.classList.remove('no-scroll'); }
         }
 
-        function toggleAddressField(show) {
-            const el = document.getElementById('address-section');
-            if (show) el.classList.remove('hidden'); else el.classList.add('hidden');
+        function toggleOrderType(type) {
+            const addressSection = document.getElementById('address-section');
+            const pickupSection = document.getElementById('pickup-time-section');
+            
+            // Esconde tudo primeiro
+            addressSection.classList.add('hidden');
+            pickupSection.classList.add('hidden');
+
+            // Mostra o que for relevante
+            if (type === 'Entrega') {
+                addressSection.classList.remove('hidden');
+            } else if (type === 'Retirada') {
+                pickupSection.classList.remove('hidden');
+            }
         }
 
+        // Função antiga removida/substituída pela toggleOrderType acima, 
+        // mas mantemos o togglePaymentInfo que cuida dos pagamentos.
         function togglePaymentInfo(value) {
             const changeSection = document.getElementById('change-section');
             const pixSection = document.getElementById('pix-section');
@@ -967,17 +988,24 @@
             
             const type = typeRadio.value;
             let addressMsg = "";
+            let pickupMsg = "";
+
             if (type === 'Entrega') {
                 const mapsLink = document.getElementById('maps-link').value;
                 const addressText = document.getElementById('address-text').value;
                 if (!mapsLink && !addressText) return alert("Para entrega, precisamos do endereço.");
                 if (mapsLink) addressMsg += `\n📍 *GPS:* ${mapsLink}`;
                 if (addressText) addressMsg += `\n🏠 *Endereço:* ${addressText}`;
+            } else if (type === 'Retirada') {
+                const pickupTime = document.getElementById('pickup-time').value;
+                if (pickupTime && pickupTime.trim() !== "") {
+                    pickupMsg = `\n⏰ *Horário de Retirada:* ${pickupTime}`;
+                }
             }
 
             let msg = `*NOVO PEDIDO - DOGÃO PREÁ*\n----------------------------\n`;
             msg += `👤 *Cliente:* ${name}\n`;
-            msg += `📦 *Tipo:* ${type}\n`;
+            msg += `📦 *Tipo:* ${type}${pickupMsg}\n`; // Adicionado horário aqui
             msg += `💰 *Pagamento:* ${payment}\n`;
 
             if (payment === 'Dinheiro' && changeAmount) {
@@ -1088,7 +1116,7 @@
                 } else if (msg.includes('horário') || msg.includes('horario') || msg.includes('abre') || msg.includes('fecha')) {
                     responseText = "⏰ Estamos abertos **todos os dias**, das **19h00 às 00h00**. Se a fome bater nesse horário, é só chamar!";
                 } else if (msg.includes('onde') || msg.includes('fica') || msg.includes('endereço') || msg.includes('local')) {
-                    responseText = "📍 Estamos localizados na **Estrada da Caiçara, S/N - Cavalo Bravo, Cruz - CE**. Pode vir que é sucesso!";
+                    responseText = "📍 Estamos localizados na **Estrada da Caiçara, S/N - Cavalo Bravo, Cruz - CE**. Pode vir que é sucesso!<br><br> <a href='https://maps.app.goo.gl/L67xDvckXUS4xZ179' target='_blank' style='display: inline-flex; align-items: center; gap: 8px; background-color: #4285F4; color: #fff; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3); transition: transform 0.2s;' onmouseover='this.style.transform=\"scale(1.05)\"' onmouseout='this.style.transform=\"scale(1)\"'><i class='fas fa-map-marked-alt' style='font-size: 18px;'></i> Ver no Mapa</a>";
                 } else if (msg.includes('atendente') || msg.includes('humano') || msg.includes('falar com') || msg.includes('ajuda') || msg.includes('problema') || msg.includes('duvida')) {
                     responseText = "Sem problemas! Se precisar de ajuda humana, clique no botão abaixo para chamar no WhatsApp: <br><br> <a href='https://wa.me/5588996768158' target='_blank' style='display: inline-flex; align-items: center; gap: 8px; background-color: #25D366; color: #fff; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); transition: transform 0.2s;' onmouseover='this.style.transform=\"scale(1.05)\"' onmouseout='this.style.transform=\"scale(1)\"'><i class='fab fa-whatsapp' style='font-size: 18px;'></i> Falar com Atendente</a>";
                 } else {
