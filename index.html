@@ -695,7 +695,7 @@
             renderCategories();
             renderMenu();
             initChat(); 
-            setupMobileKeyboardFix();
+            // setupMobileKeyboardFix(); <- REMOVIDO PARA EVITAR O BUG DE PISCAR
             setInterval(checkOpenStatus, 60000);
         };
 
@@ -714,14 +714,7 @@
             }
         }
 
-        function setupMobileKeyboardFix() {
-            const formInputs = document.querySelectorAll('#checkout-form input, #checkout-form textarea, #checkout-form select');
-            formInputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
-                });
-            });
-        }
+        /* FUNÇÃO setupMobileKeyboardFix REMOVIDA DAQUI */
 
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -909,7 +902,7 @@
             modal.classList.toggle('open');
             if (modal.classList.contains('open')) {
                 document.body.classList.add('no-scroll');
-                setTimeout(setupMobileKeyboardFix, 100);
+                // setTimeout(setupMobileKeyboardFix, 100); <- REMOVIDO
             } else {
                 document.body.classList.remove('no-scroll');
             }
