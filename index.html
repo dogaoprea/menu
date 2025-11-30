@@ -367,13 +367,20 @@
         .cart-item-info span { font-size: 13px; color: var(--primary); font-weight: 700; }
         
         /* --- CONTROLES DE QUANTIDADE (CARRINHO) --- */
-        .qty-controls { display: flex; align-items: center; gap: 12px; }
+        .qty-controls { 
+            display: flex; 
+            align-items: center; 
+            border: 1px solid var(--border-color); /* Borda ao redor de todo o grupo */
+            border-radius: 8px; 
+            padding: 3px;
+            background: var(--bg-body); /* Fundo leve para destacar do card */
+        }
         
         .qty-btn { 
-            width: 34px; height: 34px; 
-            border-radius: 50%; 
-            border: 1px solid var(--border-color); 
-            background: var(--bg-element); 
+            width: 32px; height: 32px; 
+            border-radius: 6px; 
+            border: none; /* Remove borda individual */
+            background: transparent; /* Fundo transparente para integrar */
             color: var(--text-main); 
             cursor: pointer; 
             display: flex; align-items: center; justify-content: center; 
@@ -384,12 +391,38 @@
         .qty-btn:hover {
             background: var(--primary);
             color: #000;
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(255, 159, 28, 0.2);
+            transform: scale(1.05);
         }
         
         .qty-btn:active { transform: scale(0.9); }
+
+        /* --- INPUT DE QUANTIDADE (DIGITÁVEL) --- */
+        .qty-input {
+            width: 40px;
+            background: transparent;
+            border: none;
+            text-align: center;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 15px;
+            font-family: inherit;
+            -moz-appearance: textfield; /* Remove setas no Firefox */
+            padding: 0;
+            transition: border-color 0.2s;
+            border-bottom: 2px solid transparent; /* Reserva espaço para o foco */
+        }
+        /* Remove setas no Chrome/Safari/Edge */
+        .qty-input::-webkit-outer-spin-button,
+        .qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .qty-input:focus {
+            outline: none;
+            border-bottom-color: var(--primary); /* Destaque ao digitar */
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px 4px 0 0;
+        }
 
         /* Estilo para o campo de observação do item */
         .item-obs-input {
@@ -746,7 +779,12 @@
         function getButtonHtml(id) {
             const itemInCart = cart.find(i => i.id === id);
             if (itemInCart) {
-                return `<div class="qty-selector"><button onclick="updateQty(${id}, -1)"><i class="fas fa-minus"></i></button><span>${itemInCart.qty}</span><button onclick="updateQty(${id}, 1)"><i class="fas fa-plus"></i></button></div>`;
+                // Adicionado input e onclick stopPropagation para evitar conflitos
+                return `<div class="qty-selector">
+                    <button onclick="updateQty(${id}, -1); event.stopPropagation()"><i class="fas fa-minus"></i></button>
+                    <input type="number" class="qty-input" value="${itemInCart.qty}" onchange="setQty(${id}, this.value)" onclick="event.stopPropagation()">
+                    <button onclick="updateQty(${id}, 1); event.stopPropagation()"><i class="fas fa-plus"></i></button>
+                </div>`;
             } else {
                 return `<button class="add-btn" onclick="addToCart(${id})">ADICIONAR <i class="fas fa-plus"></i></button>`;
             }
@@ -822,6 +860,27 @@
             if (navigator.vibrate) navigator.vibrate(50);
         }
 
+        // Nova função para definir quantidade diretamente pelo input
+        function setQty(id, value) {
+            let newQty = parseInt(value);
+            
+            // Se for inválido ou menor que 0, assume 0 (para remover)
+            if (isNaN(newQty) || newQty < 0) newQty = 0; 
+            
+            const itemIndex = cart.findIndex(i => i.id === id);
+            
+            if (itemIndex > -1) {
+                if (newQty === 0) {
+                    // Remove o item se digitar 0
+                    cart.splice(itemIndex, 1);
+                } else {
+                    cart[itemIndex].qty = newQty;
+                }
+            }
+            updateGridButton(id);
+            updateCartUI();
+        }
+
         function updateQty(id, change) {
             const itemIndex = cart.findIndex(i => i.id === id);
             if (itemIndex > -1) {
@@ -886,7 +945,7 @@
                             <div class="cart-item-info"><h4>${item.name}</h4><span>${itemTotal}</span></div>
                             <div class="qty-controls">
                                 <button class="qty-btn" onclick="updateQty(${item.id}, -1)"><i class="fas fa-minus"></i></button>
-                                <span style="color: var(--text-main); font-weight: bold; min-width: 20px; text-align: center;">${item.qty}</span>
+                                <input type="number" class="qty-input" value="${item.qty}" onchange="setQty(${item.id}, this.value)">
                                 <button class="qty-btn" onclick="updateQty(${item.id}, 1)"><i class="fas fa-plus"></i></button>
                             </div>
                         </div>
