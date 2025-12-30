@@ -279,29 +279,39 @@
         .menu-item:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--primary); }
         .menu-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); opacity: 0.5; }
         
-        /* CARD COM LAYOUT GRID (DESCRIÇÃO + BOTÃO LADO A LADO) */
+        /* CARD COM LAYOUT GRID (Preço ao lado do botão) */
         .item-content { 
             padding: 15px; 
             flex-grow: 1; 
             display: grid; 
-            grid-template-columns: 1fr auto; /* Texto ocupa o resto, Botão ocupa o necessário */
-            grid-template-rows: auto 1fr;
+            grid-template-columns: 1fr auto; /* Texto (1fr), Botão (auto) */
+            grid-template-rows: auto 1fr auto; /* Título, Desc, Preço */
             grid-template-areas: 
-                "header header"
-                "desc btn";
-            gap: 5px 12px; /* Gap entre colunas */
+                "title btn"
+                "desc btn"
+                "price btn";
+            gap: 2px 12px; /* Gap vertical reduzido */
         }
         
-        .item-header { 
-            grid-area: header;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-start; 
-            margin-bottom: 2px; 
+        .item-title { 
+            grid-area: title;
+            font-weight: 700; 
+            font-size: 16px; 
+            color: var(--text-main); 
+            line-height: 1.2; 
+            margin-bottom: 4px;
         }
         
-        .item-title { font-weight: 700; font-size: 16px; color: var(--text-main); line-height: 1.2; }
-        .item-price { color: var(--primary); font-weight: 700; font-size: 16px; white-space: nowrap; margin-left: 8px; }
+        .item-price { 
+            grid-area: price;
+            color: var(--primary); 
+            font-weight: 700; 
+            font-size: 16px; 
+            white-space: nowrap; 
+            line-height: 1.2; 
+            align-self: center; /* Alinha com o centro do botão se sobrar espaço */
+            margin-top: 4px;
+        }
         
         .item-desc { 
             grid-area: desc;
@@ -309,7 +319,7 @@
             color: var(--text-muted); 
             margin-bottom: 0; 
             line-height: 1.4; 
-            align-self: center; /* Centraliza texto verticalmente em relação ao botão se botão for maior */
+            align-self: start; 
         }
         
         .category-separator { margin-top: 25px; margin-bottom: 10px; font-size: 22px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
@@ -318,12 +328,10 @@
         /* CONTAINER DO BOTÃO (ALINHADO À DIREITA NO GRID) */
         .btn-container { 
             grid-area: btn;
-            margin-top: 0; 
-            height: auto;
             display: flex;
             justify-content: flex-end; /* Alinha o botão à direita */
             align-items: center;
-            align-self: center; /* Centraliza verticalmente na linha da descrição */
+            align-self: center; /* Centraliza verticalmente em relação a todo o card (título+desc+preço) */
         }
         
         /* BOTÃO ADICIONAR COMPACTO */
@@ -473,6 +481,25 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .close-modal { background: var(--bg-element); border: none; color: var(--text-main); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 18px; }
         .close-modal:hover { background: var(--danger); color: white; }
+
+        /* --- BOTÃO LIMPAR CARRINHO --- */
+        .clear-cart-btn {
+            color: var(--danger);
+            background: transparent;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+            margin-left: auto; /* Empurra para a direita se no flex container */
+        }
+        .clear-cart-btn:hover {
+            color: #d32f2f;
+            text-decoration: underline;
+        }
 
         /* --- CHECKOUT --- */
         .cart-items { margin-bottom: 20px; }
@@ -694,6 +721,12 @@
                 <h2 class="brand-font">Finalizar Pedido</h2>
                 <button class="close-modal" onclick="toggleCart()"><i class="fas fa-times"></i></button>
             </div>
+            
+            <!-- AÇÃO DE LIMPAR (VISÍVEL SE TIVER ITENS) -->
+            <div id="cart-actions-bar" style="display:none; justify-content: flex-end; padding-bottom: 10px;">
+                <button class="clear-cart-btn" onclick="clearCart()"><i class="fas fa-trash-alt"></i> Limpar Sacola</button>
+            </div>
+
             <div id="cart-items" class="cart-items"><p style="text-align: center; color: var(--text-muted); margin-top: 20px;">Sua sacola está vazia 😔</p></div>
             <div id="drink-suggestions" class="suggestion-box hidden">
                 <div class="suggestion-title"><i class="fas fa-glass-water"></i> Vai uma bebida geladinha? 🥤</div>
@@ -904,7 +937,7 @@
 
         function createItemCard(item) {
              const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
-             return `<div class="menu-item"><div class="item-content"><div class="item-header"><span class="item-title">${item.name}</span><span class="item-price">${priceDisplay}</span></div><p class="item-desc">${item.desc}</p><div class="btn-container" id="btn-container-${item.id}">${getButtonHtml(item.id)}</div></div></div>`;
+             return `<div class="menu-item"><div class="item-content"><span class="item-title">${item.name}</span><p class="item-desc">${item.desc}</p><span class="item-price">${priceDisplay}</span><div class="btn-container" id="btn-container-${item.id}">${getButtonHtml(item.id)}</div></div></div>`;
         }
 
         function renderMenu(filter = 'all') {
@@ -1017,6 +1050,16 @@
             }).join('');
         }
 
+        function clearCart() {
+            if (cart.length === 0) return;
+            if (confirm("Tem certeza que deseja limpar toda a sacola?")) {
+                const itemsToReset = [...cart];
+                cart = [];
+                itemsToReset.forEach(item => updateGridButton(item.id));
+                updateCartUI();
+            }
+        }
+
         function updateCartUI() {
             const totalQty = cart.reduce((acc, item) => acc + item.qty, 0);
             const totalPrice = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
@@ -1027,15 +1070,18 @@
             
             const checkoutForm = document.getElementById('checkout-form');
             const btnAddMore = document.getElementById('btn-add-more');
+            const actionsBar = document.getElementById('cart-actions-bar');
 
             if (totalQty > 0) {
                 floatBtn.classList.remove('hidden');
                 checkoutForm.style.display = 'block';
                 btnAddMore.style.display = 'flex';
+                actionsBar.style.display = 'flex'; // Exibe o botão de limpar
             } else {
                 floatBtn.classList.add('hidden');
                 checkoutForm.style.display = 'none';
                 btnAddMore.style.display = 'none';
+                actionsBar.style.display = 'none'; // Oculta o botão de limpar
             }
 
             const list = document.getElementById('cart-items');
