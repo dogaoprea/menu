@@ -363,10 +363,26 @@
             padding: 14px 20px; border-radius: 50px; display: flex; justify-content: space-between; align-items: center;
             font-weight: 700; font-size: 16px; box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4);
             cursor: pointer; z-index: 1000; transition: all 0.3s; animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /* Reset line-height to ensure vertical centering looks correct */
+            line-height: 1; 
         }
         .floating-cart > span:first-child { display: flex; align-items: center; gap: 8px; }
         .floating-cart:active { transform: scale(0.95); }
-        .cart-count { background: #000; color: var(--primary); padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-left: 0; }
+        
+        /* ADJUSTED COUNTER STYLE */
+        .cart-count { 
+            background: #000; 
+            color: var(--primary); 
+            min-width: 24px;  /* Largura mínima igual a altura */
+            height: 24px;     /* Altura fixa */
+            border-radius: 12px; /* Metade da altura para criar pílula perfeita */
+            padding: 0 6px;   /* Espaço interno lateral */
+            font-size: 12px; 
+            display: flex;    /* Flex para centralizar o texto */
+            align-items: center; 
+            justify-content: center;
+            margin-left: 0;   /* Gap do pai controla o espaçamento */
+        }
 
         /* --- MODAL --- */
         .modal-overlay { 
@@ -606,7 +622,7 @@
     </footer>
 
     <div id="floating-cart" class="floating-cart hidden" onclick="toggleCart()">
-        <span><i class="fas fa-shopping-bag"></i> Sacola <span id="cart-count" class="cart-count">0</span></span>
+        <span><i class="fas fa-shopping-bag"></i> <span>Sacola</span> <span id="cart-count" class="cart-count">0</span></span>
         <span id="cart-total-float">R$ 0,00</span>
     </div>
 
