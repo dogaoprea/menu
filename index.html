@@ -226,6 +226,11 @@
             white-space: nowrap; 
             -webkit-overflow-scrolling: touch; /* Rolagem suave no iOS */
             scrollbar-width: none; /* Oculta barra de rolagem no Firefox */
+            
+            /* Correção de alinhamento com container */
+            margin-left: -15px;
+            margin-right: -15px;
+            width: calc(100% + 30px);
         }
         .category-nav::-webkit-scrollbar { display: none; } /* Oculta barra de rolagem no Chrome/Safari */
 
@@ -582,10 +587,13 @@
             <div id="search-helper" class="search-helper hidden">
                 <i class="fas fa-info-circle"></i><span>Marcas e sabores serão combinados no WhatsApp após o pedido.</span>
             </div>
+            
+            <!-- Menu de Categorias movido para DENTRO do container para alinhar com o conteúdo -->
+            <!-- Margens negativas aplicadas no CSS (.category-nav) para manter o efeito de borda a borda -->
+            <nav class="category-nav">
+                <ul class="category-list" id="category-list"></ul>
+            </nav>
         </div>
-        <nav class="category-nav">
-            <ul class="category-list" id="category-list"></ul>
-        </nav>
     </div>
 
     <div class="container">
