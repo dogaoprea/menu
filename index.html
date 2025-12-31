@@ -634,7 +634,7 @@
         .message.user { background: var(--primary); color: #000; align-self: flex-end; border-bottom-right-radius: 4px; font-weight: 500; }
         .typing-indicator { font-size: 11px; color: var(--text-muted); font-style: italic; margin-bottom: 10px; padding-left: 20px; display: none; }
         .quick-replies { display: flex; gap: 8px; padding: 10px 15px; overflow-x: auto; background: var(--bg-card); border-top: 1px solid var(--border-color); }
-        .reply-chip { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .reply-chip { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 6px 14px; border-radius: 18px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; }
         .reply-chip:hover { background: var(--primary); color: #000; }
         .input-area { display: flex; gap: 10px; padding: 12px; background: var(--bg-card); border-top: 1px solid var(--border-color); }
         .chat-input { flex: 1; border-radius: 25px !important; }
@@ -1253,10 +1253,12 @@
 
         const quickReplies = [
             { text: "🦁 Muita Fome!", msg: "fome" },
+            { text: "🥬 Vegetariano", msg: "vegetariano" },
             { text: "💸 Algo Barato", msg: "barato" },
             { text: "🥓 Bacon é Vida", msg: "bacon" },
             { text: "🛵 Entrega", msg: "entrega" },
-            { text: "💳 Pagamento", msg: "pagamento" }
+            { text: "👀 Ver Pedido", msg: "acompanhar pedido" },
+            { text: "📞 Falar com Humano", msg: "atendente" }
         ];
 
         function initChat() {
@@ -1297,9 +1299,17 @@
                 let responseText = "";
                 let suggestedItemId = null;
 
-                if (msg.includes('oi') || msg.includes('ola')) {
-                    responseText = "E aí! Tudo bem? 👋 O que vai ser hoje? Um X-Tudo caprichado?";
-                } else if (msg.includes('fome') || msg.includes('grande') || msg.includes('gigante')) {
+                // --- SAUDAÇÕES ---
+                if (msg.match(/^(oi|ola|olá|bom dia|boa tarde|boa noite|opa|eai|fala)/)) {
+                    const greetings = [
+                        "E aí! Tudo bem? 👋 O que vai ser hoje? Um X-Tudo caprichado?",
+                        "Opa! A chapa já está quente! 🔥 O que manda?",
+                        "Olá! Chef Dogão na área. 🧑‍🍳 Posso sugerir algo especial?"
+                    ];
+                    responseText = greetings[Math.floor(Math.random() * greetings.length)];
+                
+                // --- INTENÇÕES DE COMIDA ---
+                } else if (msg.includes('fome') || msg.includes('grande') || msg.includes('gigante') || msg.includes('maior')) {
                     const bigItems = menuData.filter(i => i.name.includes('X-Tudo') || i.name.includes('Dogão') || i.name.includes('Lanchão'));
                     const item = bigItems[Math.floor(Math.random() * bigItems.length)];
                     responseText = `Se a fome é de leão 🦁, vai de **${item.name}**! É gigante e custa R$ ${item.price.toFixed(2).replace('.',',')}.`;
@@ -1313,27 +1323,58 @@
                     suggestedItemId = item.id;
                 } else if (msg.includes('frango')) {
                     responseText = `🍗 Franguinho top! Recomendo o **X-Frango Bacon** ou o nosso **Pastel de Frango**.`;
-                } else if (msg.includes('barato') || msg.includes('10')) {
+                } else if (msg.includes('barato') || msg.includes('10') || msg.includes('dinheiro') || msg.includes('economizar')) {
                     responseText = `🤑 Quer economizar? O **Queijo e Ovos** ou o **Misto Quente** saem por apenas R$ 10,00!`;
-                } else if (msg.includes('beber') || msg.includes('sede') || msg.includes('refri')) {
-                    responseText = "🥤 Para refrescar, temos Sucos Naturais e Refrigerantes de todos os tamanhos!";
+                } else if (msg.includes('vegetariano') || msg.includes('vegano') || msg.includes('carne')) {
+                    responseText = "🌱 Sem carne? Temos ótimas opções! Que tal um **Pastel de Queijo** ou nossa **Batata Frita** sequinha?";
+                    const vegItems = menuData.filter(i => i.name.includes('Queijo') || i.name.includes('Batata'));
+                    if(vegItems.length > 0) suggestedItemId = vegItems[0].id;
+
+                // --- INTENÇÕES DE BEBIDA ---
+                } else if (msg.includes('beber') || msg.includes('sede') || msg.includes('refri') || msg.includes('coca') || msg.includes('suco')) {
+                    responseText = "🥤 Para refrescar, temos Sucos Naturais e Refrigerantes de todos os tamanhos! Adicione ao carrinho e combinamos o sabor no final.";
+                
+                // --- INGREDIENTES ESPECÍFICOS ---
+                } else if (msg.includes('milho') || msg.includes('ervilha') || msg.includes('salada') || msg.includes('batata palha')) {
+                    responseText = "🌽 Sim! Nossos sanduíches completos (como X-Salada, X-Tudo) vêm com salada fresquinha e milho. Você pode retirar qualquer item nas observações do carrinho.";
+                } else if (msg.includes('ovo') || msg.includes('ovos')) {
+                    responseText = "🥚 Ovos fritos na hora! O **Americano** e o **X-Egg** são campeões nisso.";
+
+                // --- PASTÉIS ---
                 } else if (msg.includes('pastel')) {
-                    responseText = "🥟 Nossos pastéis são fritos na hora! Misto, Queijo, Carne ou Frango. Qual o tamanho da sua vontade?";
-                } else if (msg.includes('cardápio') || msg.includes('menu')) {
-                    responseText = "📜 O cardápio está logo atrás de mim! É só fechar aqui e rolar a tela para ver tudo.";
+                    responseText = "🥟 Nossos pastéis são fritos na hora e super crocantes! Temos Misto, Queijo, Carne ou Frango. Qual o tamanho da sua vontade? (P ou G)";
+                
+                // --- INFORMAÇÕES GERAIS ---
+                } else if (msg.includes('cardápio') || msg.includes('menu') || msg.includes('lista') || msg.includes('opções')) {
+                    responseText = "📜 O cardápio está logo atrás de mim! É só fechar o chat no 'X' ali em cima e rolar a tela para ver tudo.";
                 } else if (msg.includes('entrega') || msg.includes('entregar') || msg.includes('taxa') || msg.includes('tempo') || msg.includes('demora')) {
                     responseText = "As nossas entregas levam de **30 a 60 minutos** 🛵. A taxa de entrega é calculada no WhatsApp dependendo da sua localização.";
-                } else if (msg.includes('pagamento') || msg.includes('pagar') || msg.includes('pix') || msg.includes('cartão') || msg.includes('dinheiro') || msg.includes('aceita')) {
+                } else if (msg.includes('pagamento') || msg.includes('pagar') || msg.includes('pix') || msg.includes('cartão') || msg.includes('aceita')) {
                     responseText = "Aceitamos **PIX, Cartão de Crédito/Débito e Dinheiro**. 💳💸 \n⚠️ Para pagamentos em cartão, há uma pequena tarifa da maquininha.";
-                } else if (msg.includes('horário') || msg.includes('horario') || msg.includes('abre') || msg.includes('fecha')) {
+                } else if (msg.includes('horário') || msg.includes('horario') || msg.includes('abre') || msg.includes('fecha') || msg.includes('aberto')) {
                     responseText = "⏰ Estamos abertos **todos os dias**, das **19h00 às 00h00**. Se a fome bater nesse horário, é só chamar!";
-                } else if (msg.includes('onde') || msg.includes('fica') || msg.includes('endereço') || msg.includes('local')) {
-                    responseText = "📍 Estamos localizados na **Estrada da Caiçara, S/N - Cavalo Bravo, Cruz - CE**. Pode vir que é sucesso!<br><br> <a href='https://maps.app.goo.gl/L67xDvckXUS4xZ179' target='_blank' style='display: inline-flex; align-items: center; gap: 8px; background-color: #4285F4; color: #fff; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3); transition: transform 0.2s;' onmouseover='this.style.transform=\"scale(1.05)\"' onmouseout='this.style.transform=\"scale(1)\"'><i class='fas fa-map-marked-alt' style='font-size: 18px;'></i> Ver no Mapa</a>";
-                } else if (msg.includes('atendente') || msg.includes('humano') || msg.includes('falar com') || msg.includes('ajuda') || msg.includes('problema') || msg.includes('duvida')) {
-                    responseText = "Sem problemas! Se precisar de ajuda humana, clique no botão abaixo para chamar no WhatsApp: <br><br> <a href='https://wa.me/5588996768158' target='_blank' style='display: inline-flex; align-items: center; gap: 8px; background-color: #25D366; color: #fff; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); transition: transform 0.2s;' onmouseover='this.style.transform=\"scale(1.05)\"' onmouseout='this.style.transform=\"scale(1)\"'><i class='fab fa-whatsapp' style='font-size: 18px;'></i> Falar com Atendente</a>";
+                } else if (msg.includes('onde') || msg.includes('fica') || msg.includes('endereço') || msg.includes('local') || msg.includes('rua')) {
+                    responseText = "📍 Estamos na **Estrada da Caiçara, S/N - Cavalo Bravo, Cruz - CE**. \nClique no botão abaixo para ver no mapa!";
+                    responseText += `<br><a href='https://maps.app.goo.gl/L67xDvckXUS4xZ179' target='_blank' style='display: inline-flex; align-items: center; gap: 8px; background-color: #4285F4; color: #fff; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 12px;'><i class='fas fa-map-marked-alt'></i> Ver no Mapa</a>`;
+                
+                // --- STATUS / HUMANO ---
+                } else if (msg.includes('acompanhar') || msg.includes('status') || msg.includes('pronto') || msg.includes('chegando')) {
+                    responseText = "🧐 Para saber o status exato do seu pedido, é melhor falar direto com a gente no WhatsApp.";
+                    responseText += `<br><a href='https://wa.me/5588996768158' target='_blank' style='display: inline-flex; align-items: center; gap: 8px; background-color: #25D366; color: #fff; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 12px;'><i class='fab fa-whatsapp'></i> Perguntar no Zap</a>`;
+                } else if (msg.includes('atendente') || msg.includes('humano') || msg.includes('falar com') || msg.includes('ajuda') || msg.includes('problema') || msg.includes('duvida') || msg.includes('telefone') || msg.includes('contato')) {
+                    responseText = "Sem problemas! Se precisar de ajuda humana, clique no botão abaixo para chamar no WhatsApp: <br><br> <a href='https://wa.me/5588996768158' target='_blank' style='display: inline-flex; align-items: center; gap: 8px; background-color: #25D366; color: #fff; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 5px; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); transition: transform 0.2s;'><i class='fab fa-whatsapp' style='font-size: 18px;'></i> Falar com Atendente</a>";
+                
+                // --- FEEDBACK ---
+                } else if (msg.includes('bom') || msg.includes('delicia') || msg.includes('gostoso') || msg.includes('parabens') || msg.includes('adoro')) {
+                    responseText = "Fico muito feliz em saber! 🥰 A gente faz tudo com muito carinho. Volte sempre!";
+                } else if (msg.includes('ruim') || msg.includes('demorou') || msg.includes('frio') || msg.includes('errado')) {
+                    responseText = "Poxa, sinto muito por isso! 😔 Queremos resolver. Por favor, chame a gente no WhatsApp para conversarmos melhor.";
+                    responseText += `<br><a href='https://wa.me/5588996768158' target='_blank' style='display: inline-flex; align-items: center; gap: 8px; background-color: #25D366; color: #fff; padding: 10px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; margin-top: 10px; font-size: 12px;'><i class='fab fa-whatsapp'></i> Falar com Gerente</a>`;
+
+                // --- FALLBACK (NÃO ENTENDEU) ---
                 } else {
                     const randomItem = menuData[Math.floor(Math.random() * menuData.length)];
-                    responseText = `Hummm... que tal experimentar um **${randomItem.name}**? É um dos meus favoritos! 😋`;
+                    responseText = `Hmm, ainda estou aprendendo e não entendi muito bem. 😅 <br>Mas que tal experimentar um **${randomItem.name}**? É um dos meus favoritos! 😋<br><br>Se preferir, pode ver o cardápio completo ou falar com um humano.`;
                     suggestedItemId = randomItem.id;
                 }
 
