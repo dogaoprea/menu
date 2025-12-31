@@ -194,29 +194,66 @@
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
 
-        /* --- BARRA DE BUSCA --- */
-        .search-container { margin-bottom: 10px; display: flex; gap: 10px; }
+        /* --- BARRA DE BUSCA (PREMIUM) --- */
+        .search-container { margin-bottom: 15px; display: flex; gap: 12px; align-items: center; }
+        
         .search-box {
-            flex: 1; background-color: var(--bg-element); border: 1px solid transparent;
-            border-radius: 12px; padding: 10px 15px; color: var(--text-main); font-size: 14px;
-            display: flex; align-items: center; gap: 10px; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex: 1; 
+            background-color: var(--bg-card); /* Fundo branco */
+            border: 1px solid var(--border-color);
+            border-radius: 50px; /* Formato Pílula */
+            padding: 6px 16px; /* Padding interno */
+            color: var(--text-main); 
+            font-size: 14px;
+            display: flex; align-items: center; gap: 10px; 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            height: 48px; /* Altura fixa confortável */
         }
-        .search-box:focus-within { border-color: var(--primary); background-color: var(--bg-card); box-shadow: 0 0 0 2px rgba(255, 159, 28, 0.1); }
-        .search-input { background: transparent; border: none; color: var(--text-main); width: 100%; font-size: 14px; outline: none; font-family: inherit; }
-        .search-icon { color: var(--text-muted); font-size: 14px; }
+        
+        .search-box:focus-within { 
+            border-color: var(--primary); 
+            box-shadow: 0 4px 12px rgba(255, 159, 28, 0.2); 
+            transform: translateY(-1px);
+        }
+        
+        .search-input { 
+            background: transparent; border: none; color: var(--text-main); 
+            width: 100%; font-size: 15px; outline: none; font-family: inherit; font-weight: 500;
+        }
+        
+        .search-input::placeholder { color: #9ca3af; font-weight: 400; }
+        
+        .search-icon { color: var(--primary); font-size: 16px; } /* Ícone colorido */
+
+        /* Botão limpar busca */
+        .clear-search {
+            color: var(--text-muted);
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px;
+            display: none; /* Oculto por padrão */
+            transition: color 0.2s;
+        }
+        .clear-search:hover { color: var(--danger); }
+        .search-box.has-text .clear-search { display: block; animation: popIn 0.2s ease; }
+
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
 
         .search-helper {
-            margin-top: 5px; margin-bottom: 10px; background-color: var(--info-bg); color: var(--info-text);
-            padding: 8px 12px; border-radius: 8px; font-size: 12px; display: flex; align-items: center; gap: 8px;
-            border: 1px solid var(--info-text); animation: fadeIn 0.3s ease;
+            margin-top: -5px; margin-bottom: 15px; background-color: var(--info-bg); color: var(--info-text);
+            padding: 10px 15px; border-radius: 12px; font-size: 13px; display: flex; align-items: center; gap: 10px;
+            border: 1px solid rgba(37, 99, 235, 0.2); animation: fadeInUp 0.3s ease;
         }
 
         .ai-btn {
-            background: var(--ai-gradient); color: #fff; border: none; border-radius: 12px; width: 44px; height: 44px;
+            background: var(--ai-gradient); color: #fff; border: none; border-radius: 50%; width: 48px; height: 48px;
             flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4); transition: all 0.3s; font-size: 18px;
+            box-shadow: 0 4px 15px rgba(118, 75, 162, 0.4); transition: all 0.3s; font-size: 20px;
         }
-        .ai-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(118, 75, 162, 0.6); }
+        .ai-btn:hover { transform: scale(1.08) rotate(5deg); box-shadow: 0 6px 20px rgba(118, 75, 162, 0.6); }
         .ai-btn:active { transform: scale(0.95); }
 
         /* --- CATEGORIAS (COM ROLAGEM LATERAL MELHORADA) --- */
@@ -734,9 +771,10 @@
     <div id="sticky-wrapper">
         <div class="container">
             <div class="search-container">
-                <div class="search-box">
+                <div class="search-box" id="search-box-container">
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" id="search-input" placeholder="Pesquisar lanche..." oninput="searchProducts(this.value)">
+                    <input type="text" class="search-input" id="search-input" placeholder="O que você quer comer hoje?" oninput="searchProducts(this.value)">
+                    <button class="clear-search" onclick="clearSearchInput()" title="Limpar busca"><i class="fas fa-times-circle"></i></button>
                 </div>
                 <button class="ai-btn" onclick="toggleChefBot()" title="Falar com Chef Dogão"><i class="fas fa-comment-dots"></i></button>
             </div>
@@ -1051,9 +1089,15 @@
 
         function searchProducts(query) {
             const term = query.toLowerCase().trim();
+            const searchBox = document.getElementById('search-box-container');
             const catButtons = document.querySelectorAll('.cat-btn');
             const helper = document.getElementById('search-helper');
             const sodaBrands = ["coca", "cola", "fanta", "guarana", "guaraná", "pepsi", "sprite", "sukita", "kuat", "soda", "antarctica", "refri"];
+            
+            // Controle visual do botão limpar
+            if (query.length > 0) searchBox.classList.add('has-text');
+            else searchBox.classList.remove('has-text');
+
             const isSodaSearch = sodaBrands.some(brand => term.includes(brand));
             if(isSodaSearch) helper.classList.remove('hidden'); else helper.classList.add('hidden');
             
@@ -1072,6 +1116,13 @@
                 helper.classList.add('hidden');
                 filterMenu('all', document.querySelector('.cat-btn'));
             }
+        }
+
+        function clearSearchInput() {
+            const input = document.getElementById('search-input');
+            input.value = '';
+            input.focus();
+            searchProducts('');
         }
 
         function addToCart(id) {
