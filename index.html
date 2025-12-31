@@ -8,7 +8,7 @@
     <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -29,12 +29,12 @@
             /* Tema Claro (Padrão e Único) */
             --bg-body: #f0f2f5;
             --bg-card: #ffffff;
-            --bg-element: #e4e6eb;
+            --bg-element: #f7f8fa; /* Elemento levemente mais escuro que o card */
             --bg-header: rgba(255, 255, 255, 0.95);
             --text-main: #1c1e21;
             --text-muted: #65676b;
             --border-color: #e4e6eb;
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Sombra mais suave */
             --input-bg: #ffffff;
             --glass-border: 1px solid rgba(0, 0, 0, 0.05);
             --info-text: #2563eb;
@@ -219,156 +219,208 @@
         .ai-btn:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(118, 75, 162, 0.6); }
         .ai-btn:active { transform: scale(0.95); }
 
-        /* --- CATEGORIAS (COM ROLAGEM LATERAL) --- */
-        .category-nav { 
-            padding: 5px 0 10px 0; 
-            overflow-x: auto; /* Habilita rolagem horizontal */
-            white-space: nowrap; 
-            -webkit-overflow-scrolling: touch; /* Rolagem suave no iOS */
-            scrollbar-width: none; /* Oculta barra de rolagem no Firefox */
-            
-            /* Correção de alinhamento com container */
+        /* --- CATEGORIAS (COM ROLAGEM LATERAL MELHORADA) --- */
+        .category-nav {
+            padding: 10px 0 15px 0; /* Mais espaço vertical */
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
             margin-left: -15px;
             margin-right: -15px;
             width: calc(100% + 30px);
+            position: relative;
         }
         .category-nav::-webkit-scrollbar { display: none; } /* Oculta barra de rolagem no Chrome/Safari */
 
-        .category-list { 
-            display: flex; 
-            flex-wrap: nowrap; /* Impede quebra de linha */
-            justify-content: flex-start; /* Alinha no início */
-            gap: 10px; 
-            padding-left: 15px; /* Margem esquerda igual ao container */
-            padding-right: 0; /* Remove padding direito direto (usaremos ::after) */
-            list-style: none; 
+        .category-list {
+            display: flex;
+            gap: 12px; /* Mais espaçamento entre botões */
+            padding-left: 15px;
+            padding-right: 15px; /* Padding direito direto no container funciona melhor com ::after */
+            list-style: none;
         }
         
         /* Elemento invisível para garantir o espaçamento final na rolagem */
         .category-list::after {
             content: '';
             display: block;
-            padding-right: 15px; /* Margem direita igual ao container */
-            height: 1px; /* Ocupa espaço mínimo */
+            min-width: 5px; /* Pequeno respiro final */
+            height: 1px;
         }
         
         .cat-btn {
-            background: var(--bg-element); border: 1px solid transparent; color: var(--text-muted);
-            padding: 8px 16px; border-radius: 20px; /* Mais arredondado */
-            font-size: 13px; font-weight: 600;
-            transition: all 0.3s; white-space: nowrap; display: flex; align-items: center; gap: 6px;
-            flex-shrink: 0; /* Garante que o botão não encolha */
-            min-width: auto;
+            background: var(--bg-card); /* Fundo branco para destacar do fundo cinza do sticky */
+            border: 1px solid var(--border-color); /* Borda sutil */
+            color: var(--text-muted);
+            padding: 10px 20px; /* Mais gordinho e confortável */
+            border-radius: 50px; /* Pill shape completo */
+            font-size: 14px; 
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03); /* Sombra leve */
         }
-        @media (max-width: 360px) { .cat-btn { padding: 6px 12px; font-size: 12px; } }
-        .cat-btn:hover { color: var(--text-main); background: var(--bg-card); }
-        .cat-btn.active { background: var(--primary); color: #000; box-shadow: 0 2px 8px rgba(255, 159, 28, 0.3); transform: scale(1.02); }
 
-        /* --- GRID DE PRODUTOS --- */
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 15px; margin-bottom: 30px; }
+        .cat-btn i { font-size: 16px; transition: 0.3s; }
+
+        .cat-btn:hover { 
+            background: var(--bg-element); 
+            color: var(--text-main); 
+            transform: translateY(-2px);
+        }
+
+        .cat-btn.active { 
+            background: var(--primary); 
+            color: #000; /* Texto preto no amarelo */
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(255, 159, 28, 0.4); /* Glow amarelo */
+            transform: scale(1.05); /* Leve aumento */
+        }
+        
+        .cat-btn.active i { transform: rotate(-10deg); } /* Charme no ícone ativo */
+
+        /* --- NOVO GRID DE PRODUTOS (LAYOUT REFORMULADO) --- */
+        .menu-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Um pouco mais largo para acomodar o card */
+            gap: 16px; 
+            margin-top: 15px; 
+            margin-bottom: 30px; 
+        }
+        
         .menu-item {
-            background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color);
-            overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative; animation: fadeInUp 0.5s ease-out forwards; opacity: 0;
-            box-shadow: var(--shadow); /* Adicionado sombra sutil para destacar no fundo claro */
+            background-color: var(--bg-card); 
+            border-radius: 16px; /* Bordas mais arredondadas */
+            border: 1px solid var(--border-color);
+            /* Borda superior colorida substituindo a lateral, mais moderno */
+            border-top: 4px solid var(--primary);
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; 
+            animation: fadeInUp 0.5s ease-out forwards; 
+            opacity: 0;
+            box-shadow: var(--shadow); 
+            height: 100%; /* Garante altura total no grid */
         }
         .menu-item:nth-child(1) { animation-delay: 0.05s; }
         .menu-item:nth-child(2) { animation-delay: 0.1s; }
         .menu-item:nth-child(3) { animation-delay: 0.15s; }
         .menu-item:nth-child(n+4) { animation-delay: 0.2s; }
-        .menu-item:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--primary); }
-        .menu-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); opacity: 0.5; }
         
-        /* CARD COM LAYOUT GRID (Preço ao lado do botão) */
+        .menu-item:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08); 
+            border-color: var(--primary); 
+        }
+
+        /* Removida a borda lateral antiga (::before) para usar a borda superior */
+        .menu-item::before { display: none; }
+        
+        /* CARD COM LAYOUT FLEX (Vertical) */
         .item-content { 
-            padding: 15px; 
+            padding: 16px; 
             flex-grow: 1; 
-            display: grid; 
-            grid-template-columns: 1fr auto; /* Texto (1fr), Botão (auto) */
-            grid-template-rows: auto 1fr auto; /* Título, Desc, Preço */
-            grid-template-areas: 
-                "title btn"
-                "desc btn"
-                "price btn";
-            gap: 2px 12px; /* Gap vertical reduzido */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
         
         .item-title { 
-            grid-area: title;
             font-weight: 700; 
-            font-size: 16px; 
+            font-size: 17px; 
             color: var(--text-main); 
-            line-height: 1.2; 
-            margin-bottom: 4px;
-        }
-        
-        .item-price { 
-            grid-area: price;
-            color: var(--primary); 
-            font-weight: 700; 
-            font-size: 16px; 
-            white-space: nowrap; 
-            line-height: 1.2; 
-            align-self: center; /* Alinha com o centro do botão se sobrar espaço */
-            margin-top: 4px;
+            line-height: 1.3; 
+            letter-spacing: -0.3px;
         }
         
         .item-desc { 
-            grid-area: desc;
-            font-size: 12px; 
+            font-size: 13px; 
             color: var(--text-muted); 
             margin-bottom: 0; 
-            line-height: 1.4; 
-            align-self: start; 
+            line-height: 1.5; 
+            flex-grow: 1; /* Empurra o rodapé para baixo */
+        }
+        
+        /* LINHA DE AÇÃO (RODAPÉ DO CARD) */
+        .item-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            margin-top: 6px;
+            border-top: 1px dashed var(--border-color); /* Separação sutil */
+        }
+        
+        .item-price { 
+            color: var(--primary-dark); 
+            font-weight: 800; 
+            font-size: 18px; 
+            white-space: nowrap; 
+            line-height: 1; 
+            letter-spacing: -0.5px;
         }
         
         .category-separator { margin-top: 25px; margin-bottom: 10px; font-size: 22px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
         .category-separator::after { content: ''; flex-grow: 1; height: 1px; background: var(--border-color); }
         
-        /* CONTAINER DO BOTÃO (ALINHADO À DIREITA NO GRID) */
+        /* CONTAINER DO BOTÃO (Agora no rodapé do card) */
         .btn-container { 
-            grid-area: btn;
             display: flex;
-            justify-content: flex-end; /* Alinha o botão à direita */
             align-items: center;
-            align-self: center; /* Centraliza verticalmente em relação a todo o card (título+desc+preço) */
         }
         
-        /* BOTÃO ADICIONAR COMPACTO */
+        /* BOTÃO ADICIONAR REFORMULADO */
         .add-btn {
-            width: 44px; /* Largura fixa compacta */
-            height: 44px; /* Altura fixa para ser quadrado/arredondado */
-            background: rgba(255, 159, 28, 0.1); 
-            color: var(--primary); 
-            border: 1px solid var(--primary); 
-            border-radius: 12px; 
-            font-weight: 600; 
+            width: auto; /* Largura automática */
+            padding: 8px 16px; /* Padding confortável */
+            height: 40px; 
+            background: rgba(255, 159, 28, 0.15); 
+            color: var(--primary-dark); 
+            border: 1px solid transparent; 
+            border-radius: 10px; 
+            font-weight: 700; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
+            gap: 6px;
             cursor: pointer; 
             transition: all 0.2s ease; 
-            font-size: 18px; 
-            padding: 0; /* Remove padding lateral excessivo */
+            font-size: 14px; 
+            text-transform: uppercase;
         }
+        
+        .add-btn i { font-size: 14px; }
         
         .add-btn:hover { 
             background: var(--primary); 
             color: #000; 
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 159, 28, 0.25);
+            box-shadow: 0 4px 12px rgba(255, 159, 28, 0.3);
         }
         
         .add-btn:active { transform: scale(0.95); }
 
-        /* CONTROLES DE QUANTIDADE COMPACTOS (ALINHADOS À DIREITA) */
+        /* CONTROLES DE QUANTIDADE (CARDÁPIO) */
         .qty-selector {
             display: flex; align-items: center; justify-content: space-between;
-            background-color: var(--bg-element); border-radius: 12px;
-            width: 100px; /* Largura fixa compacta */
-            height: 44px; /* Altura igual ao botão de adicionar */
+            background-color: var(--bg-element); border-radius: 10px;
+            width: 100px;
+            height: 40px; 
             padding: 0; color: var(--text-main);
-            border: 1px solid var(--primary);
+            border: 1px solid var(--border-color);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
         }
         .qty-selector button { width: 32px; height: 100%; background: transparent; color: var(--text-main); border: none; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-selector button:active { transform: scale(0.9); background-color: rgba(0,0,0,0.05); }
@@ -931,13 +983,24 @@
                     <button onclick="updateQty(${id}, 1); event.stopPropagation()"><i class="fas fa-plus"></i></button>
                 </div>`;
             } else {
-                return `<button class="add-btn" title="Adicionar" onclick="addToCart(${id})"><i class="fas fa-plus"></i></button>`;
+                return `<button class="add-btn" title="Adicionar" onclick="addToCart(${id})">ADICIONAR</button>`;
             }
         }
 
         function createItemCard(item) {
              const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
-             return `<div class="menu-item"><div class="item-content"><span class="item-title">${item.name}</span><p class="item-desc">${item.desc}</p><span class="item-price">${priceDisplay}</span><div class="btn-container" id="btn-container-${item.id}">${getButtonHtml(item.id)}</div></div></div>`;
+             return `<div class="menu-item">
+                        <div class="item-content">
+                            <div class="item-header">
+                                <span class="item-title">${item.name}</span>
+                            </div>
+                            <p class="item-desc">${item.desc}</p>
+                            <div class="item-footer">
+                                <span class="item-price">${priceDisplay}</span>
+                                <div class="btn-container" id="btn-container-${item.id}">${getButtonHtml(item.id)}</div>
+                            </div>
+                        </div>
+                    </div>`;
         }
 
         function renderMenu(filter = 'all') {
@@ -968,7 +1031,21 @@
 
         function filterMenu(catId, btnElement) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            if (btnElement) btnElement.classList.add('active');
+            
+            if (btnElement) {
+                btnElement.classList.add('active');
+                
+                // Centraliza o botão clicado na barra de rolagem
+                btnElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            } else {
+                 const allBtn = document.querySelector(`button[onclick="filterMenu('all', this)"]`);
+                 if(allBtn) allBtn.classList.add('active');
+            }
+            
             renderMenu(catId);
         }
 
