@@ -550,24 +550,52 @@
             opacity: 0; pointer-events: none; transition: 0.3s; 
         }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
+        
+        /* MODIFICAÇÃO PARA O MODAL COM FOOTER FIXO */
         .modal-content { 
             background: var(--bg-card); 
             width: 100%; 
             max-width: 600px; 
             height: 90vh; 
             border-radius: 20px 20px 0 0; 
-            padding: 20px; 
+            /* Removido o padding geral para controle granular */
+            padding: 0; 
             display: flex; 
             flex-direction: column; 
             transform: translateY(100%); 
             transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            overflow-y: auto; 
+            overflow: hidden; /* Importante para o footer fixo */
             color: var(--text-main); 
             box-shadow: 0 -10px 40px rgba(0,0,0,0.1); 
-            padding-bottom: 40px; /* Reduzido de 40vh para 40px */
         }
         .modal-overlay.open .modal-content { transform: translateY(0); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        
+        .modal-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 20px; /* Padding recolocado no header */
+            padding-bottom: 15px; 
+            border-bottom: 1px solid var(--border-color); 
+            flex-shrink: 0; /* Impede que o header encolha */
+        }
+        
+        /* ÁREA ROLÁVEL DO MODAL */
+        .modal-scrollable-content {
+            flex: 1; /* Ocupa o espaço restante */
+            overflow-y: auto; /* Apenas essa parte rola */
+            padding: 20px;
+            padding-top: 10px;
+        }
+
+        /* FOOTER FIXO DO MODAL */
+        .modal-fixed-footer {
+            padding: 15px 20px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            z-index: 10;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            flex-shrink: 0; /* Impede que o footer encolha */
+        }
+
         .close-modal { background: var(--bg-element); border: none; color: var(--text-main); width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; font-size: 18px; }
         .close-modal:hover { background: var(--danger); color: white; }
 
@@ -705,8 +733,36 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); 
         }
 
+        /* Aviso resumido no footer */
+        .footer-delivery-msg {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background-color: var(--bg-element);
+            padding: 6px;
+            border-radius: 6px;
+        }
+
         .delivery-time-notice { background-color: rgba(37, 211, 102, 0.1); border-left: 3px solid var(--whatsapp); color: var(--text-main); padding: 10px; border-radius: 0 6px 6px 0; font-size: 12px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .cart-total { font-size: 22px; color: var(--primary); text-align: right; margin: 20px 0; border-top: 1px dashed var(--border-color); padding-top: 15px; font-weight: 800; }
+        
+        /* Modificado: Cart total no footer */
+        .cart-total { 
+            font-size: 20px; 
+            color: var(--primary); 
+            text-align: right; 
+            margin: 0 0 10px 0; /* Margem ajustada para o footer */
+            font-weight: 800; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
         .btn-whatsapp { width: 100%; background: var(--whatsapp); color: #fff; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; border: 2px solid rgba(255,255,255,0.1); box-shadow: 0 6px 20px rgba(37, 211, 102, 0.3); transition: transform 0.2s; letter-spacing: 0.5px; }
         .btn-whatsapp i { font-size: 1.25em; }
         .btn-whatsapp:hover { transform: translateY(-2px); }
@@ -807,81 +863,100 @@
     <!-- Modal de Checkout -->
     <div class="modal-overlay" id="cart-modal">
         <div class="modal-content">
+            <!-- HEADER DO MODAL (Fixo) -->
             <div class="modal-header">
                 <h2 class="brand-font">Finalizar Pedido</h2>
                 <button class="close-modal" onclick="toggleCart()"><i class="fas fa-times"></i></button>
             </div>
             
-            <!-- AÇÃO DE LIMPAR (VISÍVEL SE TIVER ITENS) -->
-            <div id="cart-actions-bar" style="display:none; justify-content: flex-end; padding-bottom: 10px;">
-                <button class="clear-cart-btn" onclick="clearCart()"><i class="fas fa-trash-alt"></i> Limpar Sacola</button>
-            </div>
-
-            <div id="cart-items" class="cart-items"><p style="text-align: center; color: var(--text-muted); margin-top: 20px;">Sua sacola está vazia 😔</p></div>
-            <div id="drink-suggestions" class="suggestion-box hidden">
-                <div class="suggestion-title"><i class="fas fa-glass-water"></i> Vai uma bebida geladinha? 🥤</div>
-                <div class="suggestion-items" id="suggestion-list"></div>
-            </div>
-            <button id="btn-add-more" class="btn-outline" onclick="toggleCart()" style="display: none;"><i class="fas fa-plus"></i> Adicionar mais itens</button>
-            <div class="cart-total brand-font" id="modal-total">Subtotal: R$ 0,00</div>
-            
-            <div id="checkout-form" style="display: none;">
-                <div class="form-group">
-                    <label class="form-label">Seu nome</label>
-                    <input type="text" id="customer-name" class="form-input" placeholder="Como podemos te chamar?">
+            <!-- CONTEÚDO COM SCROLL (Itens e Formulário) -->
+            <div class="modal-scrollable-content">
+                <!-- AÇÃO DE LIMPAR (VISÍVEL SE TIVER ITENS) -->
+                <div id="cart-actions-bar" style="display:none; justify-content: flex-end; padding-bottom: 10px;">
+                    <button class="clear-cart-btn" onclick="clearCart()"><i class="fas fa-trash-alt"></i> Limpar Sacola</button>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Tipo de pedido</label>
-                    <div class="radio-group">
-                        <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-delivery" value="Entrega" onchange="toggleOrderType('Entrega')">
-                            <label for="type-delivery"><i class="fas fa-motorcycle"></i> Entrega</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-pickup" value="Retirada" onchange="toggleOrderType('Retirada')">
-                            <label for="type-pickup"><i class="fas fa-box"></i> Retirada</label>
-                        </div>
-                        <div class="radio-option">
-                            <input type="radio" name="orderType" id="type-eatin" value="Mesa" onchange="toggleOrderType('Mesa')">
-                            <label for="type-eatin"><i class="fas fa-utensils"></i> Mesa</label>
+
+                <div id="cart-items" class="cart-items"><p style="text-align: center; color: var(--text-muted); margin-top: 20px;">Sua sacola está vazia 😔</p></div>
+                <div id="drink-suggestions" class="suggestion-box hidden">
+                    <div class="suggestion-title"><i class="fas fa-glass-water"></i> Vai uma bebida geladinha? 🥤</div>
+                    <div class="suggestion-items" id="suggestion-list"></div>
+                </div>
+                <button id="btn-add-more" class="btn-outline" onclick="toggleCart()" style="display: none;"><i class="fas fa-plus"></i> Adicionar mais itens</button>
+                
+                <div id="checkout-form" style="display: none; margin-top: 25px;">
+                    <div class="form-group">
+                        <label class="form-label">Seu nome</label>
+                        <input type="text" id="customer-name" class="form-input" placeholder="Como podemos te chamar?">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tipo de pedido</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" name="orderType" id="type-delivery" value="Entrega" onchange="toggleOrderType('Entrega')">
+                                <label for="type-delivery"><i class="fas fa-motorcycle"></i> Entrega</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="orderType" id="type-pickup" value="Retirada" onchange="toggleOrderType('Retirada')">
+                                <label for="type-pickup"><i class="fas fa-box"></i> Retirada</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" name="orderType" id="type-eatin" value="Mesa" onchange="toggleOrderType('Mesa')">
+                                <label for="type-eatin"><i class="fas fa-utensils"></i> Mesa</label>
+                            </div>
                         </div>
                     </div>
+                    
+                    <div id="pickup-time-section" class="form-group hidden">
+                         <label class="form-label">Horário de Retirada (Opcional)</label>
+                         <input type="text" id="pickup-time" class="form-input" placeholder="Ex: 20:30 ou Daqui a 20 min">
+                         <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Informe se prefere retirar em um horário específico.</div>
+                    </div>
+
+                    <div id="address-section" class="form-group hidden">
+                        <div class="delivery-time-notice"><i class="fas fa-clock" style="font-size: 20px; color: var(--whatsapp);"></i><span><strong>Previsão: 30 a 60 min.</strong><br>Tentaremos entregar o quanto antes! 🚀</span></div>
+                        <label class="form-label">Endereço</label>
+                        <button type="button" class="geo-btn" onclick="getLocation()"><i class="fas fa-map-marker-alt"></i> Usar Localização Atual</button>
+                        <div id="geo-status" class="geo-status"></div>
+                        <textarea id="address-text" class="form-input" rows="2" placeholder="Rua, Número, Bairro, Referência..." style="margin-top: 10px;"></textarea>
+                        <input type="hidden" id="maps-link">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pagamento</label>
+                        <div class="radio-group">
+                            <div class="radio-option"><input type="radio" name="paymentMethod" id="pay-pix" value="PIX" checked onchange="togglePaymentInfo('PIX')"><label for="pay-pix"><i class="fas fa-qrcode"></i> PIX</label></div>
+                            <div class="radio-option"><input type="radio" name="paymentMethod" id="pay-credit" value="Cartão de Crédito" onchange="togglePaymentInfo('Cartão de Crédito')"><label for="pay-credit"><i class="fas fa-credit-card"></i> Crédito</label></div>
+                            <div class="radio-option"><input type="radio" name="paymentMethod" id="pay-debit" value="Cartão de Débito" onchange="togglePaymentInfo('Cartão de Débito')"><label for="pay-debit"><i class="fas fa-credit-card"></i> Débito</label></div>
+                            <div class="radio-option"><input type="radio" name="paymentMethod" id="pay-cash" value="Dinheiro" onchange="togglePaymentInfo('Dinheiro')"><label for="pay-cash"><i class="fas fa-money-bill-wave"></i> Dinheiro</label></div>
+                        </div>
+                    </div>
+                    <div id="pix-section" class="form-group">
+                        <div class="delivery-fee-notice" style="background-color: rgba(37, 211, 102, 0.1); border-color: var(--whatsapp); color: var(--text-main);"><i class="fas fa-qrcode" style="font-size: 24px; color: var(--whatsapp);"></i><span style="font-size: 12px; line-height: 1.4;">A chave PIX será enviada no WhatsApp após conferência do valor. <br><strong>O envio/retirada depende do comprovante.</strong></span></div>
+                    </div>
+                    <div id="card-fee-section" class="form-group hidden">
+                        <div class="delivery-fee-notice" style="background-color: rgba(59, 130, 246, 0.1); border-color: #60a5fa; color: var(--text-main);"><i class="fas fa-credit-card" style="font-size: 24px; color: #60a5fa;"></i><span style="font-size: 12px; line-height: 1.4;">ℹ️ <strong>Tarifa de Cartão:</strong> Há uma pequena tarifa de processamento para pagamentos com cartão. O valor será acrescido ao total após o envio do pedido pelo WhatsApp.</span></div>
+                    </div>
+                    <div id="change-section" class="form-group hidden">
+                        <label class="form-label">Troco para quanto?</label>
+                        <input type="tel" id="change-amount" class="form-input" placeholder="Ex: 50" oninput="this.value = this.value.replace(/[^0-9.,]/g, '')">
+                    </div>
+                    
+                    <!-- Espaço extra no final para garantir que o formulário não fique escondido atrás do footer -->
+                    <div style="height: 20px;"></div>
+                </div>
+            </div>
+
+            <!-- FOOTER FIXO DO MODAL (Total e Botão) -->
+            <div class="modal-fixed-footer hidden" id="modal-footer-action">
+                <div class="cart-total brand-font">
+                    <span>Subtotal:</span>
+                    <span id="modal-total">R$ 0,00</span>
                 </div>
                 
-                <div id="pickup-time-section" class="form-group hidden">
-                     <label class="form-label">Horário de Retirada (Opcional)</label>
-                     <input type="text" id="pickup-time" class="form-input" placeholder="Ex: 20:30 ou Daqui a 20 min">
-                     <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Informe se prefere retirar em um horário específico.</div>
+                <!-- AVISO DE TAXA RESUMIDO (Aparece abaixo do subtotal) -->
+                <div id="footer-delivery-msg" class="footer-delivery-msg hidden">
+                    <i class="fas fa-motorcycle"></i> + Taxa de entrega a calcular
                 </div>
 
-                <div id="address-section" class="form-group hidden">
-                    <div class="delivery-fee-notice"><i class="fas fa-info-circle" style="font-size: 20px;"></i><span>A taxa de entrega será calculada no WhatsApp.</span></div>
-                    <div class="delivery-time-notice"><i class="fas fa-clock" style="font-size: 20px; color: var(--whatsapp);"></i><span><strong>Previsão: 30 a 60 min.</strong><br>Tentaremos entregar o quanto antes! 🚀</span></div>
-                    <label class="form-label">Endereço</label>
-                    <button type="button" class="geo-btn" onclick="getLocation()"><i class="fas fa-map-marker-alt"></i> Usar Localização Atual</button>
-                    <div id="geo-status" class="geo-status"></div>
-                    <textarea id="address-text" class="form-input" rows="2" placeholder="Rua, Número, Bairro, Referência..." style="margin-top: 10px;"></textarea>
-                    <input type="hidden" id="maps-link">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Pagamento</label>
-                    <div class="radio-group">
-                        <div class="radio-option"><input type="radio" name="paymentMethod" id="pay-pix" value="PIX" checked onchange="togglePaymentInfo('PIX')"><label for="pay-pix"><i class="fas fa-qrcode"></i> PIX</label></div>
-                        <div class="radio-option"><input type="radio" name="paymentMethod" id="pay-credit" value="Cartão de Crédito" onchange="togglePaymentInfo('Cartão de Crédito')"><label for="pay-credit"><i class="fas fa-credit-card"></i> Crédito</label></div>
-                        <div class="radio-option"><input type="radio" name="paymentMethod" id="pay-debit" value="Cartão de Débito" onchange="togglePaymentInfo('Cartão de Débito')"><label for="pay-debit"><i class="fas fa-credit-card"></i> Débito</label></div>
-                        <div class="radio-option"><input type="radio" name="paymentMethod" id="pay-cash" value="Dinheiro" onchange="togglePaymentInfo('Dinheiro')"><label for="pay-cash"><i class="fas fa-money-bill-wave"></i> Dinheiro</label></div>
-                    </div>
-                </div>
-                <div id="pix-section" class="form-group">
-                    <div class="delivery-fee-notice" style="background-color: rgba(37, 211, 102, 0.1); border-color: var(--whatsapp); color: var(--text-main);"><i class="fas fa-qrcode" style="font-size: 24px; color: var(--whatsapp);"></i><span style="font-size: 12px; line-height: 1.4;">A chave PIX será enviada no WhatsApp após conferência do valor. <br><strong>O envio/retirada depende do comprovante.</strong></span></div>
-                </div>
-                <div id="card-fee-section" class="form-group hidden">
-                    <div class="delivery-fee-notice" style="background-color: rgba(59, 130, 246, 0.1); border-color: #60a5fa; color: var(--text-main);"><i class="fas fa-credit-card" style="font-size: 24px; color: #60a5fa;"></i><span style="font-size: 12px; line-height: 1.4;">ℹ️ <strong>Tarifa de Cartão:</strong> Há uma pequena tarifa de processamento para pagamentos com cartão. O valor será acrescido ao total após o envio do pedido pelo WhatsApp.</span></div>
-                </div>
-                <div id="change-section" class="form-group hidden">
-                    <label class="form-label">Troco para quanto?</label>
-                    <input type="tel" id="change-amount" class="form-input" placeholder="Ex: 50" oninput="this.value = this.value.replace(/[^0-9.,]/g, '')">
-                </div>
                 <button class="btn btn-whatsapp" onclick="finalizeOrder()"><i class="fab fa-whatsapp"></i> Enviar Pedido no WhatsApp</button>
             </div>
         </div>
@@ -1199,17 +1274,22 @@
             const checkoutForm = document.getElementById('checkout-form');
             const btnAddMore = document.getElementById('btn-add-more');
             const actionsBar = document.getElementById('cart-actions-bar');
+            
+            // Elementos do Footer Fixo
+            const modalFooter = document.getElementById('modal-footer-action');
 
             if (totalQty > 0) {
                 floatBtn.classList.remove('hidden');
                 checkoutForm.style.display = 'block';
                 btnAddMore.style.display = 'flex';
-                actionsBar.style.display = 'flex'; // Exibe o botão de limpar
+                actionsBar.style.display = 'flex';
+                modalFooter.classList.remove('hidden'); // Mostra o footer fixo
             } else {
                 floatBtn.classList.add('hidden');
                 checkoutForm.style.display = 'none';
                 btnAddMore.style.display = 'none';
-                actionsBar.style.display = 'none'; // Oculta o botão de limpar
+                actionsBar.style.display = 'none';
+                modalFooter.classList.add('hidden'); // Esconde o footer fixo
             }
 
             const list = document.getElementById('cart-items');
@@ -1233,7 +1313,9 @@
                     </div>`
                 }).join('');
             }
-            document.getElementById('modal-total').innerText = `Subtotal: R$ ${totalPrice.toFixed(2).replace('.',',')}`;
+            
+            // Atualiza o total no footer
+            document.getElementById('modal-total').innerText = `R$ ${totalPrice.toFixed(2).replace('.',',')}`;
 
             const hasFood = cart.some(i => ['sanduiches', 'especiais', 'hotdogs', 'pasteis', 'porcoes'].includes(i.category));
             const hasDrink = cart.some(i => i.category === 'bebidas');
@@ -1264,11 +1346,16 @@
             const addressSection = document.getElementById('address-section');
             const pickupSection = document.getElementById('pickup-time-section');
             
+            // Elemento do aviso resumido no footer
+            const footerDeliveryMsg = document.getElementById('footer-delivery-msg');
+            
             addressSection.classList.add('hidden');
             pickupSection.classList.add('hidden');
+            footerDeliveryMsg.classList.add('hidden'); // Esconde por padrão
 
             if (type === 'Entrega') {
                 addressSection.classList.remove('hidden');
+                footerDeliveryMsg.classList.remove('hidden'); // Mostra o aviso resumido
             } else if (type === 'Retirada') {
                 pickupSection.classList.remove('hidden');
             }
