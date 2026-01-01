@@ -133,6 +133,11 @@
         .edit-qty-group { display: flex; align-items: center; gap: 5px; }
         .btn-mini { width: 24px; height: 24px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-mini-trash { color: var(--danger); border-color: #ffcccc; background: #fff0f0; }
+        
+        /* Input de Preço no Item do Pedido */
+        .price-edit-input {
+            width: 70px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; text-align: right;
+        }
 
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 30px; }
@@ -463,7 +468,7 @@
                         `Pagamento: ${order.payment}\n` +
                         `Endereço: ${order.address || 'N/A'}\n` +
                         `----------------\n` +
-                        (order.cart ? order.cart.map(i => `${i.qty}x ${i.name}`).join('\n') : '') +
+                        (order.cart ? order.cart.map(i => `${i.qty}x ${i.name} (R$ ${i.price.toFixed(2)})`).join('\n') : '') +
                         `\n----------------\n` +
                         `Taxa: R$ ${fee.toFixed(2)}\n` +
                         `*TOTAL: R$ ${total.toFixed(2)}*`;
@@ -535,7 +540,7 @@
                 document.getElementById('edit-order-payment').value = order.payment;
                 document.getElementById('edit-order-address').value = order.address || '';
                 
-                // NOVO: Taxa de Entrega
+                // Taxa de Entrega
                 document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
                 
                 editingOrderCart = JSON.parse(JSON.stringify(order.cart || []));
@@ -553,14 +558,14 @@
             const list = document.getElementById('edit-order-items-list');
             list.innerHTML = '';
             
-            calculateOrderTotal(); // Atualiza o total visualmente
-            
             editingOrderCart.forEach((item, index) => {
                 list.innerHTML += `
                     <div class="edit-order-item">
                         <div style="flex:1;">
                             <div style="font-weight:600;">${item.name}</div>
-                            <div style="font-size:11px; color:#666;">R$ ${item.price.toFixed(2)} un.</div>
+                            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#666;">
+                                R$ <input type="number" step="0.50" class="price-edit-input" value="${item.price.toFixed(2)}" onchange="updateOrderItemPrice(${index}, this.value)"> un.
+                            </div>
                         </div>
                         <div class="edit-qty-group">
                             <button class="btn-mini" onclick="updateOrderQty(${index}, -1)">-</button>
@@ -571,6 +576,16 @@
                     </div>
                 `;
             });
+            
+            calculateOrderTotal();
+        }
+        
+        function updateOrderItemPrice(index, newPrice) {
+            const price = parseFloat(newPrice);
+            if (!isNaN(price) && price >= 0) {
+                editingOrderCart[index].price = price;
+                calculateOrderTotal();
+            }
         }
         
         function calculateOrderTotal() {
