@@ -8,10 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js"></script>
+    <!-- Firebase SDKs (Compat version for simple HTML usage) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <style>
         :root {
@@ -181,32 +181,43 @@
     <div id="toast">Alteração salva!</div>
 
     <script>
-        // CONFIGURAÇÃO DO FIREBASE
-        // Se usar no GitHub, substitua estas variáveis pelo seu config real do Firebase Console
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-id';
+        // --- CONFIGURAÇÃO DO FIREBASE (DOGAO-PREA) ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyClYFGSNXxPmAn3DRWiB7eSxCQ3Nf81IHI",
+          authDomain: "dogao-prea.firebaseapp.com",
+          projectId: "dogao-prea",
+          storageBucket: "dogao-prea.firebasestorage.app",
+          messagingSenderId: "126231798500",
+          appId: "1:126231798500:web:acbc4e4ef19b14d02082f1",
+          measurementId: "G-40QL50Z24D"
+        };
         
+        // Inicializa o Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         
         const db = firebase.firestore();
         const auth = firebase.auth();
-        const collectionItems = `artifacts/${appId}/public/data/menu_items`;
-        const docStatus = `artifacts/${appId}/public/data/store_settings`; // ID do documento deve ser 'status'
+        
+        // Caminhos das coleções no seu banco real
+        const COL_ITEMS = 'menu_items';
+        const COL_SETTINGS = 'settings';
 
         // --- SISTEMA DE LOGIN SIMPLES (CLIENT-SIDE) ---
-        // OBS: Em produção real, crie usuários no Firebase Auth.
         function checkLogin() {
             const pass = document.getElementById('admin-pass').value;
-            // Senha simples apenas para o demo.
+            // DICA: Mude essa senha depois!
             if(pass === 'admin123' || pass === 'dogao') {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
                 loadData();
                 
-                // Login anônimo no Firebase para ter permissão de escrita (se as regras exigirem auth)
-                auth.signInAnonymously().catch(e => console.error(e));
+                // Autenticação anônima para permitir escrita no Firestore
+                auth.signInAnonymously().catch(e => {
+                    console.error("Erro auth:", e);
+                    alert("Erro ao conectar com servidor. Verifique o console.");
+                });
             } else {
                 document.getElementById('login-error').style.display = 'block';
             }
@@ -220,8 +231,8 @@
         let currentItems = [];
 
         function loadData() {
-            // 1. Ouvir Status da Loja
-            db.collection(`artifacts/${appId}/public/data`).doc('store_settings')
+            // 1. Ouvir Status da Loja (doc: settings/store)
+            db.collection(COL_SETTINGS).doc('store')
               .onSnapshot((doc) => {
                   if (doc.exists) {
                       const data = doc.data();
@@ -229,15 +240,15 @@
                       document.getElementById('manual-override').checked = data.manualOverride;
                       updateStatusText(data);
                   } else {
-                      // Criar padrão se não existir
-                      db.collection(`artifacts/${appId}/public/data`).doc('store_settings').set({
+                      // Cria o documento padrão se não existir no seu banco novo
+                      db.collection(COL_SETTINGS).doc('store').set({
                           isOpen: false, manualOverride: false
                       });
                   }
               });
 
             // 2. Ouvir Itens do Menu
-            db.collection(collectionItems).orderBy('name') // Ordenação simples
+            db.collection(COL_ITEMS).orderBy('name')
               .onSnapshot((snapshot) => {
                   currentItems = [];
                   snapshot.forEach(doc => {
@@ -251,7 +262,6 @@
             const list = document.getElementById('items-list');
             list.innerHTML = '';
             
-            // Agrupar por categoria
             const categories = {
                 'especiais': 'Favoritos',
                 'sanduiches': 'Sanduíches',
@@ -333,19 +343,17 @@
             if (!data.name) return alert("Nome é obrigatório");
 
             if (id) {
-                // Update
-                db.collection(collectionItems).doc(id).update(data)
+                db.collection(COL_ITEMS).doc(id).update(data)
                   .then(() => { closeModal(); showToast("Item atualizado!"); });
             } else {
-                // Create
-                db.collection(collectionItems).add(data)
+                db.collection(COL_ITEMS).add(data)
                   .then(() => { closeModal(); showToast("Item criado!"); });
             }
         }
 
         function deleteItem(id) {
             if(confirm("Tem certeza que deseja excluir este item?")) {
-                db.collection(collectionItems).doc(id).delete()
+                db.collection(COL_ITEMS).doc(id).delete()
                   .then(() => showToast("Item removido."));
             }
         }
@@ -362,7 +370,7 @@
         }
 
         function updateStoreSettings(update) {
-            db.collection(`artifacts/${appId}/public/data`).doc('store_settings').set(update, { merge: true })
+            db.collection(COL_SETTINGS).doc('store').set(update, { merge: true })
               .then(() => showToast("Configuração salva!"));
         }
 
@@ -370,7 +378,6 @@
             const el = document.getElementById('status-text');
             if (data.manualOverride) {
                 el.innerHTML = `Controle Manual: <strong>${data.isOpen ? 'ABERTO' : 'FECHADO'}</strong>`;
-                // FIX: Added quotes around CSS variable syntax
                 el.style.color = data.isOpen ? 'var(--success)' : 'var(--danger)';
             } else {
                 el.innerText = "Automático (segue horário 19h-00h)";
