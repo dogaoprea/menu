@@ -300,6 +300,7 @@
             <div class="social-links-header">
                 <a href="https://instagram.com/dogaoprea" target="_blank" class="icon-btn"><i class="fab fa-instagram"></i></a>
                 <a href="https://wa.me/5588996768158" target="_blank" class="icon-btn"><i class="fab fa-whatsapp"></i></a>
+                <!-- ÍCONE DO MAPA RESTAURADO -->
                 <a href="https://maps.app.goo.gl/L67xDvckXUS4xZ179" target="_blank" class="icon-btn" title="Localização"><i class="fas fa-map-marker-alt"></i></a>
             </div>
         </div>
@@ -459,6 +460,8 @@
         
         let menuData = [];
         let cart = [];
+        // Variável para armazenar a configuração de ordenação (padrão por nome)
+        let currentSort = 'name_asc'; 
 
         window.onload = () => {
             renderCategories();
@@ -550,6 +553,8 @@
             // Função auxiliar de ordenação
             const sortItems = (items) => {
                 return items.sort((a, b) => {
+                    // A ordenação aqui pode ser expandida se salvarmos o 'currentSort' no firebase também
+                    // Por enquanto, o padrão é alfabético para o cliente
                     return a.name.localeCompare(b.name);
                 });
             };
@@ -817,7 +822,7 @@
         function finalizeOrder() {
             const name = document.getElementById('customer-name').value;
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
-            const paymentElement = document.querySelector('input[name="paymentMethod"]:checked');
+            const paymentElement = document.querySelector('input[name="pay"]:checked'); // Fixed selector
             
             if(!name) return alert("Digite seu nome!");
             if(!typeRadio) return alert("Escolha o tipo de pedido.");
