@@ -62,8 +62,12 @@
         .order-item-line { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .order-total { text-align: right; font-weight: 800; color: var(--primary-dark); font-size: 16px; margin-top: 10px; }
 
-        .btn-archive { background: #eee; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #555; float: right; }
-        .btn-archive:hover { background: #ddd; color: #333; }
+        .btn-action-group { display: flex; gap: 5px; }
+        .btn-sm { border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #fff; display: flex; align-items: center; gap: 5px; }
+        .btn-edit-order { background: #2196F3; }
+        .btn-archive { background: #4CAF50; }
+        .btn-edit-order:hover { background: #1976D2; }
+        .btn-archive:hover { background: #388E3C; }
         
         /* Switch */
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
@@ -115,6 +119,15 @@
         .cat-edit-item { display: flex; gap: 8px; align-items: center; background: #f9f9f9; padding: 8px; border-radius: 6px; border: 1px solid #eee; }
         .cat-move-btn { background: none; border: none; color: #999; cursor: pointer; padding: 5px; }
         .cat-move-btn:hover { color: #333; }
+
+        /* Estilo da Lista de Itens no Modal de Edição de Pedido */
+        .edit-order-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px; border-bottom: 1px solid #eee; background: white; border-radius: 6px; margin-bottom: 5px;
+        }
+        .edit-qty-group { display: flex; align-items: center; gap: 5px; }
+        .btn-mini { width: 24px; height: 24px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-mini-trash { color: var(--danger); border-color: #ffcccc; background: #fff0f0; }
 
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 30px; }
@@ -205,7 +218,7 @@
         </div>
     </div>
 
-    <!-- Modal Form (Item) -->
+    <!-- Modal Form (Item do Cardápio) -->
     <div id="item-modal" class="modal">
         <div class="modal-content">
             <h2 id="modal-title" style="margin-top: 0; font-family: 'Bebas Neue'; color: var(--primary-dark);">Item</h2>
@@ -249,15 +262,74 @@
     <div id="cat-modal" class="modal">
         <div class="modal-content">
             <h2 style="margin-top: 0; font-family: 'Bebas Neue';">Organizar Categorias</h2>
-            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Altere os nomes ou use as setas para reordenar como aparecem no cardápio.</p>
-            
-            <div id="cat-list-container" class="cat-edit-list">
-                <!-- Lista gerada via JS -->
-            </div>
-
+            <div id="cat-list-container" class="cat-edit-list"></div>
             <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px;">
                 <button class="btn" style="background: #eee; color: #333;" onclick="closeCategoryModal()">Cancelar</button>
-                <button class="btn" style="background: var(--primary);" onclick="saveCategorySettings()">Salvar Alterações</button>
+                <button class="btn" style="background: var(--primary);" onclick="saveCategorySettings()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de EDIÇÃO DE PEDIDO (NOVO) -->
+    <div id="order-edit-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 style="margin-top: 0; font-family: 'Bebas Neue'; color: var(--primary-dark);">Editar Pedido</h2>
+            <input type="hidden" id="edit-order-doc-id">
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 2;">
+                    <label class="form-label">Cliente</label>
+                    <input type="text" id="edit-order-name" class="form-input">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Tipo</label>
+                    <select id="edit-order-type" class="form-select">
+                        <option value="Entrega">Entrega</option>
+                        <option value="Retirada">Retirada</option>
+                        <option value="Mesa">Mesa</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Endereço / Observação</label>
+                <textarea id="edit-order-address" class="form-input" rows="2"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Pagamento</label>
+                <select id="edit-order-payment" class="form-select">
+                    <option value="PIX">PIX</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="background: #f0f2f5; padding: 15px; border-radius: 10px;">
+                <label class="form-label">Itens do Pedido</label>
+                <div id="edit-order-items-list" style="margin-bottom: 10px;">
+                    <!-- Itens renderizados aqui via JS -->
+                </div>
+                
+                <div style="display: flex; gap: 5px;">
+                    <select id="add-item-select" class="form-select" style="flex: 1;">
+                        <option value="">Adicionar produto...</option>
+                        <!-- Produtos preenchidos via JS -->
+                    </select>
+                    <button type="button" class="btn btn-add" style="width: auto; padding: 0 15px; margin: 0;" onclick="addItemToOrder()">
+                        <i class="fas fa-plus"></i> Add
+                    </button>
+                </div>
+                
+                <div style="text-align: right; margin-top: 10px; font-weight: 800; font-size: 18px;">
+                    Total: <span id="edit-order-total">R$ 0,00</span>
+                </div>
+            </div>
+
+            <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
+                <button class="btn" style="background: #eee; color: #333;" onclick="closeOrderEditModal()">Cancelar</button>
+                <button class="btn" style="background: var(--primary);" onclick="saveOrderChanges()">Salvar Alterações</button>
             </div>
         </div>
     </div>
@@ -295,6 +367,7 @@
         
         let categoriesConfig = JSON.parse(JSON.stringify(defaultCategories));
         let currentItems = [];
+        let editingOrderCart = []; // Armazena temporariamente o carrinho em edição
 
         // --- AUTH ---
         function checkLogin() {
@@ -320,7 +393,6 @@
 
         // --- DADOS ---
         function loadData() {
-            // 1. Status da Loja
             db.collection(COL_SETTINGS).doc('store').onSnapshot(doc => {
                 if(doc.exists) {
                     const d = doc.data();
@@ -330,29 +402,22 @@
                 }
             });
 
-            // 2. Configurações de Categoria
             db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
-                if (doc.exists && doc.data().list) {
-                    categoriesConfig = doc.data().list;
-                }
-                updateCategorySelect(); // Atualiza dropdown do modal de item
-                renderList(); // Re-renderiza a lista principal
+                if (doc.exists && doc.data().list) categoriesConfig = doc.data().list;
+                updateCategorySelect(); renderList();
             });
 
-            // 3. Itens
             db.collection(COL_ITEMS).onSnapshot(snap => {
                 currentItems = [];
                 snap.forEach(doc => currentItems.push({id: doc.id, ...doc.data()}));
                 renderList();
+                populateAddItemSelect(); // Atualiza dropdown do editor de pedidos
             });
 
-            // 4. PEDIDOS (Novo!)
-            // Ordenar por timestamp descrescente (mais recentes primeiro)
-            // Se der erro de índice no console, o Firebase fornecerá um link para criar o índice.
+            // ORDERS
             db.collection(COL_ORDERS).orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
                 const list = document.getElementById('orders-list');
                 list.innerHTML = '';
-                
                 if (snap.empty) {
                     list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Nenhum pedido recebido ainda.</p>';
                     return;
@@ -362,7 +427,7 @@
                     const order = doc.data();
                     const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
                     const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const isNew = (new Date() - date) < 300000; // 5 min considerado novo para destaque
+                    const isNew = (new Date() - date) < 300000;
                     
                     let itemsHtml = '';
                     if (order.cart) {
@@ -383,7 +448,10 @@
                                 <span class="order-id">#${order.orderId || '???'}</span>
                                 <div class="order-time"><i class="far fa-clock"></i> ${timeString}</div>
                             </div>
-                            <button class="btn-archive" onclick="archiveOrder('${doc.id}')" title="Arquivar Pedido"><i class="fas fa-check"></i> Concluir</button>
+                            <div class="btn-action-group">
+                                <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${doc.id}')"><i class="fas fa-pencil-alt"></i> Editar</button>
+                                <button class="btn-sm btn-archive" onclick="archiveOrder('${doc.id}')"><i class="fas fa-check"></i></button>
+                            </div>
                         </div>
                         <div class="order-info">
                             <p><strong>Cliente:</strong> ${order.customerName}</p>
@@ -404,6 +472,137 @@
             });
         }
         
+        // --- EDIÇÃO DE PEDIDOS ---
+        function populateAddItemSelect() {
+            const select = document.getElementById('add-item-select');
+            select.innerHTML = '<option value="">Adicionar produto...</option>';
+            // Ordena alfabeticamente para facilitar busca
+            const sortedItems = [...currentItems].sort((a,b) => a.name.localeCompare(b.name));
+            sortedItems.forEach(item => {
+                select.innerHTML += `<option value="${item.id}">${item.name} (R$ ${item.price})</option>`;
+            });
+        }
+
+        function openOrderEditModal(orderDocId) {
+            db.collection(COL_ORDERS).doc(orderDocId).get().then(doc => {
+                if (!doc.exists) return alert("Pedido não encontrado!");
+                
+                const order = doc.data();
+                document.getElementById('edit-order-doc-id').value = doc.id;
+                document.getElementById('edit-order-name').value = order.customerName;
+                document.getElementById('edit-order-type').value = order.type;
+                document.getElementById('edit-order-payment').value = order.payment;
+                
+                // Endereço é um pouco complexo pois pode ter mapa e texto, vamos deixar o texto editável
+                document.getElementById('edit-order-address').value = order.address || '';
+                
+                // Clona o carrinho para edição
+                editingOrderCart = JSON.parse(JSON.stringify(order.cart || []));
+                renderEditOrderItems();
+                
+                document.getElementById('order-edit-modal').classList.add('open');
+            });
+        }
+
+        function closeOrderEditModal() {
+            document.getElementById('order-edit-modal').classList.remove('open');
+        }
+
+        function renderEditOrderItems() {
+            const list = document.getElementById('edit-order-items-list');
+            list.innerHTML = '';
+            
+            let total = 0;
+            
+            editingOrderCart.forEach((item, index) => {
+                const subtotal = item.price * item.qty;
+                total += subtotal;
+                
+                list.innerHTML += `
+                    <div class="edit-order-item">
+                        <div style="flex:1;">
+                            <div style="font-weight:600;">${item.name}</div>
+                            <div style="font-size:11px; color:#666;">R$ ${item.price.toFixed(2)} un.</div>
+                        </div>
+                        <div class="edit-qty-group">
+                            <button class="btn-mini" onclick="updateOrderQty(${index}, -1)">-</button>
+                            <span>${item.qty}</span>
+                            <button class="btn-mini" onclick="updateOrderQty(${index}, 1)">+</button>
+                            <button class="btn-mini btn-mini-trash" onclick="removeOrderItem(${index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('edit-order-total').innerText = `R$ ${total.toFixed(2)}`;
+        }
+
+        function updateOrderQty(index, change) {
+            editingOrderCart[index].qty += change;
+            if (editingOrderCart[index].qty <= 0) {
+                if(confirm("Remover este item do pedido?")) {
+                    editingOrderCart.splice(index, 1);
+                } else {
+                    editingOrderCart[index].qty = 1;
+                }
+            }
+            renderEditOrderItems();
+        }
+
+        function removeOrderItem(index) {
+            if(confirm("Remover item?")) {
+                editingOrderCart.splice(index, 1);
+                renderEditOrderItems();
+            }
+        }
+
+        function addItemToOrder() {
+            const select = document.getElementById('add-item-select');
+            const itemId = select.value;
+            if(!itemId) return;
+            
+            const menuItem = currentItems.find(i => i.id === itemId);
+            if(menuItem) {
+                // Verifica se já existe, se sim soma
+                const existing = editingOrderCart.find(i => i.id === itemId);
+                if(existing) {
+                    existing.qty++;
+                } else {
+                    editingOrderCart.push({
+                        id: menuItem.id,
+                        name: menuItem.name,
+                        price: menuItem.price,
+                        qty: 1,
+                        obs: '',
+                        category: menuItem.category
+                    });
+                }
+                renderEditOrderItems();
+                select.value = ""; // Reseta select
+            }
+        }
+
+        function saveOrderChanges() {
+            const docId = document.getElementById('edit-order-doc-id').value;
+            const newTotal = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            
+            const updates = {
+                customerName: document.getElementById('edit-order-name').value,
+                type: document.getElementById('edit-order-type').value,
+                payment: document.getElementById('edit-order-payment').value,
+                address: document.getElementById('edit-order-address').value,
+                cart: editingOrderCart,
+                total: newTotal
+            };
+            
+            db.collection(COL_ORDERS).doc(docId).update(updates)
+              .then(() => {
+                  closeOrderEditModal();
+                  showToast("Pedido atualizado!");
+              })
+              .catch(e => alert("Erro ao salvar: " + e.message));
+        }
+
         function archiveOrder(docId) {
             if(confirm("Arquivar este pedido? Ele sumirá da lista.")) {
                 db.collection(COL_ORDERS).doc(docId).delete().then(() => showToast("Pedido arquivado"));
@@ -428,14 +627,11 @@
                 return;
             }
 
-            const sortMode = document.getElementById('sort-select').value; // name_asc, price_asc, price_desc
+            const sortMode = document.getElementById('sort-select').value;
 
             categoriesConfig.forEach(cat => {
-                // Filtra itens desta categoria
                 let itemsInCat = currentItems.filter(i => i.category === cat.id);
-                
                 if(itemsInCat.length > 0) {
-                    // Ordenação
                     itemsInCat.sort((a, b) => {
                         if (sortMode === 'name_asc') return a.name.localeCompare(b.name);
                         if (sortMode === 'price_asc') return a.price - b.price;
@@ -443,10 +639,8 @@
                         return 0;
                     });
 
-                    // Cabeçalho da Categoria
                     list.innerHTML += `<div class="category-header">${cat.label} <small style="font-size:12px; color:#ccc;">(${itemsInCat.length})</small></div>`;
                     
-                    // Itens
                     itemsInCat.forEach(item => {
                         const isUnavailable = item.available === false;
                         const statusTag = isUnavailable ? '<span style="color:var(--danger); font-size:11px; border:1px solid var(--danger); padding:2px 4px; border-radius:4px; margin-left:5px;">INDISPONÍVEL</span>' : '';
@@ -494,20 +688,17 @@
         function closeCategoryModal() { document.getElementById('cat-modal').classList.remove('open'); }
 
         function moveCategory(index, direction) {
-            // Salva inputs atuais temporariamente
             updateTempCategoryConfig();
-            
             const newIndex = index + direction;
             if (newIndex >= 0 && newIndex < categoriesConfig.length) {
                 const temp = categoriesConfig[index];
                 categoriesConfig[index] = categoriesConfig[newIndex];
                 categoriesConfig[newIndex] = temp;
-                openCategoryModal(); // Re-renderiza
+                openCategoryModal();
             }
         }
 
         function updateTempCategoryConfig() {
-            // Atualiza o array categoriesConfig com o que está digitado nos inputs agora
             const inputs = document.querySelectorAll('.category-label-input');
             inputs.forEach((input, idx) => {
                 categoriesConfig[idx].label = input.value;
@@ -515,7 +706,7 @@
         }
 
         function saveCategorySettings() {
-            updateTempCategoryConfig(); // Pega valores finais
+            updateTempCategoryConfig();
             db.collection(COL_SETTINGS).doc('categories').set({ list: categoriesConfig })
               .then(() => {
                   closeCategoryModal();
@@ -544,7 +735,6 @@
             document.getElementById('edit-name').value = item.name;
             document.getElementById('edit-price').value = item.price;
             
-            // Garante que o select tenha as opções atualizadas
             updateCategorySelect();
             document.getElementById('edit-category').value = item.category;
             
@@ -593,7 +783,6 @@
             const btn = document.querySelector('.btn-restore');
             btn.disabled = true; btn.innerText = "Aguarde...";
             
-            // Salva categorias padrão primeiro
             db.collection(COL_SETTINGS).doc('categories').set({ list: defaultCategories });
 
             const backupItems = [
