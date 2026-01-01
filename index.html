@@ -136,9 +136,38 @@
         .message.user { background: var(--primary); align-self: flex-end; }
         .quick-replies { display: flex; gap: 8px; padding: 10px; overflow-x: auto; }
         .reply-chip { border: 1px solid var(--primary); color: var(--primary); padding: 6px 14px; border-radius: 18px; background: none; cursor: pointer; white-space: nowrap; }
+
+        /* Banner de Erro/Ajuda */
+        #error-banner {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 9999; color: white;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; padding: 20px;
+        }
+        .error-box { background: #222; padding: 20px; border-radius: 10px; border: 1px solid #ff4444; max-width: 600px; }
+        .code-block { background: #000; padding: 10px; border-radius: 5px; text-align: left; font-family: monospace; font-size: 12px; margin: 10px 0; color: #0f0; overflow-x: auto; }
     </style>
 </head>
 <body>
+
+    <!-- Aviso de Permissão -->
+    <div id="error-banner" class="hidden">
+        <div class="error-box">
+            <h2 style="color: #ff4444; margin-top:0;"><i class="fas fa-lock"></i> Acesso Bloqueado</h2>
+            <p>O app não conseguiu ler os dados. Verifique as Regras no Firebase Console:</p>
+            <div class="code-block">
+                rules_version = '2';<br>
+                service cloud.firestore {<br>
+                  match /databases/{database}/documents {<br>
+                    match /{document=**} {<br>
+                      allow read, write: if true;<br>
+                    }<br>
+                  }<br>
+                }
+            </div>
+            <button class="btn btn-primary" onclick="location.reload()">Já ajustei, Recarregar</button>
+        </div>
+    </div>
 
     <header>
         <div class="container header-top">
@@ -171,7 +200,7 @@
     </div>
 
     <div class="container">
-        <div id="loading-indicator" class="loading-container"><div class="spinner"></div><p>Carregando cardápio...</p></div>
+        <div id="loading-indicator" class="loading-container"><div class="spinner"></div><p>Conectando ao cardápio...</p></div>
         <div id="menu-container"></div>
     </div>
     
@@ -239,7 +268,7 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO DO FIREBASE (DOGAO-PREA) ---
+        // --- CONFIGURAÇÃO FIREBASE (Sincronizada com Admin) ---
         const firebaseConfig = {
           apiKey: "AIzaSyClYFGSNXxPmAn3DRWiB7eSxCQ3Nf81IHI",
           authDomain: "dogao-prea.firebaseapp.com",
@@ -254,15 +283,10 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
         
-        // Use environment App ID or fallback to the provided project ID
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dogao-prea';
-        
-        // Caminhos das coleções com estrutura segura
-        // "artifacts/{appId}/public/data/menu_items"
-        const COL_ITEMS = `artifacts/${appId}/public/data/menu_items`;
-        const COL_SETTINGS = `artifacts/${appId}/public/data/settings`;
+        // --- PASTAS DO BANCO DE DADOS (Agora iguais ao Admin) ---
+        const COL_ITEMS = 'menu_items';
+        const COL_SETTINGS = 'settings';
 
-        // Variáveis Globais
         let menuData = [];
         let cart = [];
         const categories = [
@@ -279,74 +303,56 @@
             document.getElementById('copyright-year').textContent = new Date().getFullYear();
             initChat();
             
-            // --- CORREÇÃO DE ERRO: AUTENTICAR PRIMEIRO, DEPOIS CARREGAR DADOS ---
+            // Autenticação Silenciosa (Anônima)
             auth.signInAnonymously()
                 .then(() => {
-                    console.log("Autenticado com sucesso (Anônimo)");
-                    // Só inicia a busca de dados SE estiver logado
+                    console.log("Conectado ao Firebase.");
                     initFirebaseData(); 
                 })
                 .catch((error) => {
-                    console.error("Erro na Autenticação:", error);
-                    
-                    // Se o erro for de configuração não encontrada, avisa o usuário
-                    if(error.code === 'auth/configuration-not-found' || error.code === 'auth/operation-not-allowed') {
-                        console.warn("⚠️ AVISO: Ative o provedor 'Anônimo' no Firebase Console > Authentication > Sign-in method");
-                    }
-                    
-                    // Tenta carregar mesmo assim (caso as regras estejam públicas, pode funcionar)
-                    // Se não estiverem, o erro de permissão vai aparecer no console, mas o app não trava totalmente
+                    console.error("Falha ao conectar:", error);
+                    // Tenta carregar mesmo com falha (pode funcionar se for regra pública)
                     initFirebaseData();
                 });
         };
 
-        // --- LÓGICA DO FIREBASE ---
         function initFirebaseData() {
-            // 1. Carregar Menu
+            // 1. Ouvir ITENS
             db.collection(COL_ITEMS)
               .onSnapshot((snapshot) => {
                   menuData = [];
                   snapshot.forEach(doc => {
                       menuData.push({ id: doc.id, ...doc.data() });
                   });
-                  
-                  // Ordenar por nome
                   menuData.sort((a, b) => a.name.localeCompare(b.name));
                   
                   document.getElementById('loading-indicator').classList.add('hidden');
                   renderMenu('all');
               }, (error) => {
-                  console.error("Erro ao carregar menu:", error);
-                  if (error.code === 'permission-denied') {
-                      document.getElementById('loading-indicator').innerHTML = '<p style="color:red">Erro de permissão. Se você é o dono, verifique as Regras no Console do Firebase.<br>Verifique se os dados estão na coleção correta.</p>';
-                  }
+                  console.error("Erro MENU:", error);
+                  if(error.code === 'permission-denied') document.getElementById('error-banner').classList.remove('hidden');
               });
 
-            // 2. Carregar Status da Loja
-            // O doc 'store' deve estar dentro da coleção COL_SETTINGS
+            // 2. Ouvir STATUS
             db.collection(COL_SETTINGS).doc('store')
               .onSnapshot((doc) => {
                   if (doc.exists) updateStoreStatus(doc.data());
-                  else checkTimeStatus(); // Fallback se não houver doc
+                  else checkTimeStatus();
               }, (error) => {
-                  console.error("Erro ao carregar status:", error);
-                  // Em caso de erro, usa o horário local
+                  console.error("Erro STATUS:", error);
                   checkTimeStatus();
               });
         }
 
+        // ... (RESTO DAS FUNÇÕES DE UI - Mantidas Iguais) ...
+        
         function updateStoreStatus(data) {
             const bar = document.getElementById('status-bar');
             const txt = document.getElementById('status-text');
-            
             if (data.manualOverride) {
-                // Se controle manual estiver ativo, obedece ao isOpen do admin
                 if (data.isOpen) setOpen(bar, txt, "Aberto (Especial)");
                 else setClosed(bar, txt, "Fechado Temporariamente");
-            } else {
-                // Se não, usa horário normal
-                checkTimeStatus();
-            }
+            } else { checkTimeStatus(); }
         }
 
         function checkTimeStatus() {
@@ -354,7 +360,6 @@
             const hour = now.getHours();
             const bar = document.getElementById('status-bar');
             const txt = document.getElementById('status-text');
-            
             if (hour >= 19 || hour < 0) setOpen(bar, txt, "Aberto Agora • Fecha às 00:00");
             else setClosed(bar, txt, "Fechado • Abre às 19h");
         }
@@ -369,7 +374,6 @@
             txt.innerText = msg;
         }
 
-        // --- LÓGICA DE UI (Adaptada do original) ---
         function renderCategories() {
             const list = document.getElementById('category-list');
             list.innerHTML = `<li><button class="cat-btn active" onclick="filterMenu('all', this)"><i class="fas fa-border-all"></i> Todos</button></li>` + 
@@ -381,7 +385,7 @@
             container.innerHTML = '';
             
             if (menuData.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding:20px;">Nenhum item disponível no momento.</p>';
+                container.innerHTML = '<p style="text-align:center; padding:20px;">Cardápio vazio no momento.</p>';
                 return;
             }
 
@@ -450,13 +454,10 @@
         }
 
         function updateUI() {
-            // Atualiza botões no grid
             menuData.forEach(item => {
                 const container = document.getElementById(`btn-container-${item.id}`);
                 if(container) container.innerHTML = getButtonHtml(item.id);
             });
-
-            // Atualiza carrinho flutuante e modal
             const totalQty = cart.reduce((acc, i) => acc + i.qty, 0);
             const totalPrice = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             
@@ -477,7 +478,6 @@
                 modalFooter.classList.add('hidden');
                 checkoutForm.style.display = 'none';
             }
-
             renderCartItems();
         }
 
@@ -499,21 +499,15 @@
             `).join('');
         }
 
-        function toggleCart() {
-            document.getElementById('cart-modal').classList.toggle('open');
-        }
+        function toggleCart() { document.getElementById('cart-modal').classList.toggle('open'); }
 
         function finalizeOrder() {
             const name = document.getElementById('customer-name').value;
             if(!name) return alert("Digite seu nome!");
-            
             let msg = `*PEDIDO NOVO*\nCliente: ${name}\n\n`;
-            cart.forEach(i => {
-                msg += `${i.qty}x ${i.name} - R$ ${(i.price * i.qty).toFixed(2)}\n`;
-            });
+            cart.forEach(i => { msg += `${i.qty}x ${i.name} - R$ ${(i.price * i.qty).toFixed(2)}\n`; });
             const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             msg += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
-            
             window.open(`https://wa.me/5588996768158?text=${encodeURIComponent(msg)}`, '_blank');
         }
         
@@ -525,34 +519,29 @@
              else container.innerHTML = `<div class="menu-grid">${filtered.map(i => createItemCard(i)).join('')}</div>`;
         }
 
-        // --- CHATBOT SIMPLES ---
+        // --- CHATBOT ---
         function toggleChefBot() { document.getElementById('chef-bot-modal').classList.toggle('open'); }
         function initChat() {
             document.getElementById('chat-messages').innerHTML = '<div class="message bot">Olá! Sou o Chef Dogão. Posso ajudar?</div>';
-            document.getElementById('quick-replies').innerHTML = 
-                ['Cardápio', 'Fome de Leão', 'Vegetariano'].map(t => `<button class="reply-chip" onclick="sendMsg('${t}')">${t}</button>`).join('');
+            document.getElementById('quick-replies').innerHTML = ['Cardápio', 'Fome de Leão', 'Vegetariano'].map(t => `<button class="reply-chip" onclick="sendMsg('${t}')">${t}</button>`).join('');
         }
         function sendMsg(txt) {
             const input = document.getElementById('chat-input');
             const val = txt || input.value;
             if(!val) return;
-            
             const area = document.getElementById('chat-messages');
             area.innerHTML += `<div class="message user">${val}</div>`;
             input.value = '';
-            
             setTimeout(() => {
                 let resp = "Não entendi, mas dê uma olhada no cardápio!";
                 if(val.toLowerCase().includes('fome')) resp = "Vai de X-Tudo! É gigante.";
                 if(val.toLowerCase().includes('vegetariano')) resp = "Temos pastel de queijo e batata frita!";
                 if(val.toLowerCase().includes('cardápio')) resp = "O cardápio está na tela principal.";
-                
                 area.innerHTML += `<div class="message bot">${resp}</div>`;
                 area.scrollTop = area.scrollHeight;
             }, 800);
         }
         function sendMessage() { sendMsg(); }
-
     </script>
 </body>
 </html>
