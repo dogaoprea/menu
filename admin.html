@@ -116,7 +116,7 @@
             <!-- ÁREA DE RESTAURAÇÃO DE DADOS -->
             <div style="margin-top: 50px; border-top: 2px dashed #ddd; padding-top: 20px;">
                 <h3 style="color: #666;">⚠️ Ferramentas de Sistema</h3>
-                <p style="font-size: 13px; color: #888;">Use isso apenas se o cardápio estiver vazio e você quiser repovoar com os itens padrão.</p>
+                <p style="font-size: 13px; color: #888;">Use isso apenas se o cardápio estiver vazio e você quiser repovoar com os itens do Dogão Preá.</p>
                 <button class="btn btn-restore" onclick="restoreDefaultData()">
                     <i class="fas fa-database"></i> RESTAURAR CARDÁPIO PADRÃO
                 </button>
@@ -222,7 +222,7 @@
                         <div class="admin-item">
                             <div class="item-info">
                                 <div class="item-name">${item.name} <small style="color:#888; font-weight:400">(${item.category})</small></div>
-                                <div style="font-size:12px; color:#666;">${item.desc.substring(0,40)}...</div>
+                                <div style="font-size:12px; color:#666;">${item.desc ? item.desc.substring(0,40) + '...' : ''}</div>
                             </div>
                             <div style="text-align:right;">
                                 <div style="font-weight:bold; color:var(--primary-dark);">R$ ${item.price.toFixed(2)}</div>
@@ -280,29 +280,50 @@
             t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // --- RESTAURAÇÃO DE DADOS ---
+        // --- RESTAURAÇÃO DE DADOS (DADOS ORIGINAIS DO SITE ANTIGO) ---
         function restoreDefaultData() {
-            if(!confirm("Isso vai adicionar itens ao cardápio. Continuar?")) return;
+            if(!confirm("Isso vai adicionar os itens originais ao cardápio. Continuar?")) return;
             
             const btn = document.querySelector('.btn-restore');
             btn.disabled = true;
             btn.innerText = "Restaurando...";
 
-            // LISTA DE ITENS PADRÃO (Baseado no Dogão Preá)
+            // LISTA EXATA DO SEU SITE ANTIGO
             const backupItems = [
-                { name: "Dogão Especial", price: 12.00, category: "hotdogs", desc: "Pão, 2 salsichas, carne moída, milho, ervilha, batata palha e molhos especiais." },
-                { name: "Dogão Simples", price: 8.00, category: "hotdogs", desc: "Pão, 1 salsicha, molho, milho e batata palha." },
-                { name: "X-Tudo", price: 18.00, category: "especiais", desc: "Pão, hambúrguer, ovo, bacon, presunto, queijo, salsicha, alface e tomate." },
-                { name: "X-Bacon", price: 15.00, category: "sanduiches", desc: "Pão, hambúrguer, muito bacon crocante, queijo e salada." },
-                { name: "Misto Quente", price: 6.00, category: "sanduiches", desc: "Pão de forma, presunto e queijo na chapa." },
-                { name: "Pastel de Carne", price: 7.00, category: "pasteis", desc: "Carne moída temperada, sequinho e crocante." },
-                { name: "Pastel de Queijo", price: 7.00, category: "pasteis", desc: "Muito queijo mussarela derretido." },
-                { name: "Pastel de Frango c/ Catupiry", price: 8.00, category: "pasteis", desc: "Frango desfiado com catupiry original." },
-                { name: "Batata Frita P", price: 10.00, category: "porcoes", desc: "Porção individual, sequinha e crocante." },
-                { name: "Batata Frita G c/ Cheddar", price: 20.00, category: "porcoes", desc: "Porção grande com cheddar e bacon." },
-                { name: "Coca-Cola Lata", price: 5.00, category: "bebidas", desc: "350ml, bem gelada." },
-                { name: "Suco de Laranja", price: 8.00, category: "bebidas", desc: "Natural da fruta, 500ml." },
-                { name: "Água Mineral", price: 3.00, category: "bebidas", desc: "500ml sem gás." }
+                { name: "Queijo e Ovos", price: 10.00, category: "sanduiches", desc: "Pão, queijo e ovos." },
+                { name: "Hambúrguer", price: 10.00, category: "sanduiches", desc: "Pão, carne de hambúrguer e salada." },
+                { name: "Misto Quente", price: 10.00, category: "sanduiches", desc: "Pão, queijo e presunto." },
+                { name: "X-Burguer", price: 12.00, category: "sanduiches", desc: "Pão, carne de hambúrguer e queijo." },
+                { name: "Frango Simples", price: 12.00, category: "sanduiches", desc: "Pão, frango, queijo, salada e milho verde." },
+                { name: "Calabresa Simples", price: 12.00, category: "sanduiches", desc: "Pão, calabresa, queijo e salada." },
+                { name: "Americano", price: 12.00, category: "sanduiches", desc: "Pão, queijo, presunto, ovos e salada." },
+                { name: "X-Salada", price: 12.00, category: "sanduiches", desc: "Pão, carne de hambúrguer, queijo e salada." },
+                { name: "Baurú", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, presunto e salada." },
+                { name: "X-Egg", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, ovos e salada." },
+                { name: "X-Calabresa", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, calabresa e salada." },
+                { name: "X-Frango", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, frango e salada." },
+                { name: "X-Bacon", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, bacon e salada." },
+                { name: "X-Frango Bacon", price: 15.00, category: "sanduiches", desc: "Pão, carne, queijo, frango, bacon e salada." },
+                { name: "X-Tudo", price: 18.00, category: "especiais", desc: "Pão, carne, queijo, frango, presunto, ovos, bacon e salada." },
+                { name: "Sandubob", price: 16.00, category: "especiais", desc: "Pão árabe, 2 carnes, queijo, ovos e salada." },
+                { name: "Dogão (Pão Árabe)", price: 18.00, category: "especiais", desc: "Pão árabe, carne caseira, queijo, frango, bacon, calabresa, salada." },
+                { name: "Lanchão (Pão Árabe)", price: 18.00, category: "especiais", desc: "Pão árabe, carne, queijo, frango, ovos, bacon, salada." },
+                { name: "Hot-Dog Simples", price: 12.00, category: "hotdogs", desc: "Pão, molho carne, salsicha, salada, batata, milho." },
+                { name: "Hot-Scooby", price: 14.00, category: "hotdogs", desc: "Pão, molho carne, 2 salsichas, salada, batata, milho, queijo." },
+                { name: "Pastel Misto (P)", price: 10.00, category: "pasteis", desc: "Tamanho Pequeno." },
+                { name: "Pastel Misto (G)", price: 12.00, category: "pasteis", desc: "Tamanho Grande." },
+                { name: "Pastel Queijo (P)", price: 10.00, category: "pasteis", desc: "Tamanho Pequeno." },
+                { name: "Pastel Queijo (G)", price: 12.00, category: "pasteis", desc: "Tamanho Grande." },
+                { name: "Pastel Carne (P)", price: 12.00, category: "pasteis", desc: "Tamanho Pequeno." },
+                { name: "Pastel Carne (G)", price: 14.00, category: "pasteis", desc: "Tamanho Grande." },
+                { name: "Pastel Frango/Queijo (P)", price: 12.00, category: "pasteis", desc: "Tamanho Pequeno." },
+                { name: "Pastel Frango/Queijo (G)", price: 14.00, category: "pasteis", desc: "Tamanho Grande." },
+                { name: "Batata Frita (P)", price: 15.00, category: "porcoes", desc: "Porção Pequena." },
+                { name: "Batata Frita (G)", price: 20.00, category: "porcoes", desc: "Porção Grande." },
+                { name: "Batata Recheada", price: 35.00, category: "porcoes", desc: "Batata frita, bacon e calabresa." },
+                { name: "Sucos Naturais", price: 0.00, category: "bebidas", desc: "Valores a consultar." },
+                { name: "Refri Lata", price: 6.00, category: "bebidas", desc: "350ml. Sabor a combinar." },
+                { name: "Refri 1 L", price: 0.00, category: "bebidas", desc: "Sabor a combinar." }
             ];
 
             let count = 0;
