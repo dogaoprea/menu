@@ -61,14 +61,12 @@
         .btn-primary { background-color: var(--primary); color: #000; padding: 12px 25px; }
         .hidden { display: none !important; }
         
+        /* HEADER */
         header { background-color: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; z-index: 10; border-bottom: var(--glass-border); padding-top: 12px; padding-bottom: 0; display: flex; flex-direction: column; }
-        
-        /* HEADER AJUSTADO PARA MENU NA ESQUERDA */
         .header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; gap: 10px; }
-        .logo-section { display: flex; align-items: center; gap: 15px; flex-shrink: 1; min-width: 0; flex: 1; } /* flex: 1 para ocupar espaço */
+        .logo-section { display: flex; align-items: center; gap: 15px; flex-shrink: 1; min-width: 0; flex: 1; } 
         .logo { font-size: 28px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); line-height: 1; margin: 0; padding-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        /* BOTÃO DO MENU HAMBURGUER (ESQUERDA) */
         .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; margin-right: 5px; }
 
         .social-links-header { display: flex; gap: 8px; flex-shrink: 0; }
@@ -122,7 +120,7 @@
         .qty-selector button { width: 32px; height: 100%; background: transparent; border: none; cursor: pointer; }
         .qty-input { width: 40px; background: transparent; border: none; text-align: center; font-weight: 700; }
 
-        /* CARRINHO FLUTUANTE */
+        /* CARRINHO FLUTUANTE (CONTADOR AO LADO) */
         .floating-cart { 
             position: fixed; bottom: 20px; right: 15px; left: 15px; 
             background-color: var(--primary); color: #000; 
@@ -297,7 +295,7 @@
         .status-pending { background: #fff3cd; color: #856404; }
         .status-done { background: #d4edda; color: #155724; }
 
-        /* SIDEBAR (MENU LATERAL) */
+        /* SIDEBAR (MENU LATERAL) - AJUSTADO */
         .sidebar {
             position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
             background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
@@ -374,7 +372,7 @@
     <header>
         <div class="container header-top">
             <div class="logo-section">
-                <!-- Botão Hamburger -->
+                <!-- Botão Hamburger (AGORA À ESQUERDA) -->
                 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div class="logo brand-font">DOGÃO PREÁ</div>
             </div>
@@ -516,8 +514,7 @@
                             <div class="radio-option"><input type="radio" name="pay" id="p-money" value="Dinheiro" onchange="togglePaymentInfo('Dinheiro')"><label for="p-money"><i class="fas fa-money-bill-wave"></i> Dinheiro</label></div>
                         </div>
                         
-                        <!-- IDs corrigidos e alinhados com o JS -->
-                        <div id="pix-section" class="payment-notice pix-notice hidden">
+                        <div id="pix-notice" class="payment-notice pix-notice hidden">
                             <i class="fas fa-info-circle"></i> A chave PIX será enviada no WhatsApp.
                         </div>
                         <div id="card-fee-section" class="payment-notice hidden">
@@ -539,7 +536,6 @@
                     <span id="modal-total" style="color:var(--primary); font-weight:800;">R$ 0,00</span>
                 </div>
                 
-                <!-- AVISO DE TAXA RESUMIDO (Aparece abaixo do subtotal) -->
                 <div id="footer-delivery-msg" class="footer-delivery-msg hidden">
                     <i class="fas fa-motorcycle"></i> + Taxa de entrega a calcular
                 </div>
@@ -568,7 +564,6 @@
         const COL_SETTINGS = 'settings';
         const COL_ORDERS = 'orders';
 
-        // Variável GLOBAL para as categorias, inicializada com padrão, mas atualizada pelo Firebase
         let categoriesConfig = [
             { id: 'especiais', label: 'Favoritos' },
             { id: 'sanduiches', label: 'Sanduíches' },
@@ -580,21 +575,16 @@
         
         let menuData = [];
         let cart = [];
-        let currentSort = 'name_asc'; 
-        let currentUser = null; // Armazena dados do usuário (nome, telefone)
+        let currentUser = null; 
 
         window.onload = () => {
             renderCategories();
             document.getElementById('copyright-year').textContent = new Date().getFullYear();
             
-            // Verifica Login Salvo
             checkSavedUser();
 
-            // GARANTIA DE EXECUÇÃO: Tenta configurar o pagamento apenas se o elemento existir
             const pixRadio = document.getElementById('p-pix');
-            if (pixRadio && pixRadio.checked) {
-                togglePaymentInfo('PIX');
-            }
+            if (pixRadio && pixRadio.checked) togglePaymentInfo('PIX');
             
             auth.signInAnonymously().then(() => {
                 console.log("Conectado.");
@@ -606,15 +596,10 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            
             sidebar.classList.toggle('open');
             overlay.classList.toggle('open');
-            
-            if(sidebar.classList.contains('open')) {
-                document.body.classList.add('no-scroll');
-            } else {
-                document.body.classList.remove('no-scroll');
-            }
+            if(sidebar.classList.contains('open')) document.body.classList.add('no-scroll');
+            else document.body.classList.remove('no-scroll');
         }
 
         // --- SISTEMA DE LOGIN DE USUÁRIO ---
@@ -623,19 +608,14 @@
             if(saved) {
                 currentUser = JSON.parse(saved);
                 updateLoginButton(true);
-                // Preenche o campo de nome no carrinho se já estiver logado
                 const nameInput = document.getElementById('customer-name');
                 if(nameInput) nameInput.value = currentUser.name;
             }
         }
 
         function openLoginModal() {
-            if (currentUser) {
-                // Se já logado, abre histórico de pedidos
-                openOrdersModal();
-            } else {
-                document.getElementById('login-modal').classList.add('open');
-            }
+            if (currentUser) openOrdersModal();
+            else document.getElementById('login-modal').classList.add('open');
         }
 
         function closeLoginModal() {
@@ -645,16 +625,16 @@
         function performLogin() {
             const name = document.getElementById('login-name').value;
             const phone = document.getElementById('login-phone').value;
-
             if(!name || !phone) return alert("Preencha nome e telefone.");
+            
+            // Limpa formatação do telefone para salvar apenas números
+            const cleanPhone = phone.replace(/\D/g, '');
 
-            currentUser = { name, phone };
+            currentUser = { name, phone: cleanPhone };
             localStorage.setItem('dogao_user', JSON.stringify(currentUser));
             
             updateLoginButton(true);
             closeLoginModal();
-            
-            // Atualiza campo no carrinho
             const nameInput = document.getElementById('customer-name');
             if(nameInput) nameInput.value = currentUser.name;
         }
@@ -680,15 +660,11 @@
             const list = document.getElementById('user-orders-list');
             list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #999;">Carregando...</p>';
 
-            // Busca pedidos onde o telefone bate com o do usuário (ou nome se preferir, telefone é mais seguro)
-            // OBS: Em produção real, o ideal seria autenticação real do Firebase. 
-            // Aqui faremos uma busca simples. O Firestore precisa de índice para isso.
-            // Se der erro de índice, pode filtrar no cliente (menos eficiente mas funciona pra poucos pedidos).
-            
+            // REMOVIDA ORDENAÇÃO NO FIREBASE PARA EVITAR ERRO DE ÍNDICE
+            // Filtragem e ordenação feitas no cliente
             db.collection(COL_ORDERS)
               .where('userPhone', '==', currentUser.phone)
-              .orderBy('timestamp', 'desc')
-              .limit(10)
+              .limit(20) 
               .onSnapshot(snap => {
                   list.innerHTML = '';
                   if(snap.empty) {
@@ -696,9 +672,18 @@
                       return;
                   }
 
-                  snap.forEach(doc => {
-                      const order = doc.data();
-                      const status = order.status || 'pending'; // pending, done, archived
+                  let orders = [];
+                  snap.forEach(doc => orders.push(doc.data()));
+                  
+                  // Ordenação manual por data (mais recente primeiro)
+                  orders.sort((a, b) => {
+                      const tA = a.timestamp ? a.timestamp.seconds : 0;
+                      const tB = b.timestamp ? b.timestamp.seconds : 0;
+                      return tB - tA;
+                  });
+
+                  orders.forEach(order => {
+                      const status = order.status || 'pending'; 
                       let statusText = 'Pendente';
                       let statusClass = 'status-pending';
 
@@ -729,27 +714,23 @@
 
         // --- FIREBASE DATA ---
         function initFirebaseData() {
-            // 1. CARREGAR CONFIGURAÇÃO DE CATEGORIAS (Para refletir a ordem do Admin)
             db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
                 if (doc.exists && doc.data().list) {
                     categoriesConfig = doc.data().list;
-                    renderCategories(); // Atualiza barra de navegação
-                    renderMenu('all'); // Atualiza a lista principal com a nova ordem
+                    renderCategories(); 
+                    renderMenu('all'); 
                 }
             });
 
-            // 2. CARREGAR ITENS
             db.collection(COL_ITEMS).onSnapshot((snapshot) => {
                   menuData = [];
                   snapshot.forEach(doc => { menuData.push({ id: doc.id, ...doc.data() }); });
-                  
                   document.getElementById('loading-indicator').classList.add('hidden');
                   renderMenu('all');
               }, (error) => {
                   if(error.code === 'permission-denied') document.getElementById('error-banner').classList.remove('hidden');
               });
 
-            // 3. STATUS DA LOJA
             db.collection(COL_SETTINGS).doc('store').onSnapshot((doc) => {
                   if (doc.exists) updateStoreStatus(doc.data());
                   else checkTimeStatus();
@@ -793,25 +774,17 @@
         function renderMenu(filter = 'all') {
             const container = document.getElementById('menu-container');
             container.innerHTML = '';
-            
             if (menuData.length === 0) {
                 container.innerHTML = '<p style="text-align:center; padding:20px;">Cardápio vazio.</p>';
                 return;
             }
-
-            // Função auxiliar de ordenação
-            const sortItems = (items) => {
-                return items.sort((a, b) => {
-                    return a.name.localeCompare(b.name);
-                });
-            };
+            const sortItems = (items) => items.sort((a, b) => a.name.localeCompare(b.name));
 
             if (filter === 'all') {
                 categoriesConfig.forEach(cat => {
                     let items = menuData.filter(i => i.category === cat.id);
                     if (items.length > 0) {
                         items = sortItems(items); 
-                        
                         const title = document.createElement('h3');
                         title.className = 'brand-font category-separator';
                         title.innerText = cat.label;
@@ -835,22 +808,15 @@
         function createItemCard(item) {
              const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
              const isUnavailable = item.available === false;
-             
              let btnHtml = '';
-             if (isUnavailable) {
-                 btnHtml = `<button class="add-btn disabled">Indisponível</button>`;
-             } else {
-                 btnHtml = `<div id="btn-container-${item.id}">${getButtonHtml(item.id)}</div>`;
-             }
+             if (isUnavailable) btnHtml = `<button class="add-btn disabled">Indisponível</button>`;
+             else btnHtml = `<div id="btn-container-${item.id}">${getButtonHtml(item.id)}</div>`;
 
              return `<div class="menu-item ${isUnavailable ? 'unavailable' : ''}">
                         <div class="item-content">
                             <div class="item-title">${item.name}</div>
                             <p class="item-desc">${item.desc}</p>
-                            <div class="item-footer">
-                                <span class="item-price">${priceDisplay}</span>
-                                ${btnHtml}
-                            </div>
+                            <div class="item-footer"><span class="item-price">${priceDisplay}</span>${btnHtml}</div>
                         </div>
                     </div>`;
         }
@@ -863,14 +829,11 @@
                     <span class="qty-input">${itemInCart.qty}</span>
                     <button onclick="updateQty('${id}', 1)"><i class="fas fa-plus"></i></button>
                 </div>`;
-            } else {
-                return `<button class="add-btn" onclick="addToCart('${id}')">ADICIONAR</button>`;
-            }
+            } else return `<button class="add-btn" onclick="addToCart('${id}')">ADICIONAR</button>`;
         }
 
         function filterMenu(catId, btnElement) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            
             if (btnElement) {
                 btnElement.classList.add('active');
                 btnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -878,7 +841,6 @@
                  const allBtn = document.querySelector(`button[onclick="filterMenu('all', this)"]`);
                  if(allBtn) allBtn.classList.add('active');
             }
-            
             renderMenu(catId);
         }
 
@@ -907,9 +869,7 @@
         function updateUI() {
             menuData.forEach(item => {
                 const container = document.getElementById(`btn-container-${item.id}`);
-                if(container && item.available !== false) {
-                    container.innerHTML = getButtonHtml(item.id);
-                }
+                if(container && item.available !== false) container.innerHTML = getButtonHtml(item.id);
             });
             
             const totalQty = cart.reduce((acc, i) => acc + i.qty, 0);
@@ -975,12 +935,10 @@
         function renderDrinkSuggestions() {
             const container = document.getElementById('suggestion-list');
             const drinks = menuData.filter(i => i.category === 'bebidas').slice(0, 4);
-            
             if(drinks.length === 0) {
                 document.getElementById('drink-suggestions').classList.add('hidden');
                 return;
             }
-
             container.innerHTML = drinks.map(drink => {
                  const priceDisplay = drink.price > 0 ? `R$ ${drink.price.toFixed(2).replace('.',',')}` : "Consultar";
                  return `<div class="suggestion-card">
@@ -993,12 +951,7 @@
 
         function toggleCart() { document.getElementById('cart-modal').classList.toggle('open'); }
         
-        function clearCart() {
-            if(confirm("Esvaziar a sacola?")) {
-                cart = [];
-                updateUI();
-            }
-        }
+        function clearCart() { if(confirm("Esvaziar a sacola?")) { cart = []; updateUI(); } }
 
         function toggleOrderType(type) {
             const addr = document.getElementById('address-section');
@@ -1021,11 +974,9 @@
             const pix = document.getElementById('pix-section');
             const card = document.getElementById('card-fee-section');
             const cash = document.getElementById('change-section');
-
             if(pix) pix.classList.add('hidden');
             if(card) card.classList.add('hidden');
             if(cash) cash.classList.add('hidden');
-
             if (method === 'PIX' && pix) pix.classList.remove('hidden');
             if ((method === 'Cartão de Crédito' || method === 'Cartão de Débito') && card) card.classList.remove('hidden');
             if (method === 'Dinheiro' && cash) cash.classList.remove('hidden');
@@ -1061,51 +1012,33 @@
             if(!typeRadio) return alert("Escolha o tipo de pedido.");
             if(!paymentElement) return alert("Escolha a forma de pagamento.");
             
-            // GERA O ID ÚNICO COM BASE NO HORÁRIO (HORA, MINUTO E SEGUNDO)
             const now = new Date();
-            const orderId = String(now.getHours()).padStart(2, '0') + 
-                           String(now.getMinutes()).padStart(2, '0') +
-                           String(now.getSeconds()).padStart(2, '0');
-
+            const orderId = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
             const payment = paymentElement.value;
             const changeAmount = document.getElementById('change-amount').value;
-            
             const type = typeRadio.value;
+            
             let addressMsg = "";
-            let pickupMsg = "";
-
             let addressData = '';
             let mapsLinkData = '';
 
             if (type === 'Entrega') {
                 const mapsLink = document.getElementById('maps-link').value;
                 const addressText = document.getElementById('address-text').value;
-                
                 if (!mapsLink && !addressText) return alert("Para entrega, precisamos da sua localização ou endereço.");
-
-                if(mapsLink) {
-                    addressMsg += `\n📍 *GPS:* ${mapsLink}`;
-                    mapsLinkData = mapsLink;
-                }
-                if(addressText) {
-                    addressMsg += `\n🏠 *Endereço:* ${addressText}`;
-                    addressData = addressText;
-                }
-                addressMsg += `\n⚠️ _Taxa a calcular._`;
-            } else if (type === 'Retirada') {
-                 const pickupTime = document.getElementById('pickup-time').value;
-                 if(pickupTime && pickupTime.trim() !== "") {
-                    pickupMsg = `\n⏰ *Horário de Retirada:* ${pickupTime}`;
-                }
+                if(mapsLink) { addressMsg += `\n📍 *GPS:* ${mapsLink}`; mapsLinkData = mapsLink; }
+                if(addressText) { addressMsg += `\n🏠 *Endereço:* ${addressText}`; addressData = addressText; }
             }
 
-            // --- SALVAR NO FIRESTORE COM DADOS DO USUÁRIO SE HOUVER ---
             const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             
+            // --- CORREÇÃO AQUI: USA O TELEFONE DO USUÁRIO LOGADO SE EXISTIR ---
+            const userPhoneToSave = currentUser ? currentUser.phone : null;
+
             const orderData = {
                 orderId: orderId,
                 customerName: name,
-                userPhone: currentUser ? currentUser.phone : null, // Salva o telefone do usuário se logado
+                userPhone: userPhoneToSave, // Garante que o telefone seja salvo
                 type: type,
                 payment: payment,
                 change: (payment === 'Dinheiro' ? changeAmount : ''),
@@ -1118,45 +1051,22 @@
                 status: 'pending' 
             };
 
-            // Salva e depois abre o WhatsApp
             db.collection(COL_ORDERS).add(orderData).then(() => {
                 console.log("Pedido salvo!");
-            }).catch(err => console.error("Erro ao salvar pedido:", err));
+            }).catch(err => console.error("Erro ao salvar:", err));
 
             // --- MENSAGEM WHATSAPP ---
-            let msg = `*PEDIDO N° ${orderId}*\n`;
-            msg += `----------------------------\n`;
-            msg += `👤 *Cliente:* ${name}\n`;
-            msg += `📦 *Tipo:* ${type}${pickupMsg}\n`; 
-            msg += `💰 *Pagamento:* ${payment}\n`;
-
-            if (payment === 'Dinheiro' && changeAmount) {
-                msg += `💵 *Troco para:* R$ ${changeAmount}\n`;
-            }
-            
+            let msg = `*PEDIDO N° ${orderId}*\n----------------------------\n👤 *Cliente:* ${name}\n📦 *Tipo:* ${type}\n💰 *Pagamento:* ${payment}\n`;
+            if (payment === 'Dinheiro' && changeAmount) msg += `💵 *Troco para:* R$ ${changeAmount}\n`;
             msg += `\n*ITENS:*\n`;
-            
-            let hasConsultItem = false;
-            cart.forEach(item => {
-                const priceTxt = item.price > 0 ? `(R$ ${(item.price * item.qty).toFixed(2)})` : "(Consultar)";
-                msg += `${item.qty}x ${item.name} ${priceTxt}\n`;
-                
-                if (item.obs && item.obs.trim() !== "") {
-                    msg += `   📝 _Obs: ${item.obs.trim()}_\n`;
-                }
-                
-                if(item.price === 0) hasConsultItem = true;
+            cart.forEach(i => {
+                msg += `${i.qty}x ${i.name} - R$ ${(i.price * i.qty).toFixed(2)}\n`;
+                if(i.obs) msg += `   _Obs: ${i.obs}_\n`;
             });
-            
             msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
+            if(addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}`;
             
-            if(hasConsultItem) msg += `\n⚠️ _Contém itens a consultar valor._`;
-            
-            if (addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}`;
-            
-            const phone = "5588996768158";
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-            window.open(url, '_blank');
+            window.open(`https://wa.me/5588996768158?text=${encodeURIComponent(msg)}`, '_blank');
         }
         
         function searchProducts(val) {
