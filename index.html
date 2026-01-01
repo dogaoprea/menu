@@ -96,6 +96,11 @@
 
         .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 15px; margin-bottom: 30px; }
         .menu-item { background-color: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); border-top: 4px solid var(--primary); overflow: hidden; display: flex; flex-direction: column; animation: fadeInUp 0.5s ease-out forwards; }
+        
+        /* ESTILO PARA ITEM INDISPONÍVEL */
+        .menu-item.unavailable { opacity: 0.6; pointer-events: none; filter: grayscale(0.8); }
+        .menu-item.unavailable .item-price { color: var(--text-muted); text-decoration: line-through; }
+        
         .item-content { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
         .item-title { font-weight: 700; font-size: 17px; color: var(--text-main); }
         .item-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 0; flex-grow: 1; }
@@ -104,6 +109,10 @@
         .category-separator { margin-top: 25px; margin-bottom: 10px; font-size: 22px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
         
         .add-btn { width: auto; padding: 8px 16px; height: 40px; background: rgba(255, 159, 28, 0.15); color: var(--primary-dark); border: 1px solid transparent; border-radius: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font-size: 14px; text-transform: uppercase; }
+        
+        /* BOTÃO INDISPONÍVEL */
+        .add-btn.disabled { background: #eee; color: #999; cursor: not-allowed; border: 1px solid #ddd; }
+        
         .qty-selector { display: flex; align-items: center; justify-content: space-between; background-color: var(--bg-element); border-radius: 10px; width: 100px; height: 40px; border: 1px solid var(--border-color); }
         .qty-selector button { width: 32px; height: 100%; background: transparent; border: none; cursor: pointer; }
         .qty-input { width: 40px; background: transparent; border: none; text-align: center; font-weight: 700; }
@@ -548,13 +557,22 @@
 
         function createItemCard(item) {
              const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
-             return `<div class="menu-item">
+             const isUnavailable = item.available === false;
+             
+             let btnHtml = '';
+             if (isUnavailable) {
+                 btnHtml = `<button class="add-btn disabled">Indisponível</button>`;
+             } else {
+                 btnHtml = `<div id="btn-container-${item.id}">${getButtonHtml(item.id)}</div>`;
+             }
+
+             return `<div class="menu-item ${isUnavailable ? 'unavailable' : ''}">
                         <div class="item-content">
                             <div class="item-title">${item.name}</div>
                             <p class="item-desc">${item.desc}</p>
                             <div class="item-footer">
                                 <span class="item-price">${priceDisplay}</span>
-                                <div id="btn-container-${item.id}">${getButtonHtml(item.id)}</div>
+                                ${btnHtml}
                             </div>
                         </div>
                     </div>`;
@@ -581,6 +599,7 @@
 
         function addToCart(id) {
             const item = menuData.find(i => i.id === id);
+            if (item.available === false) return; // Segurança extra
             const existing = cart.find(i => i.id === id);
             if (existing) existing.qty++; else cart.push({ ...item, qty: 1 });
             updateUI();
@@ -603,7 +622,10 @@
         function updateUI() {
             menuData.forEach(item => {
                 const container = document.getElementById(`btn-container-${item.id}`);
-                if(container) container.innerHTML = getButtonHtml(item.id);
+                // Verifica se o item ainda está disponível antes de atualizar o botão
+                if(container && item.available !== false) {
+                    container.innerHTML = getButtonHtml(item.id);
+                }
             });
             
             const totalQty = cart.reduce((acc, i) => acc + i.qty, 0);
