@@ -445,6 +445,7 @@
         const auth = firebase.auth();
         const COL_ITEMS = 'menu_items';
         const COL_SETTINGS = 'settings';
+        const COL_ORDERS = 'orders'; // Nova coleção
 
         // Variável GLOBAL para as categorias, inicializada com padrão, mas atualizada pelo Firebase
         let categoriesConfig = [
@@ -458,8 +459,6 @@
         
         let menuData = [];
         let cart = [];
-        // Variável para armazenar a configuração de ordenação (padrão por nome)
-        let currentSort = 'name_asc'; 
 
         window.onload = () => {
             renderCategories();
@@ -535,7 +534,6 @@
 
         function renderCategories() {
             const list = document.getElementById('category-list');
-            // ÍCONES REMOVIDOS CONFORME SOLICITADO
             list.innerHTML = `<li><button class="cat-btn active" onclick="filterMenu('all', this)">Todos</button></li>` + 
                 categoriesConfig.map(c => `<li><button class="cat-btn" onclick="filterMenu('${c.id}', this)">${c.label}</button></li>`).join('');
         }
@@ -552,8 +550,6 @@
             // Função auxiliar de ordenação
             const sortItems = (items) => {
                 return items.sort((a, b) => {
-                    // A ordenação aqui pode ser expandida se salvarmos o 'currentSort' no firebase também
-                    // Por enquanto, o padrão é alfabético para o cliente
                     return a.name.localeCompare(b.name);
                 });
             };
@@ -840,19 +836,57 @@
             let addressMsg = "";
             let pickupMsg = "";
 
+            // Coleta dados de endereço/entrega para salvar no Firestore
+            let addressData = '';
+            let mapsLinkData = '';
+
             if (type === 'Entrega') {
                 const mapsLink = document.getElementById('maps-link').value;
                 const addressText = document.getElementById('address-text').value;
-                if (!mapsLink && !addressText) return alert("Para entrega, precisamos do endereço.");
-                if (mapsLink) addressMsg += `\n📍 *GPS:* ${mapsLink}`;
-                if (addressText) addressMsg += `\n🏠 *Endereço:* ${addressText}`;
+                
+                // Validação de endereço
+                if (!mapsLink && !addressText) return alert("Para entrega, precisamos da sua localização ou endereço.");
+
+                if(mapsLink) {
+                    addressMsg += `\n📍 *GPS:* ${mapsLink}`;
+                    mapsLinkData = mapsLink;
+                }
+                if(addressText) {
+                    addressMsg += `\n🏠 *Endereço:* ${addressText}`;
+                    addressData = addressText;
+                }
+                addressMsg += `\n⚠️ _Taxa a calcular._`;
             } else if (type === 'Retirada') {
-                const pickupTime = document.getElementById('pickup-time').value;
-                if (pickupTime && pickupTime.trim() !== "") {
+                 const pickupTime = document.getElementById('pickup-time').value;
+                 if(pickupTime && pickupTime.trim() !== "") {
                     pickupMsg = `\n⏰ *Horário de Retirada:* ${pickupTime}`;
                 }
             }
 
+            // --- SALVAR NO FIRESTORE ---
+            const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            
+            const orderData = {
+                orderId: orderId,
+                customerName: name,
+                type: type,
+                payment: payment,
+                change: (payment === 'Dinheiro' ? changeAmount : ''),
+                pickupTime: (type === 'Retirada' ? document.getElementById('pickup-time').value : ''),
+                address: addressData,
+                mapsLink: mapsLinkData,
+                cart: cart,
+                total: total,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'pending' // pending, done, archived
+            };
+
+            // Salva e depois abre o WhatsApp
+            db.collection(COL_ORDERS).add(orderData).then(() => {
+                console.log("Pedido salvo!");
+            }).catch(err => console.error("Erro ao salvar pedido:", err));
+
+            // --- MENSAGEM WHATSAPP ---
             let msg = `*PEDIDO N° ${orderId}*\n`;
             msg += `----------------------------\n`;
             msg += `👤 *Cliente:* ${name}\n`;
@@ -862,7 +896,7 @@
             if (payment === 'Dinheiro' && changeAmount) {
                 msg += `💵 *Troco para:* R$ ${changeAmount}\n`;
             }
-
+            
             msg += `\n*ITENS:*\n`;
             
             let hasConsultItem = false;
@@ -877,12 +911,11 @@
                 if(item.price === 0) hasConsultItem = true;
             });
             
-            const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
             
             if(hasConsultItem) msg += `\n⚠️ _Contém itens a consultar valor._`;
             
-            if (addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}\n⚠️ _Taxa a calcular._`;
+            if (addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}`;
             
             const phone = "5588996768158";
             const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
