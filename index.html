@@ -447,16 +447,18 @@
         const COL_ITEMS = 'menu_items';
         const COL_SETTINGS = 'settings';
 
+        // Variável GLOBAL para as categorias, inicializada com padrão, mas atualizada pelo Firebase
+        let categories = [
+            { id: 'especiais', label: 'Favoritos' },
+            { id: 'sanduiches', label: 'Sanduíches' },
+            { id: 'hotdogs', label: 'Hot Dogs' },
+            { id: 'pasteis', label: 'Pastéis' },
+            { id: 'porcoes', label: 'Porções' },
+            { id: 'bebidas', label: 'Bebidas' }
+        ];
+        
         let menuData = [];
         let cart = [];
-        const categories = [
-            { id: 'especiais', label: 'Favoritos', icon: 'fas fa-star' },
-            { id: 'sanduiches', label: 'Sanduíches', icon: 'fas fa-burger' },
-            { id: 'hotdogs', label: 'Hot Dogs', icon: 'fas fa-hotdog' },
-            { id: 'pasteis', label: 'Pastéis', icon: 'fas fa-cheese' },
-            { id: 'porcoes', label: 'Batatas', icon: 'fas fa-utensils' },
-            { id: 'bebidas', label: 'Bebidas', icon: 'fas fa-glass-water' }
-        ];
 
         window.onload = () => {
             renderCategories();
@@ -475,16 +477,27 @@
         };
 
         function initFirebaseData() {
+            // 1. CARREGAR CONFIGURAÇÃO DE CATEGORIAS (Para refletir a ordem do Admin)
+            db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
+                if (doc.exists && doc.data().list) {
+                    categories = doc.data().list;
+                    renderCategories(); // Atualiza barra de navegação
+                    renderMenu('all'); // Atualiza a lista principal com a nova ordem
+                }
+            });
+
+            // 2. CARREGAR ITENS
             db.collection(COL_ITEMS).onSnapshot((snapshot) => {
                   menuData = [];
                   snapshot.forEach(doc => { menuData.push({ id: doc.id, ...doc.data() }); });
-                  menuData.sort((a, b) => a.name.localeCompare(b.name));
+                  // A ordenação aqui é secundária, pois renderMenu usa a ordem das categorias
                   document.getElementById('loading-indicator').classList.add('hidden');
                   renderMenu('all');
               }, (error) => {
                   if(error.code === 'permission-denied') document.getElementById('error-banner').classList.remove('hidden');
               });
 
+            // 3. STATUS DA LOJA
             db.collection(COL_SETTINGS).doc('store').onSnapshot((doc) => {
                   if (doc.exists) updateStoreStatus(doc.data());
                   else checkTimeStatus();
@@ -522,17 +535,20 @@
         function renderCategories() {
             const list = document.getElementById('category-list');
             list.innerHTML = `<li><button class="cat-btn active" onclick="filterMenu('all', this)"><i class="fas fa-border-all"></i> Todos</button></li>` + 
-                categories.map(c => `<li><button class="cat-btn" onclick="filterMenu('${c.id}', this)"><i class="${c.icon}"></i> ${c.label}</button></li>`).join('');
+                categories.map(c => `<li><button class="cat-btn" onclick="filterMenu('${c.id}', this)"><i class="${c.icon || 'fas fa-utensils'}"></i> ${c.label}</button></li>`).join('');
         }
 
         function renderMenu(filter = 'all') {
             const container = document.getElementById('menu-container');
             container.innerHTML = '';
+            
             if (menuData.length === 0) {
                 container.innerHTML = '<p style="text-align:center; padding:20px;">Cardápio vazio.</p>';
                 return;
             }
+
             if (filter === 'all') {
+                // Itera sobre as categorias na ordem definida (seja padrão ou do Firebase)
                 categories.forEach(cat => {
                     const items = menuData.filter(i => i.category === cat.id);
                     if (items.length > 0) {
@@ -829,7 +845,7 @@
              if(filtered.length === 0) container.innerHTML = "<p style='text-align:center; margin-top:20px;'>Nada encontrado.</p>";
              else container.innerHTML = `<div class="menu-grid">${filtered.map(i => createItemCard(i)).join('')}</div>`;
              
-             // BUGFIX: Se o campo estiver vazio, restaura a view padrão
+             // BUGFIX: Se o campo estiver vazio, restaura a view padrão com categorias
              if(term === '') {
                  // Reseta o botão 'Todos' como ativo
                  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
