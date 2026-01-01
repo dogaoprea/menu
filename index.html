@@ -300,7 +300,6 @@
             <div class="social-links-header">
                 <a href="https://instagram.com/dogaoprea" target="_blank" class="icon-btn"><i class="fab fa-instagram"></i></a>
                 <a href="https://wa.me/5588996768158" target="_blank" class="icon-btn"><i class="fab fa-whatsapp"></i></a>
-                <!-- ÍCONE DO MAPA RESTAURADO -->
                 <a href="https://maps.app.goo.gl/L67xDvckXUS4xZ179" target="_blank" class="icon-btn" title="Localização"><i class="fas fa-map-marker-alt"></i></a>
             </div>
         </div>
@@ -448,7 +447,7 @@
         const COL_SETTINGS = 'settings';
 
         // Variável GLOBAL para as categorias, inicializada com padrão, mas atualizada pelo Firebase
-        let categories = [
+        let categoriesConfig = [
             { id: 'especiais', label: 'Favoritos' },
             { id: 'sanduiches', label: 'Sanduíches' },
             { id: 'hotdogs', label: 'Hot Dogs' },
@@ -459,6 +458,8 @@
         
         let menuData = [];
         let cart = [];
+        // Variável para armazenar a configuração de ordenação (padrão por nome)
+        let currentSort = 'name_asc'; 
 
         window.onload = () => {
             renderCategories();
@@ -480,7 +481,7 @@
             // 1. CARREGAR CONFIGURAÇÃO DE CATEGORIAS (Para refletir a ordem do Admin)
             db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
                 if (doc.exists && doc.data().list) {
-                    categories = doc.data().list;
+                    categoriesConfig = doc.data().list;
                     renderCategories(); // Atualiza barra de navegação
                     renderMenu('all'); // Atualiza a lista principal com a nova ordem
                 }
@@ -490,7 +491,7 @@
             db.collection(COL_ITEMS).onSnapshot((snapshot) => {
                   menuData = [];
                   snapshot.forEach(doc => { menuData.push({ id: doc.id, ...doc.data() }); });
-                  // A ordenação aqui é secundária, pois renderMenu usa a ordem das categorias
+                  
                   document.getElementById('loading-indicator').classList.add('hidden');
                   renderMenu('all');
               }, (error) => {
@@ -535,7 +536,7 @@
         function renderCategories() {
             const list = document.getElementById('category-list');
             list.innerHTML = `<li><button class="cat-btn active" onclick="filterMenu('all', this)"><i class="fas fa-border-all"></i> Todos</button></li>` + 
-                categories.map(c => `<li><button class="cat-btn" onclick="filterMenu('${c.id}', this)"><i class="${c.icon || 'fas fa-utensils'}"></i> ${c.label}</button></li>`).join('');
+                categoriesConfig.map(c => `<li><button class="cat-btn" onclick="filterMenu('${c.id}', this)"><i class="${c.icon || 'fas fa-utensils'}"></i> ${c.label}</button></li>`).join('');
         }
 
         function renderMenu(filter = 'all') {
@@ -547,11 +548,22 @@
                 return;
             }
 
+            // Função auxiliar de ordenação
+            const sortItems = (items) => {
+                return items.sort((a, b) => {
+                    // A ordenação aqui pode ser expandida se salvarmos o 'currentSort' no firebase também
+                    // Por enquanto, o padrão é alfabético para o cliente
+                    return a.name.localeCompare(b.name);
+                });
+            };
+
             if (filter === 'all') {
                 // Itera sobre as categorias na ordem definida (seja padrão ou do Firebase)
-                categories.forEach(cat => {
-                    const items = menuData.filter(i => i.category === cat.id);
+                categoriesConfig.forEach(cat => {
+                    let items = menuData.filter(i => i.category === cat.id);
                     if (items.length > 0) {
+                        items = sortItems(items); // Ordena itens dentro da categoria
+                        
                         const title = document.createElement('h3');
                         title.className = 'brand-font category-separator';
                         title.innerText = cat.label;
@@ -563,7 +575,8 @@
                     }
                 });
             } else {
-                const items = menuData.filter(i => i.category === filter);
+                let items = menuData.filter(i => i.category === filter);
+                items = sortItems(items);
                 const grid = document.createElement('div');
                 grid.className = 'menu-grid';
                 grid.innerHTML = items.map(item => createItemCard(item)).join('');
@@ -781,7 +794,7 @@
                     const lng = position.coords.longitude;
                     const link = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
                     mapsInput.value = link;
-                    status.innerHTML = `<span style="color:var(--success)"><i class="fas fa-check-circle"></i> Localização salva!</span>`;
+                    status.innerHTML = `<span class="geo-success"><i class="fas fa-check-circle"></i> Localização salva!</span>`;
                 },
                 (error) => {
                     status.innerText = "Erro no GPS. Digite o endereço abaixo.";
@@ -793,49 +806,72 @@
         function finalizeOrder() {
             const name = document.getElementById('customer-name').value;
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
-            const paymentElement = document.querySelector('input[name="pay"]:checked');
+            const paymentElement = document.querySelector('input[name="paymentMethod"]:checked');
             
             if(!name) return alert("Digite seu nome!");
             if(!typeRadio) return alert("Escolha o tipo de pedido.");
             if(!paymentElement) return alert("Escolha a forma de pagamento.");
             
+            // GERA O ID ÚNICO COM BASE NO HORÁRIO (HORA, MINUTO E SEGUNDO)
+            const now = new Date();
+            const orderId = String(now.getHours()).padStart(2, '0') + 
+                           String(now.getMinutes()).padStart(2, '0') +
+                           String(now.getSeconds()).padStart(2, '0');
+
             const payment = paymentElement.value;
+            const changeAmount = document.getElementById('change-amount').value;
+            
             const type = typeRadio.value;
-            
-            let msg = `*NOVO PEDIDO*\nCliente: ${name}\nTipo: ${type}\nPagamento: ${payment}\n`;
-            
-            if(payment === 'Dinheiro') {
-                const change = document.getElementById('change-amount').value;
-                if(change) msg += `Troco para: ${change}\n`;
+            let addressMsg = "";
+            let pickupMsg = "";
+
+            if (type === 'Entrega') {
+                const mapsLink = document.getElementById('maps-link').value;
+                const addressText = document.getElementById('address-text').value;
+                if (!mapsLink && !addressText) return alert("Para entrega, precisamos do endereço.");
+                if (mapsLink) addressMsg += `\n📍 *GPS:* ${mapsLink}`;
+                if (addressText) addressMsg += `\n🏠 *Endereço:* ${addressText}`;
+            } else if (type === 'Retirada') {
+                const pickupTime = document.getElementById('pickup-time').value;
+                if (pickupTime && pickupTime.trim() !== "") {
+                    pickupMsg = `\n⏰ *Horário de Retirada:* ${pickupTime}`;
+                }
             }
 
-            if (type === 'Retirada') {
-                 const pickupTime = document.getElementById('pickup-time').value;
-                 if(pickupTime) msg += `Horário: ${pickupTime}\n`;
+            let msg = `*PEDIDO N° ${orderId}*\n`;
+            msg += `----------------------------\n`;
+            msg += `👤 *Cliente:* ${name}\n`;
+            msg += `📦 *Tipo:* ${type}${pickupMsg}\n`; 
+            msg += `💰 *Pagamento:* ${payment}\n`;
+
+            if (payment === 'Dinheiro' && changeAmount) {
+                msg += `💵 *Troco para:* R$ ${changeAmount}\n`;
             }
-            
+
             msg += `\n*ITENS:*\n`;
-            cart.forEach(i => {
-                msg += `${i.qty}x ${i.name} - R$ ${(i.price * i.qty).toFixed(2)}\n`;
-                if(i.obs) msg += `   _Obs: ${i.obs}_\n`;
+            
+            let hasConsultItem = false;
+            cart.forEach(item => {
+                const priceTxt = item.price > 0 ? `(R$ ${(item.price * item.qty).toFixed(2)})` : "(Consultar)";
+                msg += `${item.qty}x ${item.name} ${priceTxt}\n`;
+                
+                if (item.obs && item.obs.trim() !== "") {
+                    msg += `   📝 _Obs: ${item.obs.trim()}_\n`;
+                }
+                
+                if(item.price === 0) hasConsultItem = true;
             });
             
             const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
-            msg += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
+            msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
             
-            if (type === 'Entrega') {
-                const addr = document.getElementById('address-text').value;
-                const map = document.getElementById('maps-link').value;
-                
-                // Validação de endereço
-                if (!addr && !map) return alert("Para entrega, precisamos da sua localização ou endereço.");
-
-                if(addr) msg += `\n\nEndereço: ${addr}`;
-                if(map) msg += `\nGPS: ${map}`;
-                msg += `\n⚠️ Taxa de entrega a calcular.`;
-            }
+            if(hasConsultItem) msg += `\n⚠️ _Contém itens a consultar valor._`;
             
-            window.open(`https://wa.me/5588996768158?text=${encodeURIComponent(msg)}`, '_blank');
+            if (addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}\n⚠️ _Taxa a calcular._`;
+            
+            const phone = "5588996768158";
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+            window.open(url, '_blank');
         }
         
         function searchProducts(val) {
