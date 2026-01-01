@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - DOGÃO PREÁ</title>
-    <!-- Fontes e Ícones -->
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Firebase SDKs (Compat version for simple HTML usage) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -18,39 +17,27 @@
             --primary: #ff9f1c;
             --primary-dark: #e08b15;
             --bg-body: #f0f2f5;
-            --bg-card: #ffffff;
             --text-main: #1c1e21;
-            --border: #ddd;
-            --success: #00c851;
             --danger: #ff4444;
+            --success: #00c851;
         }
 
         * { box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
-        
         body { background: var(--bg-body); margin: 0; padding-bottom: 50px; color: var(--text-main); }
         
-        .admin-header {
-            background: #fff; padding: 15px 20px; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
-        }
-        
+        .admin-header { background: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         h1 { font-family: 'Bebas Neue'; margin: 0; font-size: 24px; color: var(--primary-dark); }
         
         .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
         
-        /* Login Overlay */
-        #login-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body);
-            z-index: 2000; display: flex; justify-content: center; align-items: center; flex-direction: column;
-        }
+        /* Login */
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 2000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
         .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
         
-        /* Status Card */
-        .status-card {
-            background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;
-        }
+        /* Cards */
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
+        /* Switch */
         .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
@@ -58,34 +45,27 @@
         input:checked + .slider { background-color: var(--success); }
         input:checked + .slider:before { transform: translateX(26px); }
 
-        /* Item List */
+        /* Items */
         .category-header { font-family: 'Bebas Neue'; font-size: 20px; margin: 30px 0 10px; color: #555; border-bottom: 2px solid var(--primary); display: inline-block; }
-        
-        .admin-item {
-            background: white; border: 1px solid var(--border); border-radius: 8px; padding: 15px;
-            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
-        }
+        .admin-item { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .item-info { flex: 1; }
         .item-name { font-weight: 700; font-size: 16px; }
-        .item-price { color: var(--primary-dark); font-weight: 800; }
         
         .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
         .btn-edit { background: #e3f2fd; color: #1976d2; margin-right: 5px; }
         .btn-delete { background: #ffebee; color: #c62828; }
         .btn-add { background: var(--primary); color: #000; width: 100%; padding: 15px; font-size: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255,159,28,0.3); }
+        .btn-restore { background: #2196F3; color: white; width: 100%; padding: 15px; margin-top: 10px; }
 
         /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal.open { display: flex; }
         .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
         
-        .form-group { margin-bottom: 15px; }
-        .form-label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 13px; color: #666; }
-        .form-input, .form-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; }
-        .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .form-input, .form-select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; margin-bottom: 15px; display: block; }
+        .form-label { font-weight: 600; font-size: 13px; color: #666; margin-bottom: 5px; display: block; }
         
-        /* Feedback Toast */
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; }
         #toast.show { opacity: 1; bottom: 30px; }
     </style>
 </head>
@@ -95,26 +75,24 @@
     <div id="login-overlay">
         <div class="login-box">
             <h2 style="font-family: 'Bebas Neue'; font-size: 32px; color: var(--primary);">Área Restrita</h2>
-            <p>Digite a senha de administrador</p>
-            <input type="password" id="admin-pass" class="form-input" style="text-align: center; margin-bottom: 15px;" placeholder="Senha">
+            <input type="password" id="admin-pass" class="form-input" style="text-align: center;" placeholder="Senha">
             <button class="btn" style="background: var(--primary); width: 100%; padding: 12px;" onclick="checkLogin()">ENTRAR</button>
             <p id="login-error" style="color: var(--danger); font-size: 12px; display: none; margin-top: 10px;">Senha incorreta!</p>
         </div>
     </div>
 
-    <!-- App Principal -->
+    <!-- Conteúdo -->
     <div id="app-content" style="display: none;">
         <header class="admin-header">
             <h1>Dogão Admin</h1>
-            <button class="btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+            <button class="btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
         </header>
 
         <div class="container">
-            <!-- Status da Loja -->
-            <div class="status-card">
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h3 style="margin: 0 0 5px 0;">Status da Loja</h3>
-                    <div id="status-text" style="font-size: 13px; color: #666;">Controlado automaticamente</div>
+                    <h3 style="margin: 0;">Status da Loja</h3>
+                    <div id="status-text" style="font-size: 13px; color: #666;">Carregando...</div>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="store-toggle" onchange="toggleStoreStatus()">
@@ -122,66 +100,67 @@
                 </label>
             </div>
             
-            <div style="background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 13px; color: #666;">
+            <div class="card" style="font-size: 13px;">
                 <label style="display: flex; align-items: center; gap: 10px;">
                     <input type="checkbox" id="manual-override" onchange="toggleManualOverride()">
-                    <span>Forçar status manual (ignorar horário)</span>
+                    <span>Forçar controle manual (ignora horário)</span>
                 </label>
             </div>
 
             <button class="btn btn-add" onclick="openModal()"><i class="fas fa-plus-circle"></i> ADICIONAR NOVO ITEM</button>
 
             <div id="items-list">
-                <!-- Itens serão carregados aqui -->
                 <p style="text-align: center; margin-top: 40px;">Carregando itens...</p>
+            </div>
+
+            <!-- ÁREA DE RESTAURAÇÃO DE DADOS -->
+            <div style="margin-top: 50px; border-top: 2px dashed #ddd; padding-top: 20px;">
+                <h3 style="color: #666;">⚠️ Ferramentas de Sistema</h3>
+                <p style="font-size: 13px; color: #888;">Use isso apenas se o cardápio estiver vazio e você quiser repovoar com os itens padrão.</p>
+                <button class="btn btn-restore" onclick="restoreDefaultData()">
+                    <i class="fas fa-database"></i> RESTAURAR CARDÁPIO PADRÃO
+                </button>
+                <p id="restore-status" style="text-align: center; font-size: 12px; margin-top: 10px; color: var(--success);"></p>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Edição/Criação -->
+    <!-- Modal Form -->
     <div id="item-modal" class="modal">
         <div class="modal-content">
-            <h2 id="modal-title" style="margin-top: 0;">Editar Item</h2>
+            <h2 id="modal-title" style="margin-top: 0;">Item</h2>
             <input type="hidden" id="edit-id">
             
-            <div class="form-group">
-                <label class="form-label">Nome do Produto</label>
-                <input type="text" id="edit-name" class="form-input">
-            </div>
+            <label class="form-label">Nome</label>
+            <input type="text" id="edit-name" class="form-input">
             
-            <div class="form-group">
-                <label class="form-label">Preço (R$)</label>
-                <input type="number" step="0.50" id="edit-price" class="form-input">
-            </div>
+            <label class="form-label">Preço</label>
+            <input type="number" step="0.50" id="edit-price" class="form-input">
             
-            <div class="form-group">
-                <label class="form-label">Categoria</label>
-                <select id="edit-category" class="form-select">
-                    <option value="especiais">Especiais (Favoritos)</option>
-                    <option value="sanduiches">Sanduíches</option>
-                    <option value="hotdogs">Hot Dogs</option>
-                    <option value="pasteis">Pastéis</option>
-                    <option value="porcoes">Porções</option>
-                    <option value="bebidas">Bebidas</option>
-                </select>
-            </div>
+            <label class="form-label">Categoria</label>
+            <select id="edit-category" class="form-select">
+                <option value="especiais">Especiais (Favoritos)</option>
+                <option value="sanduiches">Sanduíches</option>
+                <option value="hotdogs">Hot Dogs</option>
+                <option value="pasteis">Pastéis</option>
+                <option value="porcoes">Porções</option>
+                <option value="bebidas">Bebidas</option>
+            </select>
             
-            <div class="form-group">
-                <label class="form-label">Descrição</label>
-                <textarea id="edit-desc" class="form-input" rows="3"></textarea>
-            </div>
+            <label class="form-label">Descrição</label>
+            <textarea id="edit-desc" rows="3"></textarea>
 
-            <div class="form-actions">
+            <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px;">
                 <button class="btn" style="background: #eee;" onclick="closeModal()">Cancelar</button>
                 <button class="btn" style="background: var(--primary);" onclick="saveItem()">Salvar</button>
             </div>
         </div>
     </div>
 
-    <div id="toast">Alteração salva!</div>
+    <div id="toast">Feito!</div>
 
     <script>
-        // --- CONFIGURAÇÃO DO FIREBASE (DOGAO-PREA) ---
+        // --- CONFIGURAÇÃO FIREBASE ---
         const firebaseConfig = {
           apiKey: "AIzaSyClYFGSNXxPmAn3DRWiB7eSxCQ3Nf81IHI",
           authDomain: "dogao-prea.firebaseapp.com",
@@ -192,144 +171,84 @@
           measurementId: "G-40QL50Z24D"
         };
         
-        // Inicializa o Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-        
-        // Caminhos das coleções no seu banco real
         const COL_ITEMS = 'menu_items';
         const COL_SETTINGS = 'settings';
 
-        // --- SISTEMA DE LOGIN SIMPLES (CLIENT-SIDE) ---
+        // --- AUTH ---
         function checkLogin() {
             const pass = document.getElementById('admin-pass').value;
-            // DICA: Mude essa senha depois!
             if(pass === 'admin123' || pass === 'dogao') {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-content').style.display = 'block';
-                loadData();
-                
-                // Autenticação anônima para permitir escrita no Firestore
-                auth.signInAnonymously().catch(e => {
-                    console.error("Erro auth:", e);
-                    alert("Erro ao conectar com servidor. Verifique o console.");
-                });
+                auth.signInAnonymously().then(loadData).catch(e => alert("Erro Auth: " + e.message));
             } else {
                 document.getElementById('login-error').style.display = 'block';
             }
         }
-        
-        function logout() {
-            location.reload();
-        }
+        function logout() { location.reload(); }
 
-        // --- GERENCIAMENTO DE DADOS ---
+        // --- DADOS ---
         let currentItems = [];
-
         function loadData() {
-            // 1. Ouvir Status da Loja (doc: settings/store)
-            db.collection(COL_SETTINGS).doc('store')
-              .onSnapshot((doc) => {
-                  if (doc.exists) {
-                      const data = doc.data();
-                      document.getElementById('store-toggle').checked = data.isOpen;
-                      document.getElementById('manual-override').checked = data.manualOverride;
-                      updateStatusText(data);
-                  } else {
-                      // Cria o documento padrão se não existir no seu banco novo
-                      db.collection(COL_SETTINGS).doc('store').set({
-                          isOpen: false, manualOverride: false
-                      });
-                  }
-              });
+            db.collection(COL_SETTINGS).doc('store').onSnapshot(doc => {
+                if(doc.exists) {
+                    const d = doc.data();
+                    document.getElementById('store-toggle').checked = d.isOpen;
+                    document.getElementById('manual-override').checked = d.manualOverride;
+                    document.getElementById('status-text').innerText = d.manualOverride ? 
+                        (d.isOpen ? "ABERTO (Manual)" : "FECHADO (Manual)") : "Automático";
+                    document.getElementById('status-text').style.color = d.manualOverride ? 
+                        (d.isOpen ? "var(--success)" : "var(--danger)") : "#666";
+                }
+            });
 
-            // 2. Ouvir Itens do Menu
-            db.collection(COL_ITEMS).orderBy('name')
-              .onSnapshot((snapshot) => {
-                  currentItems = [];
-                  snapshot.forEach(doc => {
-                      currentItems.push({ id: doc.id, ...doc.data() });
-                  });
-                  renderList();
-              });
-        }
-
-        function renderList() {
-            const list = document.getElementById('items-list');
-            list.innerHTML = '';
-            
-            const categories = {
-                'especiais': 'Favoritos',
-                'sanduiches': 'Sanduíches',
-                'hotdogs': 'Hot Dogs',
-                'pasteis': 'Pastéis',
-                'porcoes': 'Porções',
-                'bebidas': 'Bebidas'
-            };
-            
-            Object.keys(categories).forEach(catKey => {
-                const itemsInCat = currentItems.filter(i => i.category === catKey);
+            db.collection(COL_ITEMS).orderBy('name').onSnapshot(snap => {
+                currentItems = [];
+                const list = document.getElementById('items-list');
+                list.innerHTML = '';
+                snap.forEach(doc => currentItems.push({id: doc.id, ...doc.data()}));
                 
-                if (itemsInCat.length > 0) {
-                    const header = document.createElement('div');
-                    header.className = 'category-header';
-                    header.innerText = categories[catKey];
-                    list.appendChild(header);
-                    
-                    itemsInCat.forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = 'admin-item';
-                        div.innerHTML = `
+                if(currentItems.length === 0) {
+                    list.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">O cardápio está vazio.<br>Use o botão abaixo para restaurar os itens.</p>';
+                    return;
+                }
+
+                // Render simples
+                currentItems.forEach(item => {
+                    list.innerHTML += `
+                        <div class="admin-item">
                             <div class="item-info">
-                                <div class="item-name">${item.name}</div>
-                                <div style="font-size: 12px; color: #888;">${item.desc.substring(0, 50)}...</div>
+                                <div class="item-name">${item.name} <small style="color:#888; font-weight:400">(${item.category})</small></div>
+                                <div style="font-size:12px; color:#666;">${item.desc.substring(0,40)}...</div>
                             </div>
-                            <div style="text-align: right;">
-                                <div class="item-price">R$ ${item.price.toFixed(2)}</div>
-                                <div style="margin-top: 5px;">
+                            <div style="text-align:right;">
+                                <div style="font-weight:bold; color:var(--primary-dark);">R$ ${item.price.toFixed(2)}</div>
+                                <div style="margin-top:5px;">
                                     <button class="btn btn-edit" onclick="openModal('${item.id}')"><i class="fas fa-edit"></i></button>
                                     <button class="btn btn-delete" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
                                 </div>
                             </div>
-                        `;
-                        list.appendChild(div);
-                    });
-                }
+                        </div>`;
+                });
             });
         }
 
-        // --- AÇÕES DO MODAL ---
+        // --- CRUD ---
         function openModal(id = null) {
             const modal = document.getElementById('item-modal');
-            const title = document.getElementById('modal-title');
-            
-            if (id) {
-                const item = currentItems.find(i => i.id === id);
-                title.innerText = 'Editar Item';
-                document.getElementById('edit-id').value = id;
-                document.getElementById('edit-name').value = item.name;
-                document.getElementById('edit-price').value = item.price;
-                document.getElementById('edit-category').value = item.category;
-                document.getElementById('edit-desc').value = item.desc;
-            } else {
-                title.innerText = 'Novo Item';
-                document.getElementById('edit-id').value = '';
-                document.getElementById('edit-name').value = '';
-                document.getElementById('edit-price').value = '';
-                document.getElementById('edit-category').value = 'sanduiches';
-                document.getElementById('edit-desc').value = '';
-            }
-            
+            const item = id ? currentItems.find(i => i.id === id) : {name:'', price:'', category:'sanduiches', desc:''};
+            document.getElementById('modal-title').innerText = id ? 'Editar' : 'Novo';
+            document.getElementById('edit-id').value = id || '';
+            document.getElementById('edit-name').value = item.name;
+            document.getElementById('edit-price').value = item.price;
+            document.getElementById('edit-category').value = item.category;
+            document.getElementById('edit-desc').value = item.desc;
             modal.classList.add('open');
         }
-
-        function closeModal() {
-            document.getElementById('item-modal').classList.remove('open');
-        }
+        function closeModal() { document.getElementById('item-modal').classList.remove('open'); }
 
         function saveItem() {
             const id = document.getElementById('edit-id').value;
@@ -339,57 +258,71 @@
                 category: document.getElementById('edit-category').value,
                 desc: document.getElementById('edit-desc').value
             };
-
-            if (!data.name) return alert("Nome é obrigatório");
-
-            if (id) {
-                db.collection(COL_ITEMS).doc(id).update(data)
-                  .then(() => { closeModal(); showToast("Item atualizado!"); });
-            } else {
-                db.collection(COL_ITEMS).add(data)
-                  .then(() => { closeModal(); showToast("Item criado!"); });
-            }
+            if(!data.name) return alert("Nome obrigatório");
+            
+            const p = id ? db.collection(COL_ITEMS).doc(id).update(data) : db.collection(COL_ITEMS).add(data);
+            p.then(() => { closeModal(); showToast(); });
         }
 
         function deleteItem(id) {
-            if(confirm("Tem certeza que deseja excluir este item?")) {
-                db.collection(COL_ITEMS).doc(id).delete()
-                  .then(() => showToast("Item removido."));
-            }
+            if(confirm("Apagar?")) db.collection(COL_ITEMS).doc(id).delete().then(showToast);
         }
 
-        // --- STATUS LOJA ---
         function toggleStoreStatus() {
-            const isOpen = document.getElementById('store-toggle').checked;
-            updateStoreSettings({ isOpen: isOpen });
+            db.collection(COL_SETTINGS).doc('store').set({ isOpen: document.getElementById('store-toggle').checked }, {merge:true});
         }
-
         function toggleManualOverride() {
-            const isManual = document.getElementById('manual-override').checked;
-            updateStoreSettings({ manualOverride: isManual });
+            db.collection(COL_SETTINGS).doc('store').set({ manualOverride: document.getElementById('manual-override').checked }, {merge:true});
         }
-
-        function updateStoreSettings(update) {
-            db.collection(COL_SETTINGS).doc('store').set(update, { merge: true })
-              .then(() => showToast("Configuração salva!"));
-        }
-
-        function updateStatusText(data) {
-            const el = document.getElementById('status-text');
-            if (data.manualOverride) {
-                el.innerHTML = `Controle Manual: <strong>${data.isOpen ? 'ABERTO' : 'FECHADO'}</strong>`;
-                el.style.color = data.isOpen ? 'var(--success)' : 'var(--danger)';
-            } else {
-                el.innerText = "Automático (segue horário 19h-00h)";
-                el.style.color = "#666";
-            }
-        }
-
-        function showToast(msg) {
+        
+        function showToast() {
             const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        // --- RESTAURAÇÃO DE DADOS ---
+        function restoreDefaultData() {
+            if(!confirm("Isso vai adicionar itens ao cardápio. Continuar?")) return;
+            
+            const btn = document.querySelector('.btn-restore');
+            btn.disabled = true;
+            btn.innerText = "Restaurando...";
+
+            // LISTA DE ITENS PADRÃO (Baseado no Dogão Preá)
+            const backupItems = [
+                { name: "Dogão Especial", price: 12.00, category: "hotdogs", desc: "Pão, 2 salsichas, carne moída, milho, ervilha, batata palha e molhos especiais." },
+                { name: "Dogão Simples", price: 8.00, category: "hotdogs", desc: "Pão, 1 salsicha, molho, milho e batata palha." },
+                { name: "X-Tudo", price: 18.00, category: "especiais", desc: "Pão, hambúrguer, ovo, bacon, presunto, queijo, salsicha, alface e tomate." },
+                { name: "X-Bacon", price: 15.00, category: "sanduiches", desc: "Pão, hambúrguer, muito bacon crocante, queijo e salada." },
+                { name: "Misto Quente", price: 6.00, category: "sanduiches", desc: "Pão de forma, presunto e queijo na chapa." },
+                { name: "Pastel de Carne", price: 7.00, category: "pasteis", desc: "Carne moída temperada, sequinho e crocante." },
+                { name: "Pastel de Queijo", price: 7.00, category: "pasteis", desc: "Muito queijo mussarela derretido." },
+                { name: "Pastel de Frango c/ Catupiry", price: 8.00, category: "pasteis", desc: "Frango desfiado com catupiry original." },
+                { name: "Batata Frita P", price: 10.00, category: "porcoes", desc: "Porção individual, sequinha e crocante." },
+                { name: "Batata Frita G c/ Cheddar", price: 20.00, category: "porcoes", desc: "Porção grande com cheddar e bacon." },
+                { name: "Coca-Cola Lata", price: 5.00, category: "bebidas", desc: "350ml, bem gelada." },
+                { name: "Suco de Laranja", price: 8.00, category: "bebidas", desc: "Natural da fruta, 500ml." },
+                { name: "Água Mineral", price: 3.00, category: "bebidas", desc: "500ml sem gás." }
+            ];
+
+            let count = 0;
+            const status = document.getElementById('restore-status');
+            
+            // Adiciona um por um
+            backupItems.forEach((item, index) => {
+                setTimeout(() => {
+                    db.collection(COL_ITEMS).add(item)
+                      .then(() => {
+                          count++;
+                          status.innerText = `Restaurado ${count} de ${backupItems.length}...`;
+                          if(count === backupItems.length) {
+                              status.innerText = "Concluído! Itens restaurados com sucesso.";
+                              btn.disabled = false;
+                              btn.innerText = "Restaurar Novamente";
+                          }
+                      });
+                }, index * 200); // Pequeno delay para não sobrecarregar
+            });
         }
     </script>
 </body>
