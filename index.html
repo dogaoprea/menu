@@ -290,14 +290,39 @@
             background: var(--bg-card); border: 1px solid var(--border-color);
             border-radius: 12px; padding: 15px; margin-bottom: 15px;
             transition: 0.2s;
+            border-left: 5px solid transparent;
         }
         .order-history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
+        
         .order-history-status {
             font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px;
-            background: #eee; color: #555;
+            display: flex; align-items: center; gap: 5px;
         }
+
+        /* NOVOS ESTILOS DE STATUS SINCRONIZADOS COM ADMIN */
         .status-pending { background: #fff3cd; color: #856404; }
+        .order-history-card.status-pending { border-left-color: #ccc; }
+
+        .status-confirmed { background: #e3f2fd; color: #1976d2; }
+        .order-history-card.status-confirmed { border-left-color: #2196F3; }
+
+        .status-payment_pending { background: #fff3cd; color: #856404; }
+        .order-history-card.status-payment_pending { border-left-color: #ffc107; }
+
+        .status-payment_confirmed { background: #d4edda; color: #155724; }
+        .order-history-card.status-payment_confirmed { border-left-color: #28a745; }
+
+        .status-delivering { background: #cce5ff; color: #004085; }
+        .order-history-card.status-delivering { border-left-color: #007bff; }
+
+        .status-ready { background: #d1ecf1; color: #0c5460; }
+        .order-history-card.status-ready { border-left-color: #17a2b8; }
+
         .status-done { background: #d4edda; color: #155724; }
+        .order-history-card.status-done { border-left-color: #28a745; opacity: 0.8; }
+
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .order-history-card.status-cancelled { border-left-color: #dc3545; opacity: 0.8; }
 
         /* SIDEBAR (MENU LATERAL) - AJUSTADO */
         .sidebar {
@@ -623,6 +648,18 @@
         // Variável para saber se o login veio do carrinho
         let loginTriggeredByCart = false;
 
+        // Mapeamento de Status
+        const statusMap = {
+            'pending': { text: 'Aguardando Confirmação', class: 'status-pending', icon: 'fas fa-clock' },
+            'confirmed': { text: 'Pedido Confirmado', class: 'status-confirmed', icon: 'fas fa-check' },
+            'payment_pending': { text: 'Pagamento Pendente', class: 'status-payment_pending', icon: 'fas fa-dollar-sign' },
+            'payment_confirmed': { text: 'Pagamento Confirmado', class: 'status-payment_confirmed', icon: 'fas fa-check-double' },
+            'delivering': { text: 'Saiu para Entrega', class: 'status-delivering', icon: 'fas fa-motorcycle' },
+            'ready': { text: 'Pronto para Retirada', class: 'status-ready', icon: 'fas fa-shopping-bag' },
+            'done': { text: 'Concluído', class: 'status-done', icon: 'fas fa-star' },
+            'cancelled': { text: 'Cancelado', class: 'status-cancelled', icon: 'fas fa-times' }
+        };
+
         window.onload = () => {
             renderCategories();
             document.getElementById('copyright-year').textContent = new Date().getFullYear();
@@ -733,16 +770,12 @@
                   });
 
                   orders.forEach(order => {
-                      const status = order.status || 'pending'; 
-                      let statusText = 'Pendente';
-                      let statusClass = 'status-pending';
+                      const rawStatus = order.status || 'pending';
+                      const statusInfo = statusMap[rawStatus] || statusMap['pending'];
                       let editBtn = '';
 
-                      if (status === 'archived' || status === 'done') {
-                          statusText = 'Concluído';
-                          statusClass = 'status-done';
-                      } else {
-                          // Botão de editar para pedidos pendentes
+                      if (rawStatus !== 'archived' && rawStatus !== 'done' && rawStatus !== 'cancelled' && rawStatus !== 'delivering' && rawStatus !== 'ready') {
+                          // Botão de editar disponível para status iniciais
                           editBtn = `<button onclick="editOrder('${order._id}')" style="background:#2196F3; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:11px; cursor:pointer; margin-left:auto;"><i class="fas fa-pencil-alt"></i> Editar</button>`;
                       }
 
@@ -750,17 +783,17 @@
                       const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                       list.innerHTML += `
-                        <div class="order-history-card">
+                        <div class="order-history-card status-${rawStatus}">
                             <div class="order-history-header">
                                 <span style="font-weight:700;">#${order.orderId || '???'}</span>
-                                <span class="order-history-status ${statusClass}">${statusText}</span>
-                                ${editBtn}
+                                <div class="order-history-status ${statusInfo.class}"><i class="${statusInfo.icon}"></i> ${statusInfo.text}</div>
                             </div>
                             <div style="font-size:13px; color:#666; margin-bottom:5px;">${dateStr}</div>
                             <div style="font-size:14px; font-weight:600;">Total: R$ ${order.total.toFixed(2)}</div>
                             <div style="margin-top:10px; font-size:13px;">
                                 ${order.cart.map(i => `<div>${i.qty}x ${i.name}</div>`).join('')}
                             </div>
+                            ${editBtn ? `<div style="margin-top:10px; display:flex; justify-content:flex-end;">${editBtn}</div>` : ''}
                         </div>
                       `;
                   });
@@ -1085,6 +1118,7 @@
             const feeMsg = document.getElementById('footer-delivery-msg');
             const pickupSection = document.getElementById('pickup-time-section');
             
+            // Reset all
             if(addr) addr.classList.add('hidden');
             if(feeMsg) feeMsg.classList.add('hidden');
             if(pickupSection) pickupSection.classList.add('hidden');
@@ -1106,7 +1140,7 @@
             if(card) card.classList.add('hidden');
             if(cash) cash.classList.add('hidden');
 
-            if (method === 'PIX' && pix) pix.classList.remove('hidden');
+            if (method === 'PIX') pix.classList.remove('hidden');
             if ((method === 'Cartão de Crédito' || method === 'Cartão de Débito') && card) card.classList.remove('hidden');
             if (method === 'Dinheiro' && cash) cash.classList.remove('hidden');
         }
@@ -1139,8 +1173,9 @@
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
             const paymentElement = document.querySelector('input[name="pay"]:checked');
             
-            if(!typeRadio) return alert("Escolha o tipo de pedido.");
-            if(!paymentElement) return alert("Escolha a forma de pagamento.");
+            // VALIDACAO: Se não escolheu, para
+            if(!typeRadio) return alert("Por favor, escolha o tipo de pedido (Entrega, Retirada ou Mesa).");
+            if(!paymentElement) return alert("Por favor, escolha a forma de pagamento.");
             
             // GERA O ID ÚNICO COM BASE NO HORÁRIO (HORA, MINUTO E SEGUNDO)
             const now = new Date();
