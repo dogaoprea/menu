@@ -62,11 +62,16 @@
         .order-item-line { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .order-total { text-align: right; font-weight: 800; color: var(--primary-dark); font-size: 16px; margin-top: 10px; }
 
-        .btn-action-group { display: flex; gap: 5px; }
+        .btn-action-group { display: flex; gap: 5px; flex-wrap: wrap; }
         .btn-sm { border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #fff; display: flex; align-items: center; gap: 5px; }
         .btn-edit-order { background: #2196F3; }
+        .btn-copy { background: #607D8B; }
+        .btn-share { background: #25D366; }
         .btn-archive { background: #4CAF50; }
+        
         .btn-edit-order:hover { background: #1976D2; }
+        .btn-copy:hover { background: #455A64; }
+        .btn-share:hover { background: #128C7E; }
         .btn-archive:hover { background: #388E3C; }
         
         /* Switch */
@@ -270,7 +275,7 @@
         </div>
     </div>
 
-    <!-- Modal de EDIÇÃO DE PEDIDO (NOVO) -->
+    <!-- Modal de EDIÇÃO DE PEDIDO -->
     <div id="order-edit-modal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <h2 style="margin-top: 0; font-family: 'Bebas Neue'; color: var(--primary-dark);">Editar Pedido</h2>
@@ -321,8 +326,14 @@
                         <i class="fas fa-plus"></i> Add
                     </button>
                 </div>
+
+                <!-- NOVO: Taxa de Entrega -->
+                <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
+                    <label class="form-label" style="display:inline-block;">Taxa de Entrega (R$):</label>
+                    <input type="number" id="edit-order-fee" class="form-input" style="width: 100px; display:inline-block; margin-left: 10px;" value="0.00" step="0.50" onchange="calculateOrderTotal()">
+                </div>
                 
-                <div style="text-align: right; margin-top: 10px; font-weight: 800; font-size: 18px;">
+                <div style="text-align: right; margin-top: 10px; font-weight: 800; font-size: 18px; color: var(--primary-dark);">
                     Total: <span id="edit-order-total">R$ 0,00</span>
                 </div>
             </div>
@@ -367,7 +378,8 @@
         
         let categoriesConfig = JSON.parse(JSON.stringify(defaultCategories));
         let currentItems = [];
-        let editingOrderCart = []; // Armazena temporariamente o carrinho em edição
+        let editingOrderCart = [];
+        let editingOrderFee = 0; // Taxa de entrega em edição
 
         // --- AUTH ---
         function checkLogin() {
@@ -411,7 +423,7 @@
                 currentItems = [];
                 snap.forEach(doc => currentItems.push({id: doc.id, ...doc.data()}));
                 renderList();
-                populateAddItemSelect(); // Atualiza dropdown do editor de pedidos
+                populateAddItemSelect(); 
             });
 
             // ORDERS
@@ -440,6 +452,25 @@
                         `).join('');
                     }
 
+                    const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + (i.price * i.qty), 0) : 0;
+                    const fee = order.deliveryFee || 0;
+                    const total = subtotal + fee;
+
+                    // Monta texto para área de transferência
+                    const clipboardText = `*PEDIDO #${order.orderId || '???'}*\n` +
+                        `Cliente: ${order.customerName}\n` +
+                        `Tipo: ${order.type}\n` +
+                        `Pagamento: ${order.payment}\n` +
+                        `Endereço: ${order.address || 'N/A'}\n` +
+                        `----------------\n` +
+                        (order.cart ? order.cart.map(i => `${i.qty}x ${i.name}`).join('\n') : '') +
+                        `\n----------------\n` +
+                        `Taxa: R$ ${fee.toFixed(2)}\n` +
+                        `*TOTAL: R$ ${total.toFixed(2)}*`;
+
+                    // Link do WhatsApp para compartilhar
+                    const waLink = `https://wa.me/?text=${encodeURIComponent(clipboardText)}`;
+
                     const card = document.createElement('div');
                     card.className = `order-card ${isNew ? 'new' : ''}`;
                     card.innerHTML = `
@@ -449,8 +480,10 @@
                                 <div class="order-time"><i class="far fa-clock"></i> ${timeString}</div>
                             </div>
                             <div class="btn-action-group">
-                                <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${doc.id}')"><i class="fas fa-pencil-alt"></i> Editar</button>
-                                <button class="btn-sm btn-archive" onclick="archiveOrder('${doc.id}')"><i class="fas fa-check"></i></button>
+                                <button class="btn-sm btn-copy" onclick="copyToClipboard(this, \`${clipboardText.replace(/`/g, '\\`')}\`)" title="Copiar"><i class="far fa-copy"></i></button>
+                                <a href="${waLink}" target="_blank" class="btn-sm btn-share" title="Compartilhar"><i class="fab fa-whatsapp"></i></a>
+                                <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${doc.id}')" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                                <button class="btn-sm btn-archive" onclick="archiveOrder('${doc.id}')" title="Concluir"><i class="fas fa-check"></i></button>
                             </div>
                         </div>
                         <div class="order-info">
@@ -464,7 +497,8 @@
                             ${itemsHtml}
                         </div>
                         <div class="order-total">
-                            Total: R$ ${order.total.toFixed(2)}
+                            ${fee > 0 ? `<small style="font-weight:400; color:#666; font-size:12px;">Sub: R$ ${subtotal.toFixed(2)} | Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
+                            Total: R$ ${total.toFixed(2)}
                         </div>
                     `;
                     list.appendChild(card);
@@ -472,11 +506,18 @@
             });
         }
         
+        function copyToClipboard(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => btn.innerHTML = originalIcon, 1500);
+            });
+        }
+
         // --- EDIÇÃO DE PEDIDOS ---
         function populateAddItemSelect() {
             const select = document.getElementById('add-item-select');
             select.innerHTML = '<option value="">Adicionar produto...</option>';
-            // Ordena alfabeticamente para facilitar busca
             const sortedItems = [...currentItems].sort((a,b) => a.name.localeCompare(b.name));
             sortedItems.forEach(item => {
                 select.innerHTML += `<option value="${item.id}">${item.name} (R$ ${item.price})</option>`;
@@ -492,11 +533,11 @@
                 document.getElementById('edit-order-name').value = order.customerName;
                 document.getElementById('edit-order-type').value = order.type;
                 document.getElementById('edit-order-payment').value = order.payment;
-                
-                // Endereço é um pouco complexo pois pode ter mapa e texto, vamos deixar o texto editável
                 document.getElementById('edit-order-address').value = order.address || '';
                 
-                // Clona o carrinho para edição
+                // NOVO: Taxa de Entrega
+                document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
+                
                 editingOrderCart = JSON.parse(JSON.stringify(order.cart || []));
                 renderEditOrderItems();
                 
@@ -512,12 +553,9 @@
             const list = document.getElementById('edit-order-items-list');
             list.innerHTML = '';
             
-            let total = 0;
+            calculateOrderTotal(); // Atualiza o total visualmente
             
             editingOrderCart.forEach((item, index) => {
-                const subtotal = item.price * item.qty;
-                total += subtotal;
-                
                 list.innerHTML += `
                     <div class="edit-order-item">
                         <div style="flex:1;">
@@ -533,7 +571,12 @@
                     </div>
                 `;
             });
-            
+        }
+        
+        function calculateOrderTotal() {
+            const subtotal = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
+            const total = subtotal + fee;
             document.getElementById('edit-order-total').innerText = `R$ ${total.toFixed(2)}`;
         }
 
@@ -563,7 +606,6 @@
             
             const menuItem = currentItems.find(i => i.id === itemId);
             if(menuItem) {
-                // Verifica se já existe, se sim soma
                 const existing = editingOrderCart.find(i => i.id === itemId);
                 if(existing) {
                     existing.qty++;
@@ -578,13 +620,15 @@
                     });
                 }
                 renderEditOrderItems();
-                select.value = ""; // Reseta select
+                select.value = ""; 
             }
         }
 
         function saveOrderChanges() {
             const docId = document.getElementById('edit-order-doc-id').value;
-            const newTotal = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
+            const subtotal = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            const total = subtotal + fee;
             
             const updates = {
                 customerName: document.getElementById('edit-order-name').value,
@@ -592,7 +636,8 @@
                 payment: document.getElementById('edit-order-payment').value,
                 address: document.getElementById('edit-order-address').value,
                 cart: editingOrderCart,
-                total: newTotal
+                deliveryFee: fee, // Salva a taxa separadamente
+                total: total
             };
             
             db.collection(COL_ORDERS).doc(docId).update(updates)
