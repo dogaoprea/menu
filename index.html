@@ -78,7 +78,18 @@
         .search-box { flex: 1; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 50px; padding: 6px 16px; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.03); height: 48px; }
         .search-input { background: transparent; border: none; color: var(--text-main); width: 100%; font-size: 15px; outline: none; font-family: inherit; font-weight: 500; }
         
-        .category-nav { padding: 10px 0 15px 0; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-left: -15px; margin-right: -15px; width: calc(100% + 30px); }
+        /* AQUI A MÁGICA DO CSS DE MARGEM QUE VOCÊ PEDIU */
+        .category-nav { 
+            padding: 10px 0 15px 0; 
+            overflow-x: auto; 
+            white-space: nowrap; 
+            -webkit-overflow-scrolling: touch; 
+            scrollbar-width: none; 
+            margin-left: -15px; /* Margem negativa para ir até a borda */
+            margin-right: -15px; 
+            width: calc(100% + 30px); 
+            position: relative;
+        }
         .category-list { display: flex; gap: 12px; padding-left: 15px; padding-right: 15px; list-style: none; }
         .cat-btn { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px 20px; border-radius: 50px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03); cursor: pointer; }
         .cat-btn.active { background: var(--primary); color: #000; border-color: var(--primary); transform: scale(1.05); }
@@ -177,6 +188,8 @@
             <div class="social-links-header">
                 <a href="https://instagram.com/dogaoprea" target="_blank" class="icon-btn"><i class="fab fa-instagram"></i></a>
                 <a href="https://wa.me/5588996768158" target="_blank" class="icon-btn"><i class="fab fa-whatsapp"></i></a>
+                <!-- ÍCONE DO MAPA RESTAURADO -->
+                <a href="https://maps.app.goo.gl/L67xDvckXUS4xZ179" target="_blank" class="icon-btn" title="Localização"><i class="fas fa-map-marker-alt"></i></a>
             </div>
         </div>
         <div id="status-bar" class="status-bar-strip status-strip-closed">
@@ -244,7 +257,7 @@
             </div>
             <div class="modal-fixed-footer hidden" id="modal-footer-action">
                 <div class="cart-total" style="text-align: right; font-weight: 800; font-size: 20px; color: var(--primary); margin-bottom: 10px;">Subtotal: <span id="modal-total">R$ 0,00</span></div>
-                <button class="btn btn-whatsapp" onclick="finalizeOrder()"><i class="fab fa-whatsapp"></i> Enviar Pedido</button>
+                <button class="btn btn-whatsapp" onclick="finalizeOrder()"><i class="fab fa-whatsapp"></i> Enviar Pedido no WhatsApp</button>
             </div>
         </div>
     </div>
@@ -344,8 +357,6 @@
               });
         }
 
-        // ... (RESTO DAS FUNÇÕES DE UI - Mantidas Iguais) ...
-        
         function updateStoreStatus(data) {
             const bar = document.getElementById('status-bar');
             const txt = document.getElementById('status-text');
