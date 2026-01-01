@@ -47,7 +47,10 @@
 
         /* Items */
         .category-header { font-family: 'Bebas Neue'; font-size: 20px; margin: 30px 0 10px; color: #555; border-bottom: 2px solid var(--primary); display: inline-block; }
-        .admin-item { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .admin-item { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+        /* Estilo para item indisponível na lista */
+        .admin-item.unavailable { background-color: #f8f8f8; opacity: 0.7; border-left: 4px solid var(--danger); }
+        
         .item-info { flex: 1; }
         .item-name { font-weight: 700; font-size: 16px; }
         
@@ -64,6 +67,11 @@
         
         .form-input, .form-select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; margin-bottom: 15px; display: block; }
         .form-label { font-weight: 600; font-size: 13px; color: #666; margin-bottom: 5px; display: block; }
+        
+        /* Checkbox customizado para disponibilidade */
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; }
+        .checkbox-wrapper input { width: 20px; height: 20px; margin: 0; cursor: pointer; }
+        .checkbox-wrapper label { margin: 0; font-size: 15px; cursor: pointer; color: #333; }
         
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; }
         #toast.show { opacity: 1; bottom: 30px; }
@@ -116,7 +124,7 @@
             <!-- ÁREA DE RESTAURAÇÃO DE DADOS -->
             <div style="margin-top: 50px; border-top: 2px dashed #ddd; padding-top: 20px;">
                 <h3 style="color: #666;">⚠️ Ferramentas de Sistema</h3>
-                <p style="font-size: 13px; color: #888;">Use isso apenas se o cardápio estiver vazio e você quiser repovoar com os itens do Dogão Preá.</p>
+                <p style="font-size: 13px; color: #888;">Use isso apenas se o cardápio estiver vazio e você quiser repovoar com os itens padrão.</p>
                 <button class="btn btn-restore" onclick="restoreDefaultData()">
                     <i class="fas fa-database"></i> RESTAURAR CARDÁPIO PADRÃO
                 </button>
@@ -149,6 +157,12 @@
             
             <label class="form-label">Descrição</label>
             <textarea id="edit-desc" rows="3"></textarea>
+
+            <!-- NOVO: Checkbox de Disponibilidade -->
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="edit-available" checked>
+                <label for="edit-available">Produto Disponível no Cardápio</label>
+            </div>
 
             <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px;">
                 <button class="btn" style="background: #eee;" onclick="closeModal()">Cancelar</button>
@@ -216,22 +230,39 @@
                     return;
                 }
 
-                // Render simples
-                currentItems.forEach(item => {
-                    list.innerHTML += `
-                        <div class="admin-item">
-                            <div class="item-info">
-                                <div class="item-name">${item.name} <small style="color:#888; font-weight:400">(${item.category})</small></div>
-                                <div style="font-size:12px; color:#666;">${item.desc ? item.desc.substring(0,40) + '...' : ''}</div>
-                            </div>
-                            <div style="text-align:right;">
-                                <div style="font-weight:bold; color:var(--primary-dark);">R$ ${item.price.toFixed(2)}</div>
-                                <div style="margin-top:5px;">
-                                    <button class="btn btn-edit" onclick="openModal('${item.id}')"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-delete" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </div>
-                        </div>`;
+                // Render
+                const categories = {
+                    'especiais': 'Favoritos', 'sanduiches': 'Sanduíches', 'hotdogs': 'Hot Dogs',
+                    'pasteis': 'Pastéis', 'porcoes': 'Porções', 'bebidas': 'Bebidas'
+                };
+
+                Object.keys(categories).forEach(catKey => {
+                    const itemsInCat = currentItems.filter(i => i.category === catKey);
+                    if(itemsInCat.length > 0) {
+                        list.innerHTML += `<div class="category-header">${categories[catKey]}</div>`;
+                        
+                        itemsInCat.forEach(item => {
+                            // Verifica se item.available é false para adicionar classe visual
+                            // Se available for undefined (itens antigos), assume true
+                            const isUnavailable = item.available === false;
+                            const statusLabel = isUnavailable ? '<span style="color:var(--danger); font-weight:700; font-size:12px;">(INDISPONÍVEL)</span>' : '';
+                            
+                            list.innerHTML += `
+                                <div class="admin-item ${isUnavailable ? 'unavailable' : ''}">
+                                    <div class="item-info">
+                                        <div class="item-name">${item.name} ${statusLabel}</div>
+                                        <div style="font-size:12px; color:#666;">${item.desc ? item.desc.substring(0,40) + '...' : ''}</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-weight:bold; color:var(--primary-dark);">R$ ${item.price.toFixed(2)}</div>
+                                        <div style="margin-top:5px;">
+                                            <button class="btn btn-edit" onclick="openModal('${item.id}')"><i class="fas fa-edit"></i></button>
+                                            <button class="btn btn-delete" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
+                                        </div>
+                                    </div>
+                                </div>`;
+                        });
+                    }
                 });
             });
         }
@@ -239,13 +270,15 @@
         // --- CRUD ---
         function openModal(id = null) {
             const modal = document.getElementById('item-modal');
-            const item = id ? currentItems.find(i => i.id === id) : {name:'', price:'', category:'sanduiches', desc:''};
+            const item = id ? currentItems.find(i => i.id === id) : {name:'', price:'', category:'sanduiches', desc:'', available: true};
             document.getElementById('modal-title').innerText = id ? 'Editar' : 'Novo';
             document.getElementById('edit-id').value = id || '';
             document.getElementById('edit-name').value = item.name;
             document.getElementById('edit-price').value = item.price;
             document.getElementById('edit-category').value = item.category;
             document.getElementById('edit-desc').value = item.desc;
+            // Se available for undefined, assume true
+            document.getElementById('edit-available').checked = item.available !== false; 
             modal.classList.add('open');
         }
         function closeModal() { document.getElementById('item-modal').classList.remove('open'); }
@@ -256,7 +289,8 @@
                 name: document.getElementById('edit-name').value,
                 price: parseFloat(document.getElementById('edit-price').value) || 0,
                 category: document.getElementById('edit-category').value,
-                desc: document.getElementById('edit-desc').value
+                desc: document.getElementById('edit-desc').value,
+                available: document.getElementById('edit-available').checked // Salva o status
             };
             if(!data.name) return alert("Nome obrigatório");
             
@@ -280,69 +314,28 @@
             t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // --- RESTAURAÇÃO DE DADOS (DADOS ORIGINAIS DO SITE ANTIGO) ---
+        // --- RESTAURAÇÃO DE DADOS ---
         function restoreDefaultData() {
-            if(!confirm("Isso vai adicionar os itens originais ao cardápio. Continuar?")) return;
-            
+            if(!confirm("Isso vai adicionar os itens padrão. Continuar?")) return;
             const btn = document.querySelector('.btn-restore');
-            btn.disabled = true;
-            btn.innerText = "Restaurando...";
-
-            // LISTA EXATA DO SEU SITE ANTIGO
+            btn.disabled = true; btn.innerText = "Restaurando...";
+            
+            // Backup items (com available: true por padrão)
             const backupItems = [
-                { name: "Queijo e Ovos", price: 10.00, category: "sanduiches", desc: "Pão, queijo e ovos." },
-                { name: "Hambúrguer", price: 10.00, category: "sanduiches", desc: "Pão, carne de hambúrguer e salada." },
-                { name: "Misto Quente", price: 10.00, category: "sanduiches", desc: "Pão, queijo e presunto." },
-                { name: "X-Burguer", price: 12.00, category: "sanduiches", desc: "Pão, carne de hambúrguer e queijo." },
-                { name: "Frango Simples", price: 12.00, category: "sanduiches", desc: "Pão, frango, queijo, salada e milho verde." },
-                { name: "Calabresa Simples", price: 12.00, category: "sanduiches", desc: "Pão, calabresa, queijo e salada." },
-                { name: "Americano", price: 12.00, category: "sanduiches", desc: "Pão, queijo, presunto, ovos e salada." },
-                { name: "X-Salada", price: 12.00, category: "sanduiches", desc: "Pão, carne de hambúrguer, queijo e salada." },
-                { name: "Baurú", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, presunto e salada." },
-                { name: "X-Egg", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, ovos e salada." },
-                { name: "X-Calabresa", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, calabresa e salada." },
-                { name: "X-Frango", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, frango e salada." },
-                { name: "X-Bacon", price: 14.00, category: "sanduiches", desc: "Pão, carne, queijo, bacon e salada." },
-                { name: "X-Frango Bacon", price: 15.00, category: "sanduiches", desc: "Pão, carne, queijo, frango, bacon e salada." },
-                { name: "X-Tudo", price: 18.00, category: "especiais", desc: "Pão, carne, queijo, frango, presunto, ovos, bacon e salada." },
-                { name: "Sandubob", price: 16.00, category: "especiais", desc: "Pão árabe, 2 carnes, queijo, ovos e salada." },
-                { name: "Dogão (Pão Árabe)", price: 18.00, category: "especiais", desc: "Pão árabe, carne caseira, queijo, frango, bacon, calabresa, salada." },
-                { name: "Lanchão (Pão Árabe)", price: 18.00, category: "especiais", desc: "Pão árabe, carne, queijo, frango, ovos, bacon, salada." },
-                { name: "Hot-Dog Simples", price: 12.00, category: "hotdogs", desc: "Pão, molho carne, salsicha, salada, batata, milho." },
-                { name: "Hot-Scooby", price: 14.00, category: "hotdogs", desc: "Pão, molho carne, 2 salsichas, salada, batata, milho, queijo." },
-                { name: "Pastel Misto (P)", price: 10.00, category: "pasteis", desc: "Tamanho Pequeno." },
-                { name: "Pastel Misto (G)", price: 12.00, category: "pasteis", desc: "Tamanho Grande." },
-                { name: "Pastel Queijo (P)", price: 10.00, category: "pasteis", desc: "Tamanho Pequeno." },
-                { name: "Pastel Queijo (G)", price: 12.00, category: "pasteis", desc: "Tamanho Grande." },
-                { name: "Pastel Carne (P)", price: 12.00, category: "pasteis", desc: "Tamanho Pequeno." },
-                { name: "Pastel Carne (G)", price: 14.00, category: "pasteis", desc: "Tamanho Grande." },
-                { name: "Pastel Frango/Queijo (P)", price: 12.00, category: "pasteis", desc: "Tamanho Pequeno." },
-                { name: "Pastel Frango/Queijo (G)", price: 14.00, category: "pasteis", desc: "Tamanho Grande." },
-                { name: "Batata Frita (P)", price: 15.00, category: "porcoes", desc: "Porção Pequena." },
-                { name: "Batata Frita (G)", price: 20.00, category: "porcoes", desc: "Porção Grande." },
-                { name: "Batata Recheada", price: 35.00, category: "porcoes", desc: "Batata frita, bacon e calabresa." },
-                { name: "Sucos Naturais", price: 0.00, category: "bebidas", desc: "Valores a consultar." },
-                { name: "Refri Lata", price: 6.00, category: "bebidas", desc: "350ml. Sabor a combinar." },
-                { name: "Refri 1 L", price: 0.00, category: "bebidas", desc: "Sabor a combinar." }
+                { name: "Dogão Especial", price: 12.00, category: "hotdogs", desc: "Pão, 2 salsichas, carne moída, milho, ervilha, batata palha e molhos especiais.", available: true },
+                { name: "X-Tudo", price: 18.00, category: "especiais", desc: "Pão, hambúrguer, ovo, bacon, presunto, queijo, salsicha, alface e tomate.", available: true },
+                { name: "Coca-Cola Lata", price: 5.00, category: "bebidas", desc: "350ml, bem gelada.", available: true }
             ];
 
             let count = 0;
             const status = document.getElementById('restore-status');
-            
-            // Adiciona um por um
             backupItems.forEach((item, index) => {
                 setTimeout(() => {
-                    db.collection(COL_ITEMS).add(item)
-                      .then(() => {
-                          count++;
-                          status.innerText = `Restaurado ${count} de ${backupItems.length}...`;
-                          if(count === backupItems.length) {
-                              status.innerText = "Concluído! Itens restaurados com sucesso.";
-                              btn.disabled = false;
-                              btn.innerText = "Restaurar Novamente";
-                          }
+                    db.collection(COL_ITEMS).add(item).then(() => {
+                          count++; status.innerText = `Restaurado ${count}/${backupItems.length}`;
+                          if(count === backupItems.length) { status.innerText = "Concluído!"; btn.disabled = false; btn.innerText = "Restaurar"; }
                       });
-                }, index * 200); // Pequeno delay para não sobrecarregar
+                }, index * 200);
             });
         }
     </script>
