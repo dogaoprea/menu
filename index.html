@@ -64,12 +64,9 @@
         /* HEADER */
         header { background-color: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; z-index: 10; border-bottom: var(--glass-border); padding-top: 12px; padding-bottom: 0; display: flex; flex-direction: column; }
         .header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; gap: 10px; }
-        .logo-section { display: flex; align-items: center; gap: 15px; flex-shrink: 1; min-width: 0; flex: 1; } 
+        .logo-section { display: flex; align-items: center; gap: 10px; flex-shrink: 1; min-width: 0; } 
         .logo { font-size: 28px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); line-height: 1; margin: 0; padding-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; margin-right: 5px; }
-
-        .social-links-header { display: flex; gap: 8px; flex-shrink: 0; }
+        .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; }
         
         .status-bar-strip { width: 100%; padding: 4px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; text-align: center; letter-spacing: 1px; color: #fff; transition: background-color 0.5s ease; display: flex; justify-content: center; align-items: center; gap: 6px; }
         .status-strip-open { background-color: rgba(0, 200, 81, 0.9); border-top: 1px solid rgba(0, 200, 81, 0.3); }
@@ -497,16 +494,18 @@
                 <button id="btn-add-more" class="btn-add-more" onclick="toggleCart()" style="display: none;"><i class="fas fa-plus"></i> Adicionar mais itens</button>
                 
                 <div id="checkout-form" style="display: none; margin-top: 25px;">
+                    <!-- NOME REMOVIDO DAQUI, POIS VEM DO LOGIN -->
+                    
                     <div class="form-group">
                         <label class="form-label">Tipo de pedido</label>
                         <div class="radio-group">
-                            <div class="radio-option"><input type="radio" name="orderType" id="t-del" value="Entrega" checked onchange="toggleOrderType('Entrega')"><label for="t-del"><i class="fas fa-motorcycle"></i> Entrega</label></div>
+                            <div class="radio-option"><input type="radio" name="orderType" id="t-del" value="Entrega" onchange="toggleOrderType('Entrega')"><label for="t-del"><i class="fas fa-motorcycle"></i> Entrega</label></div>
                             <div class="radio-option"><input type="radio" name="orderType" id="t-ret" value="Retirada" onchange="toggleOrderType('Retirada')"><label for="t-ret"><i class="fas fa-box"></i> Retirada</label></div>
                             <div class="radio-option"><input type="radio" name="orderType" id="t-eatin" value="Mesa" onchange="toggleOrderType('Mesa')"><label for="t-eatin"><i class="fas fa-utensils"></i> Mesa</label></div>
                         </div>
                     </div>
 
-                    <div id="address-section" class="form-group">
+                    <div id="address-section" class="form-group hidden">
                         <label class="form-label">Endereço</label>
                         <button type="button" class="geo-btn" onclick="getLocation()"><i class="fas fa-map-marker-alt"></i> Usar Localização Atual</button>
                         <div id="geo-status" style="font-size:11px; text-align:center; color:#666; margin-top:5px;"></div>
@@ -522,7 +521,7 @@
                     <div class="form-group">
                         <label class="form-label">Pagamento</label>
                         <div class="radio-group">
-                            <div class="radio-option"><input type="radio" name="pay" id="p-pix" value="PIX" checked onchange="togglePaymentInfo('PIX')"><label for="p-pix"><i class="fas fa-qrcode"></i> PIX</label></div>
+                            <div class="radio-option"><input type="radio" name="pay" id="p-pix" value="PIX" onchange="togglePaymentInfo('PIX')"><label for="p-pix"><i class="fas fa-qrcode"></i> PIX</label></div>
                             <div class="radio-option"><input type="radio" name="pay" id="p-credit" value="Cartão de Crédito" onchange="togglePaymentInfo('Cartão de Crédito')"><label for="p-credit"><i class="far fa-credit-card"></i> Crédito</label></div>
                             <div class="radio-option"><input type="radio" name="pay" id="p-debit" value="Cartão de Débito" onchange="togglePaymentInfo('Cartão de Débito')"><label for="p-debit"><i class="fas fa-credit-card"></i> Débito</label></div>
                             <div class="radio-option"><input type="radio" name="pay" id="p-money" value="Dinheiro" onchange="togglePaymentInfo('Dinheiro')"><label for="p-money"><i class="fas fa-money-bill-wave"></i> Dinheiro</label></div>
@@ -557,6 +556,24 @@
                 </div>
 
                 <button id="btn-finish-order" class="btn btn-whatsapp" onclick="finalizeOrder()"><i class="fab fa-whatsapp"></i> Enviar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chef Bot IA -->
+    <div class="modal-overlay" id="chef-bot-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Chef Dogão 🤖</h2>
+                <button onclick="toggleChefBot()" style="background:none; border:none;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="quick-replies" id="quick-replies"></div>
+                <div style="padding: 10px; display:flex; gap:10px; border-top: 1px solid #eee;">
+                    <input type="text" id="chat-input" class="form-input" placeholder="Digite...">
+                    <button onclick="sendMessage()" style="background: var(--primary); border:none; width:40px; border-radius:50%;"><i class="fas fa-paper-plane"></i></button>
+                </div>
             </div>
         </div>
     </div>
@@ -606,10 +623,9 @@
             
             checkSavedUser();
 
-            const pixRadio = document.getElementById('p-pix');
-            if (pixRadio && pixRadio.checked) {
-                togglePaymentInfo('PIX');
-            }
+            // GARANTIA: Desmarca tudo no carregamento
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(r => r.checked = false);
             
             auth.signInAnonymously().then(() => {
                 console.log("Conectado.");
@@ -1063,6 +1079,7 @@
             const feeMsg = document.getElementById('footer-delivery-msg');
             const pickupSection = document.getElementById('pickup-time-section');
             
+            // Reset all
             if(addr) addr.classList.add('hidden');
             if(feeMsg) feeMsg.classList.add('hidden');
             if(pickupSection) pickupSection.classList.add('hidden');
@@ -1117,33 +1134,46 @@
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
             const paymentElement = document.querySelector('input[name="pay"]:checked');
             
-            if(!typeRadio) return alert("Escolha o tipo de pedido.");
-            if(!paymentElement) return alert("Escolha a forma de pagamento.");
+            // VALIDAÇÃO: Se não escolheu, para
+            if(!typeRadio) return alert("Por favor, escolha o tipo de pedido (Entrega, Retirada ou Mesa).");
+            if(!paymentElement) return alert("Por favor, escolha a forma de pagamento.");
             
+            // GERA O ID ÚNICO COM BASE NO HORÁRIO (HORA, MINUTO E SEGUNDO)
             const now = new Date();
-            let orderId = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
-            
-            if (editingOrder) orderId = editingOrder.orderId;
+            const orderId = String(now.getHours()).padStart(2, '0') + 
+                           String(now.getMinutes()).padStart(2, '0') +
+                           String(now.getSeconds()).padStart(2, '0');
 
             const payment = paymentElement.value;
             const changeAmount = document.getElementById('change-amount').value;
-            const type = typeRadio.value;
             
+            const type = typeRadio.value;
             let addressMsg = "";
+            let pickupMsg = "";
+
             let addressData = '';
             let mapsLinkData = '';
 
             if (type === 'Entrega') {
                 const mapsLink = document.getElementById('maps-link').value;
                 const addressText = document.getElementById('address-text').value;
+                
+                // Validação de endereço
                 if (!mapsLink && !addressText) return alert("Para entrega, precisamos da sua localização ou endereço.");
-                if(mapsLink) { addressMsg += `\n📍 *GPS:* ${mapsLink}`; mapsLinkData = mapsLink; }
-                if(addressText) { addressMsg += `\n🏠 *Endereço:* ${addressText}`; addressData = addressText; }
+
+                if(mapsLink) {
+                    addressMsg += `\n📍 *GPS:* ${mapsLink}`;
+                    mapsLinkData = mapsLink;
+                }
+                if(addressText) {
+                    addressMsg += `\n🏠 *Endereço:* ${addressText}`;
+                    addressData = addressText;
+                }
                 addressMsg += `\n⚠️ _Taxa a calcular._`;
             } else if (type === 'Retirada') {
                  const pickupTime = document.getElementById('pickup-time').value;
                  if(pickupTime && pickupTime.trim() !== "") {
-                    addressMsg += `\n⏰ *Horário:* ${pickupTime}`;
+                    pickupMsg = `\n⏰ *Horário:* ${pickupTime}`;
                 }
             }
 
@@ -1191,9 +1221,15 @@
                 if(i.obs) msg += `   _Obs: ${i.obs}_\n`;
             });
             msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
-            if(addressMsg) msg += `\n\n*INFO:*${addressMsg}`;
+            if(addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}`;
             
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            
+            // REDIRECIONAMENTO PARA MEUS PEDIDOS
+            setTimeout(() => {
+                toggleCart(); // Fecha o carrinho
+                openOrdersModal(); // Abre o histórico
+            }, 1000);
         }
         
         function searchProducts(val) {
