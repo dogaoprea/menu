@@ -60,7 +60,8 @@
         .order-card.status-payment_pending { border-left-color: var(--warning); }
         .order-card.status-payment_confirmed { border-left-color: var(--success); }
         .order-card.status-delivering, .order-card.status-ready { border-left-color: var(--primary); }
-        .order-card.status-done { border-left-color: #4CAF50; opacity: 0.8; }
+        /* Done e Cancelled não aparecerão mais na lista principal, mas deixo o estilo caso queira uma aba de histórico futuro */
+        .order-card.status-done { border-left-color: #4CAF50; opacity: 0.6; }
         .order-card.status-cancelled { border-left-color: var(--danger); opacity: 0.6; }
 
         .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
@@ -185,7 +186,7 @@
             <!-- ABA DE PEDIDOS -->
             <div id="tab-orders" class="tab-content active">
                 <div class="card" style="text-align: center; color: #666; font-size: 13px;">
-                     Pedidos enviados pelo site aparecerão aqui automaticamente.
+                     Mostrando apenas pedidos ativos. Pedidos concluídos ou cancelados são removidos da lista.
                 </div>
                 <div id="orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #888;">Aguardando novos pedidos...</p>
@@ -241,7 +242,7 @@
         </div>
     </div>
 
-    <!-- Modal Form (Item do Cardápio) -->
+    <!-- Modal Form (Item) -->
     <div id="item-modal" class="modal">
         <div class="modal-content">
             <h2 id="modal-title" style="margin-top: 0; font-family: 'Bebas Neue'; color: var(--primary-dark);">Item</h2>
@@ -397,7 +398,7 @@
         let categoriesConfig = JSON.parse(JSON.stringify(defaultCategories));
         let currentItems = [];
         let editingOrderCart = [];
-        let editingOrderFee = 0; 
+        let editingOrderFee = 0; // Taxa de entrega em edição
 
         // --- AUTH ---
         function checkLogin() {
@@ -444,17 +445,20 @@
                 populateAddItemSelect(); 
             });
 
-            // ORDERS
+            // ORDERS - Filtro local para remover 'done' e 'cancelled' visualmente
             db.collection(COL_ORDERS).orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
                 const list = document.getElementById('orders-list');
                 list.innerHTML = '';
-                if (snap.empty) {
-                    list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Nenhum pedido recebido ainda.</p>';
-                    return;
-                }
+                
+                let visibleCount = 0;
 
                 snap.forEach(doc => {
                     const order = doc.data();
+                    
+                    // FILTRAGEM: Se estiver concluído ou cancelado, NÃO exibe na lista principal
+                    if (order.status === 'done' || order.status === 'cancelled') return;
+
+                    visibleCount++;
                     const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
                     const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const isNew = (new Date() - date) < 300000;
@@ -474,25 +478,20 @@
                     const fee = order.deliveryFee || 0;
                     const total = subtotal + fee;
 
-                    // Monta texto para área de transferência
                     const clipboardText = `*PEDIDO #${order.orderId || '???'}*\n` +
                         `Cliente: ${order.customerName}\n` +
                         `Tipo: ${order.type}\n` +
                         `Pagamento: ${order.payment}\n` +
                         `Endereço: ${order.address || 'N/A'}\n` +
                         `----------------\n` +
-                        (order.cart ? order.cart.map(i => `${i.qty}x ${i.name} (R$ ${i.price.toFixed(2)})`).join('\n') : '') +
+                        (order.cart ? order.cart.map(i => `${i.qty}x ${i.name}`).join('\n') : '') +
                         `\n----------------\n` +
                         `Taxa: R$ ${fee.toFixed(2)}\n` +
                         `*TOTAL: R$ ${total.toFixed(2)}*`;
 
-                    // Link do WhatsApp para compartilhar
                     const waLink = `https://wa.me/?text=${encodeURIComponent(clipboardText)}`;
-
-                    // Inclui o link do WhatsApp do cliente, se disponível
                     const clientWaLink = order.userPhone ? `<a href="https://wa.me/55${order.userPhone}" target="_blank" style="margin-left:5px; color:#25D366;"><i class="fab fa-whatsapp"></i></a>` : '';
-                    
-                    // --- SELECT DE STATUS E AUTOMAÇÃO ---
+
                     let statusOptions = `
                         <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
                         <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Pedido Confirmado</option>
@@ -509,7 +508,6 @@
                     statusOptions += `<option value="done" ${order.status === 'done' ? 'selected' : ''}>Concluído</option>`;
                     statusOptions += `<option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>`;
                     
-                    // A classe de status no card muda conforme o status do pedido
                     const statusClass = order.status ? `status-${order.status}` : '';
 
                     const card = document.createElement('div');
@@ -533,16 +531,12 @@
                             ${order.address ? `<p><strong>Endereço:</strong> ${order.address}</p>` : ''}
                             ${order.mapsLink ? `<p><a href="${order.mapsLink}" target="_blank" style="color:var(--primary); text-decoration:none;">📍 Ver no Mapa</a></p>` : ''}
                         </div>
-                        
                         <div class="order-items">
                             ${itemsHtml}
                         </div>
-                        
-                        <!-- SELECT DE STATUS -->
                         <select class="status-select" onchange="updateOrderStatus('${doc.id}', this.value, '${order.customerName}', '${order.userPhone || ''}')">
                             ${statusOptions}
                         </select>
-                        
                         <div class="order-total">
                             ${fee > 0 ? `<small style="font-weight:400; color:#666; font-size:12px;">Sub: R$ ${subtotal.toFixed(2)} | Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
                             Total: R$ ${total.toFixed(2)}
@@ -550,6 +544,10 @@
                     `;
                     list.appendChild(card);
                 });
+
+                if (visibleCount === 0) {
+                    list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Não há pedidos ativos no momento.</p>';
+                }
             });
         }
         
@@ -558,7 +556,6 @@
               .then(() => {
                   showToast("Status atualizado!");
                   
-                  // Verifica se precisa enviar mensagem automática
                   let msg = "";
                   if (newStatus === 'delivering' && customerPhone) {
                       msg = `Olá ${customerName}! 🛵💨 Seu pedido saiu para entrega. Fique atento(a)!`;
@@ -603,7 +600,6 @@
                 document.getElementById('edit-order-payment').value = order.payment;
                 document.getElementById('edit-order-address').value = order.address || '';
                 
-                // Taxa de Entrega
                 document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
                 
                 editingOrderCart = JSON.parse(JSON.stringify(order.cart || []));
@@ -714,7 +710,7 @@
                 payment: document.getElementById('edit-order-payment').value,
                 address: document.getElementById('edit-order-address').value,
                 cart: editingOrderCart,
-                deliveryFee: fee, 
+                deliveryFee: fee, // Salva a taxa separadamente
                 total: total
             };
             
@@ -724,12 +720,6 @@
                   showToast("Pedido atualizado!");
               })
               .catch(e => alert("Erro ao salvar: " + e.message));
-        }
-
-        function archiveOrder(docId) {
-            if(confirm("Arquivar este pedido? Ele sumirá da lista.")) {
-                db.collection(COL_ORDERS).doc(docId).delete().then(() => showToast("Pedido arquivado"));
-            }
         }
 
         function updateStatusText(d) {
