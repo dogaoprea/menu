@@ -269,6 +269,28 @@
         .error-box { background: #222; padding: 20px; border-radius: 10px; border: 1px solid #ff4444; max-width: 600px; }
         .code-block { background: #000; padding: 10px; border-radius: 5px; text-align: left; font-family: monospace; font-size: 12px; margin: 10px 0; color: #0f0; overflow-x: auto; }
         .geo-btn { background: #25D366; color: #fff; width: 100%; margin-top: 10px; border: none; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; }
+
+        /* ABA LOGIN & PEDIDOS */
+        .login-btn-top {
+            background: var(--primary); color: #000; border: none;
+            padding: 6px 12px; border-radius: 20px; font-weight: 700;
+            font-size: 12px; display: flex; align-items: center; gap: 5px; cursor: pointer;
+        }
+
+        .user-tab-content { display: none; margin-top: 20px; }
+        .user-tab-content.active { display: block; }
+        
+        .order-history-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 15px; margin-bottom: 15px;
+        }
+        .order-history-header { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
+        .order-history-status {
+            font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 4px;
+            background: #eee; color: #555;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-done { background: #d4edda; color: #155724; }
     </style>
 </head>
 <body>
@@ -298,16 +320,55 @@
                 <div class="logo brand-font">DOGÃO PREÁ</div>
             </div>
             <div class="social-links-header">
-                <a href="https://instagram.com/dogaoprea" target="_blank" class="icon-btn"><i class="fab fa-instagram"></i></a>
-                <a href="https://wa.me/5588996768158" target="_blank" class="icon-btn"><i class="fab fa-whatsapp"></i></a>
-                <!-- ÍCONE DO MAPA RESTAURADO -->
-                <a href="https://maps.app.goo.gl/L67xDvckXUS4xZ179" target="_blank" class="icon-btn" title="Localização"><i class="fas fa-map-marker-alt"></i></a>
+                <!-- Botão de Login / Perfil -->
+                <button id="login-btn-header" class="login-btn-top" onclick="openLoginModal()">
+                    <i class="fas fa-user-circle"></i> <span>Entrar</span>
+                </button>
             </div>
         </div>
         <div id="status-bar" class="status-bar-strip status-strip-closed">
             <span class="status-dot-strip"></span> <span id="status-text">Carregando status...</span>
         </div>
     </header>
+
+    <!-- Modal Login -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal-content" style="height: auto; max-height: 90vh;">
+            <div class="modal-header">
+                <h2 class="brand-font">Identifique-se</h2>
+                <button class="close-modal" onclick="closeLoginModal()" style="background:none; border:none; font-size:20px;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-scrollable-content" style="padding-bottom: 40px;">
+                <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 20px;">
+                    Faça login para salvar seus dados e acompanhar seus pedidos.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Seu Nome</label>
+                    <input type="text" id="login-name" class="form-input" placeholder="Ex: João Silva">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Seu WhatsApp (apenas números)</label>
+                    <input type="tel" id="login-phone" class="form-input" placeholder="Ex: 88999999999">
+                </div>
+                <button class="btn btn-whatsapp" onclick="performLogin()" style="width: 100%; margin-top: 10px;">Salvar e Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Meus Pedidos -->
+    <div class="modal-overlay" id="orders-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="brand-font">Meus Pedidos</h2>
+                <button class="close-modal" onclick="closeOrdersModal()" style="background:none; border:none; font-size:20px;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-scrollable-content">
+                <div id="user-orders-list">
+                    <p style="text-align: center; margin-top: 40px; color: #999;">Carregando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="sticky-wrapper">
         <div class="container">
@@ -359,7 +420,6 @@
                     <div class="suggestion-items" id="suggestion-list"></div>
                 </div>
                 
-                <!-- BOTÃO ADICIONAR MAIS ITENS (AGORA PREENCHIDO E MAIS VISÍVEL) -->
                 <button id="btn-add-more" class="btn-add-more" onclick="toggleCart()" style="display: none;"><i class="fas fa-plus"></i> Adicionar mais itens</button>
                 
                 <div id="checkout-form" style="display: none; margin-top: 25px;">
@@ -446,7 +506,7 @@
         const auth = firebase.auth();
         const COL_ITEMS = 'menu_items';
         const COL_SETTINGS = 'settings';
-        const COL_ORDERS = 'orders'; // Nova coleção
+        const COL_ORDERS = 'orders';
 
         // Variável GLOBAL para as categorias, inicializada com padrão, mas atualizada pelo Firebase
         let categoriesConfig = [
@@ -460,13 +520,16 @@
         
         let menuData = [];
         let cart = [];
-        // Variável para armazenar a configuração de ordenação (padrão por nome)
         let currentSort = 'name_asc'; 
+        let currentUser = null; // Armazena dados do usuário (nome, telefone)
 
         window.onload = () => {
             renderCategories();
             document.getElementById('copyright-year').textContent = new Date().getFullYear();
             
+            // Verifica Login Salvo
+            checkSavedUser();
+
             // GARANTIA DE EXECUÇÃO: Tenta configurar o pagamento apenas se o elemento existir
             const pixRadio = document.getElementById('p-pix');
             if (pixRadio && pixRadio.checked) {
@@ -479,6 +542,117 @@
             }).catch(e => { console.error(e); initFirebaseData(); });
         };
 
+        // --- SISTEMA DE LOGIN DE USUÁRIO ---
+        function checkSavedUser() {
+            const saved = localStorage.getItem('dogao_user');
+            if(saved) {
+                currentUser = JSON.parse(saved);
+                updateLoginButton(true);
+                // Preenche o campo de nome no carrinho se já estiver logado
+                const nameInput = document.getElementById('customer-name');
+                if(nameInput) nameInput.value = currentUser.name;
+            }
+        }
+
+        function openLoginModal() {
+            if (currentUser) {
+                // Se já logado, abre histórico de pedidos
+                openOrdersModal();
+            } else {
+                document.getElementById('login-modal').classList.add('open');
+            }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.remove('open');
+        }
+
+        function performLogin() {
+            const name = document.getElementById('login-name').value;
+            const phone = document.getElementById('login-phone').value;
+
+            if(!name || !phone) return alert("Preencha nome e telefone.");
+
+            currentUser = { name, phone };
+            localStorage.setItem('dogao_user', JSON.stringify(currentUser));
+            
+            updateLoginButton(true);
+            closeLoginModal();
+            
+            // Atualiza campo no carrinho
+            const nameInput = document.getElementById('customer-name');
+            if(nameInput) nameInput.value = currentUser.name;
+        }
+
+        function updateLoginButton(isLogged) {
+            const btn = document.getElementById('login-btn-header');
+            if (isLogged) {
+                btn.innerHTML = `<i class="fas fa-receipt"></i> <span>Meus Pedidos</span>`;
+                btn.style.background = "#333";
+                btn.style.color = "#fff";
+            }
+        }
+
+        // --- HISTÓRICO DE PEDIDOS ---
+        function openOrdersModal() {
+            document.getElementById('orders-modal').classList.add('open');
+            loadUserOrders();
+        }
+        function closeOrdersModal() { document.getElementById('orders-modal').classList.remove('open'); }
+
+        function loadUserOrders() {
+            if(!currentUser) return;
+            const list = document.getElementById('user-orders-list');
+            list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #999;">Carregando...</p>';
+
+            // Busca pedidos onde o telefone bate com o do usuário (ou nome se preferir, telefone é mais seguro)
+            // OBS: Em produção real, o ideal seria autenticação real do Firebase. 
+            // Aqui faremos uma busca simples. O Firestore precisa de índice para isso.
+            // Se der erro de índice, pode filtrar no cliente (menos eficiente mas funciona pra poucos pedidos).
+            
+            db.collection(COL_ORDERS)
+              .where('userPhone', '==', currentUser.phone)
+              .orderBy('timestamp', 'desc')
+              .limit(10)
+              .onSnapshot(snap => {
+                  list.innerHTML = '';
+                  if(snap.empty) {
+                      list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #999;">Nenhum pedido encontrado para este número.</p>';
+                      return;
+                  }
+
+                  snap.forEach(doc => {
+                      const order = doc.data();
+                      const status = order.status || 'pending'; // pending, done, archived
+                      let statusText = 'Pendente';
+                      let statusClass = 'status-pending';
+
+                      if (status === 'archived' || status === 'done') {
+                          statusText = 'Concluído';
+                          statusClass = 'status-done';
+                      }
+
+                      const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
+                      const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                      list.innerHTML += `
+                        <div class="order-history-card">
+                            <div class="order-history-header">
+                                <span style="font-weight:700;">#${order.orderId || '???'}</span>
+                                <span class="order-history-status ${statusClass}">${statusText}</span>
+                            </div>
+                            <div style="font-size:13px; color:#666; margin-bottom:5px;">${dateStr}</div>
+                            <div style="font-size:14px; font-weight:600;">Total: R$ ${order.total.toFixed(2)}</div>
+                            <div style="margin-top:10px; font-size:13px;">
+                                ${order.cart.map(i => `<div>${i.qty}x ${i.name}</div>`).join('')}
+                            </div>
+                        </div>
+                      `;
+                  });
+              });
+        }
+
+        // --- FIREBASE DATA ---
         function initFirebaseData() {
             // 1. CARREGAR CONFIGURAÇÃO DE CATEGORIAS (Para refletir a ordem do Admin)
             db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
@@ -553,18 +727,15 @@
             // Função auxiliar de ordenação
             const sortItems = (items) => {
                 return items.sort((a, b) => {
-                    // A ordenação aqui pode ser expandida se salvarmos o 'currentSort' no firebase também
-                    // Por enquanto, o padrão é alfabético para o cliente
                     return a.name.localeCompare(b.name);
                 });
             };
 
             if (filter === 'all') {
-                // Itera sobre as categorias na ordem definida (seja padrão ou do Firebase)
                 categoriesConfig.forEach(cat => {
                     let items = menuData.filter(i => i.category === cat.id);
                     if (items.length > 0) {
-                        items = sortItems(items); // Ordena itens dentro da categoria
+                        items = sortItems(items); 
                         
                         const title = document.createElement('h3');
                         title.className = 'brand-font category-separator';
@@ -627,13 +798,7 @@
             
             if (btnElement) {
                 btnElement.classList.add('active');
-                
-                // Centraliza o botão clicado na barra de rolagem
-                btnElement.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                    inline: 'center'
-                });
+                btnElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             } else {
                  const allBtn = document.querySelector(`button[onclick="filterMenu('all', this)"]`);
                  if(allBtn) allBtn.classList.add('active');
@@ -644,7 +809,7 @@
 
         function addToCart(id) {
             const item = menuData.find(i => i.id === id);
-            if (item.available === false) return; // Segurança extra
+            if (item.available === false) return; 
             const existing = cart.find(i => i.id === id);
             if (existing) existing.qty++; else cart.push({ ...item, qty: 1 });
             updateUI();
@@ -667,7 +832,6 @@
         function updateUI() {
             menuData.forEach(item => {
                 const container = document.getElementById(`btn-container-${item.id}`);
-                // Verifica se o item ainda está disponível antes de atualizar o botão
                 if(container && item.available !== false) {
                     container.innerHTML = getButtonHtml(item.id);
                 }
@@ -701,7 +865,6 @@
             }
             renderCartItems();
             
-            // Lógica para sugestão de bebida
             const hasFood = cart.some(i => ['sanduiches', 'especiais', 'hotdogs', 'pasteis', 'porcoes'].includes(i.category));
             const hasDrink = cart.some(i => i.category === 'bebidas');
             const suggestionContainer = document.getElementById('drink-suggestions');
@@ -734,10 +897,8 @@
             `).join('');
         }
 
-        // Função de renderização de sugestão de bebidas
         function renderDrinkSuggestions() {
             const container = document.getElementById('suggestion-list');
-            // Pega até 4 bebidas do menuData
             const drinks = menuData.filter(i => i.category === 'bebidas').slice(0, 4);
             
             if(drinks.length === 0) {
@@ -769,7 +930,6 @@
             const feeMsg = document.getElementById('footer-delivery-msg');
             const pickupSection = document.getElementById('pickup-time-section');
             
-            // Reset all
             if(addr) addr.classList.add('hidden');
             if(feeMsg) feeMsg.classList.add('hidden');
             if(pickupSection) pickupSection.classList.add('hidden');
@@ -782,13 +942,11 @@
             }
         }
 
-        // --- CORREÇÃO DA FUNÇÃO TOGGLE PAYMENT INFO ---
         function togglePaymentInfo(method) {
             const pix = document.getElementById('pix-section');
             const card = document.getElementById('card-fee-section');
             const cash = document.getElementById('change-section');
 
-            // Verifica se os elementos existem antes de acessar classList
             if(pix) pix.classList.add('hidden');
             if(card) card.classList.add('hidden');
             if(cash) cash.classList.add('hidden');
@@ -822,7 +980,7 @@
         function finalizeOrder() {
             const name = document.getElementById('customer-name').value;
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
-            const paymentElement = document.querySelector('input[name="pay"]:checked'); // Fixed selector
+            const paymentElement = document.querySelector('input[name="pay"]:checked');
             
             if(!name) return alert("Digite seu nome!");
             if(!typeRadio) return alert("Escolha o tipo de pedido.");
@@ -841,7 +999,6 @@
             let addressMsg = "";
             let pickupMsg = "";
 
-            // Coleta dados de endereço/entrega para salvar no Firestore
             let addressData = '';
             let mapsLinkData = '';
 
@@ -849,7 +1006,6 @@
                 const mapsLink = document.getElementById('maps-link').value;
                 const addressText = document.getElementById('address-text').value;
                 
-                // Validação de endereço
                 if (!mapsLink && !addressText) return alert("Para entrega, precisamos da sua localização ou endereço.");
 
                 if(mapsLink) {
@@ -868,12 +1024,13 @@
                 }
             }
 
-            // --- SALVAR NO FIRESTORE ---
+            // --- SALVAR NO FIRESTORE COM DADOS DO USUÁRIO SE HOUVER ---
             const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             
             const orderData = {
                 orderId: orderId,
                 customerName: name,
+                userPhone: currentUser ? currentUser.phone : null, // Salva o telefone do usuário se logado
                 type: type,
                 payment: payment,
                 change: (payment === 'Dinheiro' ? changeAmount : ''),
@@ -883,7 +1040,7 @@
                 cart: cart,
                 total: total,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                status: 'pending' // pending, done, archived
+                status: 'pending' 
             };
 
             // Salva e depois abre o WhatsApp
@@ -934,14 +1091,11 @@
              if(filtered.length === 0) container.innerHTML = "<p style='text-align:center; margin-top:20px;'>Nada encontrado.</p>";
              else container.innerHTML = `<div class="menu-grid">${filtered.map(i => createItemCard(i)).join('')}</div>`;
              
-             // BUGFIX: Se o campo estiver vazio, restaura a view padrão com categorias
              if(term === '') {
-                 // Reseta o botão 'Todos' como ativo
                  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
                  const allBtn = document.querySelector(`button[onclick="filterMenu('all', this)"]`);
                  if(allBtn) allBtn.classList.add('active');
-                 
-                 renderMenu('all'); // Restaura a visualização com categorias
+                 renderMenu('all');
              }
         }
     </script>
