@@ -20,12 +20,13 @@
             --text-main: #1c1e21;
             --danger: #ff4444;
             --success: #00c851;
+            --border: #ddd;
         }
 
         * { box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
-        body { background: var(--bg-body); margin: 0; padding-bottom: 50px; color: var(--text-main); }
+        body { background: var(--bg-body); margin: 0; padding-bottom: 80px; color: var(--text-main); }
         
-        .admin-header { background: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .admin-header { background: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
         h1 { font-family: 'Bebas Neue'; margin: 0; font-size: 24px; color: var(--primary-dark); }
         
         .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
@@ -35,45 +36,72 @@
         .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
         
         /* Cards */
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid var(--border); }
         
         /* Switch */
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--success); }
-        input:checked + .slider:before { transform: translateX(26px); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Toolbar de Filtros */
+        .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .sort-select { padding: 10px; border-radius: 8px; border: 1px solid var(--border); flex: 1; background: white; font-weight: 600; font-size: 14px; }
+        .btn-cats { background: #333; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px; }
 
         /* Items */
-        .category-header { font-family: 'Bebas Neue'; font-size: 20px; margin: 30px 0 10px; color: #555; border-bottom: 2px solid var(--primary); display: inline-block; }
-        .admin-item { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-        /* Estilo para item indisponível na lista */
-        .admin-item.unavailable { background-color: #f8f8f8; opacity: 0.7; border-left: 4px solid var(--danger); }
+        .category-header { 
+            font-family: 'Bebas Neue'; font-size: 22px; 
+            margin: 25px 0 10px; color: #444; 
+            border-bottom: 2px solid var(--primary); 
+            display: inline-block; padding-right: 20px;
+        }
         
-        .item-info { flex: 1; }
-        .item-name { font-weight: 700; font-size: 16px; }
+        .admin-item { 
+            background: white; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 10px; 
+            display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+            position: relative; overflow: hidden;
+        }
+        .admin-item.unavailable { background-color: #f4f4f4; border-left: 4px solid var(--danger); opacity: 0.8; }
+        .admin-item.unavailable .item-name { text-decoration: line-through; color: #888; }
         
-        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .item-info { flex: 1; padding-right: 10px; }
+        .item-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; display: block; }
+        .item-desc { font-size: 12px; color: #777; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .item-actions { text-align: right; min-width: 100px; }
+        .item-price { font-weight: 800; color: var(--primary-dark); font-size: 16px; margin-bottom: 8px; display: block; }
+        
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
         .btn-edit { background: #e3f2fd; color: #1976d2; margin-right: 5px; }
         .btn-delete { background: #ffebee; color: #c62828; }
-        .btn-add { background: var(--primary); color: #000; width: 100%; padding: 15px; font-size: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255,159,28,0.3); }
-        .btn-restore { background: #2196F3; color: white; width: 100%; padding: 15px; margin-top: 10px; }
+        .btn-add { background: var(--primary); color: #000; width: 100%; padding: 15px; font-size: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255,159,28,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-restore { background: #2196F3; color: white; width: 100%; padding: 15px; margin-top: 10px; border-radius: 8px; }
 
         /* Modal */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
         .modal.open { display: flex; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        .modal-content { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
         
-        .form-input, .form-select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; margin-bottom: 15px; display: block; }
-        .form-label { font-weight: 600; font-size: 13px; color: #666; margin-bottom: 5px; display: block; }
+        .form-group { margin-bottom: 15px; }
+        .form-input, .form-select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 15px; display: block; background: #fafafa; }
+        .form-input:focus { border-color: var(--primary); outline: none; background: #fff; }
+        .form-label { font-weight: 600; font-size: 13px; color: #555; margin-bottom: 6px; display: block; }
         
-        /* Checkbox customizado para disponibilidade */
-        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee; }
-        .checkbox-wrapper input { width: 20px; height: 20px; margin: 0; cursor: pointer; }
-        .checkbox-wrapper label { margin: 0; font-size: 15px; cursor: pointer; color: #333; }
-        
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f0f2f5; border-radius: 8px; border: 1px solid #eee; cursor: pointer; }
+        .checkbox-wrapper input { width: 20px; height: 20px; margin: 0; accent-color: var(--success); cursor: pointer; }
+        .checkbox-wrapper label { margin: 0; font-size: 14px; cursor: pointer; color: #333; font-weight: 500; flex: 1; }
+
+        /* Lista de Categorias no Modal */
+        .cat-edit-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+        .cat-edit-item { display: flex; gap: 8px; align-items: center; background: #f9f9f9; padding: 8px; border-radius: 6px; border: 1px solid #eee; }
+        .cat-move-btn { background: none; border: none; color: #999; cursor: pointer; padding: 5px; }
+        .cat-move-btn:hover { color: #333; }
+
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 30px; }
     </style>
 </head>
@@ -83,7 +111,7 @@
     <div id="login-overlay">
         <div class="login-box">
             <h2 style="font-family: 'Bebas Neue'; font-size: 32px; color: var(--primary);">Área Restrita</h2>
-            <input type="password" id="admin-pass" class="form-input" style="text-align: center;" placeholder="Senha">
+            <input type="password" id="admin-pass" class="form-input" style="text-align: center; margin-bottom: 15px;" placeholder="Senha">
             <button class="btn" style="background: var(--primary); width: 100%; padding: 12px;" onclick="checkLogin()">ENTRAR</button>
             <p id="login-error" style="color: var(--danger); font-size: 12px; display: none; margin-top: 10px;">Senha incorreta!</p>
         </div>
@@ -93,14 +121,15 @@
     <div id="app-content" style="display: none;">
         <header class="admin-header">
             <h1>Dogão Admin</h1>
-            <button class="btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+            <button class="btn" onclick="logout()" style="background: #eee; color: #333;"><i class="fas fa-sign-out-alt"></i></button>
         </header>
 
         <div class="container">
+            <!-- Status e Controle Manual -->
             <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h3 style="margin: 0;">Status da Loja</h3>
-                    <div id="status-text" style="font-size: 13px; color: #666;">Carregando...</div>
+                    <h3 style="margin: 0; font-size: 16px;">Status da Loja</h3>
+                    <div id="status-text" style="font-size: 13px; color: #666; margin-top: 4px;">Carregando...</div>
                 </div>
                 <label class="switch">
                     <input type="checkbox" id="store-toggle" onchange="toggleStoreStatus()">
@@ -108,70 +137,98 @@
                 </label>
             </div>
             
-            <div class="card" style="font-size: 13px;">
-                <label style="display: flex; align-items: center; gap: 10px;">
-                    <input type="checkbox" id="manual-override" onchange="toggleManualOverride()">
-                    <span>Forçar controle manual (ignora horário)</span>
+            <div class="card" style="font-size: 13px; padding: 15px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" id="manual-override" onchange="toggleManualOverride()" style="accent-color: var(--primary);">
+                    <span><strong>Modo Manual:</strong> Ignorar horário automático</span>
                 </label>
             </div>
 
             <button class="btn btn-add" onclick="openModal()"><i class="fas fa-plus-circle"></i> ADICIONAR NOVO ITEM</button>
 
-            <div id="items-list">
-                <p style="text-align: center; margin-top: 40px;">Carregando itens...</p>
+            <!-- Toolbar de Organização -->
+            <div class="toolbar">
+                <button class="btn-cats" onclick="openCategoryModal()"><i class="fas fa-list-ul"></i> Categorias</button>
+                <select id="sort-select" class="sort-select" onchange="renderList()">
+                    <option value="name_asc">🔤 Nome (A-Z)</option>
+                    <option value="price_asc">💲 Preço (Menor &rarr; Maior)</option>
+                    <option value="price_desc">💲 Preço (Maior &rarr; Menor)</option>
+                </select>
             </div>
 
-            <!-- ÁREA DE RESTAURAÇÃO DE DADOS -->
-            <div style="margin-top: 50px; border-top: 2px dashed #ddd; padding-top: 20px;">
-                <h3 style="color: #666;">⚠️ Ferramentas de Sistema</h3>
-                <p style="font-size: 13px; color: #888;">Use isso apenas se o cardápio estiver vazio e você quiser repovoar com os itens padrão.</p>
+            <div id="items-list">
+                <p style="text-align: center; margin-top: 40px; color: #888;">Carregando itens...</p>
+            </div>
+
+            <!-- Ferramentas -->
+            <div style="margin-top: 50px; border-top: 2px dashed #ddd; padding-top: 20px; opacity: 0.7;">
+                <h3 style="color: #666; font-size: 16px;">⚠️ Ferramentas</h3>
                 <button class="btn btn-restore" onclick="restoreDefaultData()">
-                    <i class="fas fa-database"></i> RESTAURAR CARDÁPIO PADRÃO
+                    <i class="fas fa-database"></i> Restaurar Cardápio Padrão
                 </button>
                 <p id="restore-status" style="text-align: center; font-size: 12px; margin-top: 10px; color: var(--success);"></p>
             </div>
         </div>
     </div>
 
-    <!-- Modal Form -->
+    <!-- Modal Form (Item) -->
     <div id="item-modal" class="modal">
         <div class="modal-content">
-            <h2 id="modal-title" style="margin-top: 0;">Item</h2>
+            <h2 id="modal-title" style="margin-top: 0; font-family: 'Bebas Neue'; color: var(--primary-dark);">Item</h2>
             <input type="hidden" id="edit-id">
             
-            <label class="form-label">Nome</label>
-            <input type="text" id="edit-name" class="form-input">
+            <div class="form-group">
+                <label class="form-label">Nome</label>
+                <input type="text" id="edit-name" class="form-input" placeholder="Ex: X-Tudo">
+            </div>
             
-            <label class="form-label">Preço</label>
-            <input type="number" step="0.50" id="edit-price" class="form-input">
+            <div class="form-group">
+                <label class="form-label">Preço (R$)</label>
+                <input type="number" step="0.50" id="edit-price" class="form-input" placeholder="0.00">
+            </div>
             
-            <label class="form-label">Categoria</label>
-            <select id="edit-category" class="form-select">
-                <option value="especiais">Especiais (Favoritos)</option>
-                <option value="sanduiches">Sanduíches</option>
-                <option value="hotdogs">Hot Dogs</option>
-                <option value="pasteis">Pastéis</option>
-                <option value="porcoes">Porções</option>
-                <option value="bebidas">Bebidas</option>
-            </select>
+            <div class="form-group">
+                <label class="form-label">Categoria</label>
+                <select id="edit-category" class="form-select">
+                    <!-- Preenchido via JS -->
+                </select>
+            </div>
             
-            <label class="form-label">Descrição</label>
-            <textarea id="edit-desc" rows="3"></textarea>
-
-            <!-- NOVO: Checkbox de Disponibilidade -->
-            <div class="checkbox-wrapper">
-                <input type="checkbox" id="edit-available" checked>
-                <label for="edit-available">Produto Disponível no Cardápio</label>
+            <div class="form-group">
+                <label class="form-label">Descrição</label>
+                <textarea id="edit-desc" rows="3" placeholder="Ingredientes..."></textarea>
             </div>
 
-            <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px;">
-                <button class="btn" style="background: #eee;" onclick="closeModal()">Cancelar</button>
+            <div class="checkbox-wrapper" onclick="document.getElementById('edit-available').click()">
+                <input type="checkbox" id="edit-available" checked onclick="event.stopPropagation()">
+                <label for="edit-available">Disponível para venda</label>
+            </div>
+
+            <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
+                <button class="btn" style="background: #eee; color: #333;" onclick="closeModal()">Cancelar</button>
                 <button class="btn" style="background: var(--primary);" onclick="saveItem()">Salvar</button>
             </div>
         </div>
     </div>
 
-    <div id="toast">Feito!</div>
+    <!-- Modal de Gerenciar Categorias -->
+    <div id="cat-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top: 0; font-family: 'Bebas Neue';">Organizar Categorias</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Altere os nomes ou use as setas para reordenar como aparecem no cardápio.</p>
+            
+            <div id="cat-list-container" class="cat-edit-list">
+                <!-- Lista gerada via JS -->
+            </div>
+
+            <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn" style="background: #eee; color: #333;" onclick="closeCategoryModal()">Cancelar</button>
+                <button class="btn" style="background: var(--primary);" onclick="saveCategorySettings()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"><i class="fas fa-check"></i> Salvo com sucesso!</div>
 
     <script>
         // --- CONFIGURAÇÃO FIREBASE ---
@@ -191,6 +248,19 @@
         const COL_ITEMS = 'menu_items';
         const COL_SETTINGS = 'settings';
 
+        // Padrão
+        const defaultCategories = [
+            { id: 'especiais', label: 'Favoritos' },
+            { id: 'sanduiches', label: 'Sanduíches' },
+            { id: 'hotdogs', label: 'Hot Dogs' },
+            { id: 'pasteis', label: 'Pastéis' },
+            { id: 'porcoes', label: 'Porções' },
+            { id: 'bebidas', label: 'Bebidas' }
+        ];
+        
+        let categoriesConfig = JSON.parse(JSON.stringify(defaultCategories));
+        let currentItems = [];
+
         // --- AUTH ---
         function checkLogin() {
             const pass = document.getElementById('admin-pass').value;
@@ -205,80 +275,175 @@
         function logout() { location.reload(); }
 
         // --- DADOS ---
-        let currentItems = [];
         function loadData() {
+            // 1. Status da Loja
             db.collection(COL_SETTINGS).doc('store').onSnapshot(doc => {
                 if(doc.exists) {
                     const d = doc.data();
                     document.getElementById('store-toggle').checked = d.isOpen;
                     document.getElementById('manual-override').checked = d.manualOverride;
-                    document.getElementById('status-text').innerText = d.manualOverride ? 
-                        (d.isOpen ? "ABERTO (Manual)" : "FECHADO (Manual)") : "Automático";
-                    document.getElementById('status-text').style.color = d.manualOverride ? 
-                        (d.isOpen ? "var(--success)" : "var(--danger)") : "#666";
+                    updateStatusText(d);
                 }
             });
 
-            db.collection(COL_ITEMS).orderBy('name').onSnapshot(snap => {
-                currentItems = [];
-                const list = document.getElementById('items-list');
-                list.innerHTML = '';
-                snap.forEach(doc => currentItems.push({id: doc.id, ...doc.data()}));
-                
-                if(currentItems.length === 0) {
-                    list.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">O cardápio está vazio.<br>Use o botão abaixo para restaurar os itens.</p>';
-                    return;
+            // 2. Configurações de Categoria
+            db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
+                if (doc.exists && doc.data().list) {
+                    categoriesConfig = doc.data().list;
                 }
+                updateCategorySelect(); // Atualiza dropdown do modal de item
+                renderList(); // Re-renderiza a lista principal
+            });
 
-                // Render
-                const categories = {
-                    'especiais': 'Favoritos', 'sanduiches': 'Sanduíches', 'hotdogs': 'Hot Dogs',
-                    'pasteis': 'Pastéis', 'porcoes': 'Porções', 'bebidas': 'Bebidas'
-                };
-
-                Object.keys(categories).forEach(catKey => {
-                    const itemsInCat = currentItems.filter(i => i.category === catKey);
-                    if(itemsInCat.length > 0) {
-                        list.innerHTML += `<div class="category-header">${categories[catKey]}</div>`;
-                        
-                        itemsInCat.forEach(item => {
-                            // Verifica se item.available é false para adicionar classe visual
-                            // Se available for undefined (itens antigos), assume true
-                            const isUnavailable = item.available === false;
-                            const statusLabel = isUnavailable ? '<span style="color:var(--danger); font-weight:700; font-size:12px;">(INDISPONÍVEL)</span>' : '';
-                            
-                            list.innerHTML += `
-                                <div class="admin-item ${isUnavailable ? 'unavailable' : ''}">
-                                    <div class="item-info">
-                                        <div class="item-name">${item.name} ${statusLabel}</div>
-                                        <div style="font-size:12px; color:#666;">${item.desc ? item.desc.substring(0,40) + '...' : ''}</div>
-                                    </div>
-                                    <div style="text-align:right;">
-                                        <div style="font-weight:bold; color:var(--primary-dark);">R$ ${item.price.toFixed(2)}</div>
-                                        <div style="margin-top:5px;">
-                                            <button class="btn btn-edit" onclick="openModal('${item.id}')"><i class="fas fa-edit"></i></button>
-                                            <button class="btn btn-delete" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
-                                        </div>
-                                    </div>
-                                </div>`;
-                        });
-                    }
-                });
+            // 3. Itens
+            db.collection(COL_ITEMS).onSnapshot(snap => {
+                currentItems = [];
+                snap.forEach(doc => currentItems.push({id: doc.id, ...doc.data()}));
+                renderList();
             });
         }
 
-        // --- CRUD ---
+        function updateStatusText(d) {
+            const el = document.getElementById('status-text');
+            if(d.manualOverride) {
+                el.innerHTML = `Manual: <strong style="color:${d.isOpen ? 'var(--success)' : 'var(--danger)'}">${d.isOpen ? 'ABERTO' : 'FECHADO'}</strong>`;
+            } else {
+                el.innerText = "Automático (segue horário)";
+            }
+        }
+
+        function renderList() {
+            const list = document.getElementById('items-list');
+            list.innerHTML = '';
+            
+            if(currentItems.length === 0) {
+                list.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">O cardápio está vazio.</p>';
+                return;
+            }
+
+            const sortMode = document.getElementById('sort-select').value; // name_asc, price_asc, price_desc
+
+            categoriesConfig.forEach(cat => {
+                // Filtra itens desta categoria
+                let itemsInCat = currentItems.filter(i => i.category === cat.id);
+                
+                if(itemsInCat.length > 0) {
+                    // Ordenação
+                    itemsInCat.sort((a, b) => {
+                        if (sortMode === 'name_asc') return a.name.localeCompare(b.name);
+                        if (sortMode === 'price_asc') return a.price - b.price;
+                        if (sortMode === 'price_desc') return b.price - a.price;
+                        return 0;
+                    });
+
+                    // Cabeçalho da Categoria
+                    list.innerHTML += `<div class="category-header">${cat.label} <small style="font-size:12px; color:#ccc;">(${itemsInCat.length})</small></div>`;
+                    
+                    // Itens
+                    itemsInCat.forEach(item => {
+                        const isUnavailable = item.available === false;
+                        const statusTag = isUnavailable ? '<span style="color:var(--danger); font-size:11px; border:1px solid var(--danger); padding:2px 4px; border-radius:4px; margin-left:5px;">INDISPONÍVEL</span>' : '';
+                        
+                        list.innerHTML += `
+                            <div class="admin-item ${isUnavailable ? 'unavailable' : ''}">
+                                <div class="item-info">
+                                    <div class="item-name">${item.name} ${statusTag}</div>
+                                    <div class="item-desc">${item.desc || ''}</div>
+                                </div>
+                                <div class="item-actions">
+                                    <div class="item-price">R$ ${item.price.toFixed(2)}</div>
+                                    <div style="margin-top:5px;">
+                                        <button class="btn btn-edit" onclick="openModal('${item.id}')"><i class="fas fa-pen"></i></button>
+                                        <button class="btn btn-delete" onclick="deleteItem('${item.id}')"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+                }
+            });
+        }
+
+        // --- GESTÃO DE CATEGORIAS ---
+        function openCategoryModal() {
+            const container = document.getElementById('cat-list-container');
+            container.innerHTML = '';
+            
+            categoriesConfig.forEach((cat, index) => {
+                container.innerHTML += `
+                    <div class="cat-edit-item">
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <button type="button" class="cat-move-btn" onclick="moveCategory(${index}, -1)" ${index === 0 ? 'disabled' : ''}><i class="fas fa-chevron-up"></i></button>
+                            <button type="button" class="cat-move-btn" onclick="moveCategory(${index}, 1)" ${index === categoriesConfig.length - 1 ? 'disabled' : ''}><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <input type="text" class="form-input category-label-input" value="${cat.label}" data-id="${cat.id}" style="margin:0; flex:1;">
+                        <span style="font-size:10px; color:#999; width:60px; text-align:right;">ID: ${cat.id}</span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('cat-modal').classList.add('open');
+        }
+
+        function closeCategoryModal() { document.getElementById('cat-modal').classList.remove('open'); }
+
+        function moveCategory(index, direction) {
+            // Salva inputs atuais temporariamente
+            updateTempCategoryConfig();
+            
+            const newIndex = index + direction;
+            if (newIndex >= 0 && newIndex < categoriesConfig.length) {
+                const temp = categoriesConfig[index];
+                categoriesConfig[index] = categoriesConfig[newIndex];
+                categoriesConfig[newIndex] = temp;
+                openCategoryModal(); // Re-renderiza
+            }
+        }
+
+        function updateTempCategoryConfig() {
+            // Atualiza o array categoriesConfig com o que está digitado nos inputs agora
+            const inputs = document.querySelectorAll('.category-label-input');
+            inputs.forEach((input, idx) => {
+                categoriesConfig[idx].label = input.value;
+            });
+        }
+
+        function saveCategorySettings() {
+            updateTempCategoryConfig(); // Pega valores finais
+            db.collection(COL_SETTINGS).doc('categories').set({ list: categoriesConfig })
+              .then(() => {
+                  closeCategoryModal();
+                  showToast("Categorias atualizadas!");
+              })
+              .catch(e => alert("Erro ao salvar categorias: " + e.message));
+        }
+
+        function updateCategorySelect() {
+            const select = document.getElementById('edit-category');
+            const currentVal = select.value;
+            select.innerHTML = '';
+            categoriesConfig.forEach(cat => {
+                select.innerHTML += `<option value="${cat.id}">${cat.label}</option>`;
+            });
+            if(currentVal) select.value = currentVal;
+        }
+
+        // --- CRUD ITEM ---
         function openModal(id = null) {
             const modal = document.getElementById('item-modal');
-            const item = id ? currentItems.find(i => i.id === id) : {name:'', price:'', category:'sanduiches', desc:'', available: true};
-            document.getElementById('modal-title').innerText = id ? 'Editar' : 'Novo';
+            const item = id ? currentItems.find(i => i.id === id) : {name:'', price:'', category: categoriesConfig[0].id, desc:'', available: true};
+            
+            document.getElementById('modal-title').innerText = id ? 'Editar Item' : 'Novo Item';
             document.getElementById('edit-id').value = id || '';
             document.getElementById('edit-name').value = item.name;
             document.getElementById('edit-price').value = item.price;
+            
+            // Garante que o select tenha as opções atualizadas
+            updateCategorySelect();
             document.getElementById('edit-category').value = item.category;
+            
             document.getElementById('edit-desc').value = item.desc;
-            // Se available for undefined, assume true
-            document.getElementById('edit-available').checked = item.available !== false; 
+            document.getElementById('edit-available').checked = item.available !== false;
+            
             modal.classList.add('open');
         }
         function closeModal() { document.getElementById('item-modal').classList.remove('open'); }
@@ -290,16 +455,16 @@
                 price: parseFloat(document.getElementById('edit-price').value) || 0,
                 category: document.getElementById('edit-category').value,
                 desc: document.getElementById('edit-desc').value,
-                available: document.getElementById('edit-available').checked // Salva o status
+                available: document.getElementById('edit-available').checked
             };
             if(!data.name) return alert("Nome obrigatório");
             
             const p = id ? db.collection(COL_ITEMS).doc(id).update(data) : db.collection(COL_ITEMS).add(data);
-            p.then(() => { closeModal(); showToast(); });
+            p.then(() => { closeModal(); showToast("Item Salvo!"); });
         }
 
         function deleteItem(id) {
-            if(confirm("Apagar?")) db.collection(COL_ITEMS).doc(id).delete().then(showToast);
+            if(confirm("Tem certeza que deseja excluir?")) db.collection(COL_ITEMS).doc(id).delete().then(() => showToast("Item excluído"));
         }
 
         function toggleStoreStatus() {
@@ -309,33 +474,40 @@
             db.collection(COL_SETTINGS).doc('store').set({ manualOverride: document.getElementById('manual-override').checked }, {merge:true});
         }
         
-        function showToast() {
+        function showToast(msg) {
             const t = document.getElementById('toast');
+            t.innerHTML = `<i class="fas fa-check"></i> ${msg || 'Salvo!'}`;
             t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // --- RESTAURAÇÃO DE DADOS ---
+        // --- RESTORE ---
         function restoreDefaultData() {
-            if(!confirm("Isso vai adicionar os itens padrão. Continuar?")) return;
+            if(!confirm("Isso vai restaurar os dados originais. Continuar?")) return;
             const btn = document.querySelector('.btn-restore');
-            btn.disabled = true; btn.innerText = "Restaurando...";
+            btn.disabled = true; btn.innerText = "Aguarde...";
             
-            // Backup items (com available: true por padrão)
+            // Salva categorias padrão primeiro
+            db.collection(COL_SETTINGS).doc('categories').set({ list: defaultCategories });
+
             const backupItems = [
-                { name: "Dogão Especial", price: 12.00, category: "hotdogs", desc: "Pão, 2 salsichas, carne moída, milho, ervilha, batata palha e molhos especiais.", available: true },
                 { name: "X-Tudo", price: 18.00, category: "especiais", desc: "Pão, hambúrguer, ovo, bacon, presunto, queijo, salsicha, alface e tomate.", available: true },
-                { name: "Coca-Cola Lata", price: 5.00, category: "bebidas", desc: "350ml, bem gelada.", available: true }
+                { name: "X-Bacon", price: 15.00, category: "sanduiches", desc: "Pão, hambúrguer, bacon, queijo e salada.", available: true },
+                { name: "Dogão Especial", price: 12.00, category: "hotdogs", desc: "Pão, 2 salsichas, carne moída e complementos.", available: true },
+                { name: "Coca-Cola Lata", price: 5.00, category: "bebidas", desc: "350ml", available: true }
             ];
 
             let count = 0;
             const status = document.getElementById('restore-status');
-            backupItems.forEach((item, index) => {
+            backupItems.forEach((item, idx) => {
                 setTimeout(() => {
                     db.collection(COL_ITEMS).add(item).then(() => {
-                          count++; status.innerText = `Restaurado ${count}/${backupItems.length}`;
-                          if(count === backupItems.length) { status.innerText = "Concluído!"; btn.disabled = false; btn.innerText = "Restaurar"; }
-                      });
-                }, index * 200);
+                        count++; status.innerText = `Restaurando ${count}/${backupItems.length}...`;
+                        if(count === backupItems.length) { 
+                            status.innerText = "Concluído!"; 
+                            btn.disabled = false; btn.innerText = "Restaurar Novamente"; 
+                        }
+                    });
+                }, idx * 300);
             });
         }
     </script>
