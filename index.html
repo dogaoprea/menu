@@ -62,11 +62,16 @@
         .hidden { display: none !important; }
         
         header { background-color: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; z-index: 10; border-bottom: var(--glass-border); padding-top: 12px; padding-bottom: 0; display: flex; flex-direction: column; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; gap: 20px; }
-        .logo-section { display: flex; align-items: center; gap: 8px; flex-shrink: 1; min-width: 0; }
+        
+        /* HEADER AJUSTADO PARA MENU NA ESQUERDA */
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; gap: 10px; }
+        .logo-section { display: flex; align-items: center; gap: 15px; flex-shrink: 1; min-width: 0; flex: 1; } /* flex: 1 para ocupar espaço */
         .logo { font-size: 28px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); line-height: 1; margin: 0; padding-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* BOTÃO DO MENU HAMBURGUER (ESQUERDA) */
+        .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; margin-right: 5px; }
+
         .social-links-header { display: flex; gap: 8px; flex-shrink: 0; }
-        .icon-btn { background: var(--bg-element); color: var(--text-main); border: 1px solid var(--border-color); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; text-decoration: none; font-size: 16px; }
         
         .status-bar-strip { width: 100%; padding: 4px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; text-align: center; letter-spacing: 1px; color: #fff; transition: background-color 0.5s ease; display: flex; justify-content: center; align-items: center; gap: 6px; }
         .status-strip-open { background-color: rgba(0, 200, 81, 0.9); border-top: 1px solid rgba(0, 200, 81, 0.3); }
@@ -117,7 +122,7 @@
         .qty-selector button { width: 32px; height: 100%; background: transparent; border: none; cursor: pointer; }
         .qty-input { width: 40px; background: transparent; border: none; text-align: center; font-weight: 700; }
 
-        /* CARRINHO FLUTUANTE (CONTADOR AO LADO) */
+        /* CARRINHO FLUTUANTE */
         .floating-cart { 
             position: fixed; bottom: 20px; right: 15px; left: 15px; 
             background-color: var(--primary); color: #000; 
@@ -291,6 +296,40 @@
         }
         .status-pending { background: #fff3cd; color: #856404; }
         .status-done { background: #d4edda; color: #155724; }
+
+        /* SIDEBAR (MENU LATERAL) */
+        .sidebar {
+            position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+            background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 2000; transition: 0.3s ease-in-out;
+            display: flex; flex-direction: column;
+            padding: 20px;
+        }
+        .sidebar.open { left: 0; }
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1999;
+            opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        .sidebar-overlay.open { opacity: 1; visibility: visible; }
+        
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .sidebar-logo { font-family: 'Bebas Neue'; font-size: 24px; color: var(--primary); }
+        .sidebar-close { background: none; border: none; font-size: 20px; color: #666; cursor: pointer; }
+        
+        .sidebar-menu { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+        .sidebar-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 15px; border-radius: 10px;
+            color: var(--text-main); text-decoration: none;
+            font-weight: 600; font-size: 15px;
+            transition: 0.2s;
+        }
+        .sidebar-link:hover { background: var(--bg-element); color: var(--primary); }
+        .sidebar-link i { width: 24px; text-align: center; color: var(--primary); font-size: 18px; }
+        
+        .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center; font-size: 12px; color: #999; }
+
     </style>
 </head>
 <body>
@@ -314,9 +353,29 @@
         </div>
     </div>
 
+    <!-- SIDEBAR -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">DOGÃO PREÁ</div>
+            <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="#" class="sidebar-link" onclick="openLoginModal(); toggleSidebar()"><i class="fas fa-user-circle"></i> Meu Perfil</a></li>
+            <li><a href="https://www.instagram.com/dogaoprea" target="_blank" class="sidebar-link"><i class="fab fa-instagram"></i> Instagram</a></li>
+            <li><a href="https://wa.me/5588996768158" target="_blank" class="sidebar-link"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
+            <li><a href="https://maps.app.goo.gl/MvT3UvF9AXrKJphj8" target="_blank" class="sidebar-link"><i class="fas fa-map-marker-alt"></i> Localização</a></li>
+        </ul>
+        <div class="sidebar-footer">
+            &copy; 2024 Dogão Preá
+        </div>
+    </div>
+
     <header>
         <div class="container header-top">
             <div class="logo-section">
+                <!-- Botão Hamburger -->
+                <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div class="logo brand-font">DOGÃO PREÁ</div>
             </div>
             <div class="social-links-header">
@@ -376,6 +435,7 @@
                 <div class="search-box" id="search-box-container">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" id="search-input" placeholder="O que você quer comer hoje?" oninput="searchProducts(this.value)">
+                    <button class="clear-search" onclick="clearSearchInput()" title="Limpar busca"><i class="fas fa-times-circle"></i></button>
                 </div>
             </div>
             <nav class="category-nav">
@@ -541,6 +601,21 @@
                 initFirebaseData(); 
             }).catch(e => { console.error(e); initFirebaseData(); });
         };
+        
+        // --- SIDEBAR FUNCTIONALITY ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+            
+            if(sidebar.classList.contains('open')) {
+                document.body.classList.add('no-scroll');
+            } else {
+                document.body.classList.remove('no-scroll');
+            }
+        }
 
         // --- SISTEMA DE LOGIN DE USUÁRIO ---
         function checkSavedUser() {
@@ -1097,6 +1172,13 @@
                  if(allBtn) allBtn.classList.add('active');
                  renderMenu('all');
              }
+        }
+        
+        function clearSearchInput() {
+            const input = document.getElementById('search-input');
+            input.value = '';
+            input.focus();
+            searchProducts('');
         }
     </script>
 </body>
