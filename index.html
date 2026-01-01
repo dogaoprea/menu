@@ -535,8 +535,9 @@
 
         function renderCategories() {
             const list = document.getElementById('category-list');
-            list.innerHTML = `<li><button class="cat-btn active" onclick="filterMenu('all', this)"><i class="fas fa-border-all"></i> Todos</button></li>` + 
-                categoriesConfig.map(c => `<li><button class="cat-btn" onclick="filterMenu('${c.id}', this)"><i class="${c.icon || 'fas fa-utensils'}"></i> ${c.label}</button></li>`).join('');
+            // ÍCONES REMOVIDOS CONFORME SOLICITADO
+            list.innerHTML = `<li><button class="cat-btn active" onclick="filterMenu('all', this)">Todos</button></li>` + 
+                categoriesConfig.map(c => `<li><button class="cat-btn" onclick="filterMenu('${c.id}', this)">${c.label}</button></li>`).join('');
         }
 
         function renderMenu(filter = 'all') {
@@ -622,7 +623,21 @@
 
         function filterMenu(catId, btnElement) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
+            
+            if (btnElement) {
+                btnElement.classList.add('active');
+                
+                // Centraliza o botão clicado na barra de rolagem
+                btnElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            } else {
+                 const allBtn = document.querySelector(`button[onclick="filterMenu('all', this)"]`);
+                 if(allBtn) allBtn.classList.add('active');
+            }
+            
             renderMenu(catId);
         }
 
