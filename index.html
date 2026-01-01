@@ -61,15 +61,12 @@
         .btn-primary { background-color: var(--primary); color: #000; padding: 12px 25px; }
         .hidden { display: none !important; }
         
-        /* HEADER */
         header { background-color: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; z-index: 10; border-bottom: var(--glass-border); padding-top: 12px; padding-bottom: 0; display: flex; flex-direction: column; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; gap: 10px; }
-        .logo-section { display: flex; align-items: center; gap: 15px; flex-shrink: 1; min-width: 0; flex: 1; } 
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; gap: 20px; }
+        .logo-section { display: flex; align-items: center; gap: 8px; flex-shrink: 1; min-width: 0; }
         .logo { font-size: 28px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); line-height: 1; margin: 0; padding-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; margin-right: 5px; }
-
         .social-links-header { display: flex; gap: 8px; flex-shrink: 0; }
+        .icon-btn { background: var(--bg-element); color: var(--text-main); border: 1px solid var(--border-color); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; text-decoration: none; font-size: 16px; }
         
         .status-bar-strip { width: 100%; padding: 4px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; text-align: center; letter-spacing: 1px; color: #fff; transition: background-color 0.5s ease; display: flex; justify-content: center; align-items: center; gap: 6px; }
         .status-strip-open { background-color: rgba(0, 200, 81, 0.9); border-top: 1px solid rgba(0, 200, 81, 0.3); }
@@ -286,10 +283,11 @@
         .order-history-card {
             background: var(--bg-card); border: 1px solid var(--border-color);
             border-radius: 12px; padding: 15px; margin-bottom: 15px;
+            transition: 0.2s;
         }
-        .order-history-header { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
+        .order-history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
         .order-history-status {
-            font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 4px;
             background: #eee; color: #555;
         }
         .status-pending { background: #fff3cd; color: #856404; }
@@ -327,7 +325,18 @@
         .sidebar-link i { width: 24px; text-align: center; color: var(--primary); font-size: 18px; }
         
         .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: center; font-size: 12px; color: #999; }
-
+        
+        /* HEADER - Ajuste para ícone na esquerda */
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; gap: 10px; }
+        .logo-section { display: flex; align-items: center; gap: 10px; flex-shrink: 1; min-width: 0; } 
+        .logo { font-size: 28px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); line-height: 1; margin: 0; padding-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; }
+        
+        /* Banner de Edição */
+        #edit-mode-banner {
+            background-color: #fff3cd; color: #856404; padding: 10px; text-align: center; font-size: 13px; border-bottom: 1px solid #ffeeba; display: none;
+        }
+        #edit-mode-banner.visible { display: block; }
     </style>
 </head>
 <body>
@@ -359,7 +368,7 @@
             <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#" class="sidebar-link" onclick="openLoginModal(); toggleSidebar()"><i class="fas fa-user-circle"></i> Meu Perfil</a></li>
+            <li><a href="#" class="sidebar-link" onclick="openLoginModal(); toggleSidebar()"><i class="fas fa-user-circle"></i> Meu Perfil / Pedidos</a></li>
             <li><a href="https://www.instagram.com/dogaoprea" target="_blank" class="sidebar-link"><i class="fab fa-instagram"></i> Instagram</a></li>
             <li><a href="https://wa.me/5588996768158" target="_blank" class="sidebar-link"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
             <li><a href="https://maps.app.goo.gl/MvT3UvF9AXrKJphj8" target="_blank" class="sidebar-link"><i class="fas fa-map-marker-alt"></i> Localização</a></li>
@@ -462,6 +471,10 @@
     <!-- Modal de Carrinho -->
     <div class="modal-overlay" id="cart-modal">
         <div class="modal-content">
+            <div id="edit-mode-banner">
+                <i class="fas fa-pencil-alt"></i> Editando pedido...
+                <button onclick="cancelEdit()" style="background:none; border:none; text-decoration:underline; cursor:pointer; color:#856404; font-size:12px; margin-left:10px;">Cancelar</button>
+            </div>
             <div class="modal-header">
                 <h2 class="brand-font">Finalizar Pedido</h2>
                 <button class="close-modal" onclick="toggleCart()" style="background:none; border:none; font-size:20px;"><i class="fas fa-times"></i></button>
@@ -514,7 +527,8 @@
                             <div class="radio-option"><input type="radio" name="pay" id="p-money" value="Dinheiro" onchange="togglePaymentInfo('Dinheiro')"><label for="p-money"><i class="fas fa-money-bill-wave"></i> Dinheiro</label></div>
                         </div>
                         
-                        <div id="pix-notice" class="payment-notice pix-notice hidden">
+                        <!-- IDs corrigidos e alinhados com o JS -->
+                        <div id="pix-section" class="payment-notice pix-notice hidden">
                             <i class="fas fa-info-circle"></i> A chave PIX será enviada no WhatsApp.
                         </div>
                         <div id="card-fee-section" class="payment-notice hidden">
@@ -540,7 +554,25 @@
                     <i class="fas fa-motorcycle"></i> + Taxa de entrega a calcular
                 </div>
 
-                <button class="btn btn-whatsapp" onclick="finalizeOrder()"><i class="fab fa-whatsapp"></i> Enviar Pedido no WhatsApp</button>
+                <button id="btn-finish-order" class="btn btn-whatsapp" onclick="finalizeOrder()"><i class="fab fa-whatsapp"></i> Enviar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chef Bot IA -->
+    <div class="modal-overlay" id="chef-bot-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Chef Dogão 🤖</h2>
+                <button onclick="toggleChefBot()" style="background:none; border:none;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="quick-replies" id="quick-replies"></div>
+                <div style="padding: 10px; display:flex; gap:10px; border-top: 1px solid #eee;">
+                    <input type="text" id="chat-input" class="form-input" placeholder="Digite...">
+                    <button onclick="sendMessage()" style="background: var(--primary); border:none; width:40px; border-radius:50%;"><i class="fas fa-paper-plane"></i></button>
+                </div>
             </div>
         </div>
     </div>
@@ -575,7 +607,11 @@
         
         let menuData = [];
         let cart = [];
+        let currentSort = 'name_asc'; 
         let currentUser = null; 
+        
+        // ESTADO DE EDIÇÃO
+        let editingOrder = null; // { docId, orderId }
 
         window.onload = () => {
             renderCategories();
@@ -584,7 +620,9 @@
             checkSavedUser();
 
             const pixRadio = document.getElementById('p-pix');
-            if (pixRadio && pixRadio.checked) togglePaymentInfo('PIX');
+            if (pixRadio && pixRadio.checked) {
+                togglePaymentInfo('PIX');
+            }
             
             auth.signInAnonymously().then(() => {
                 console.log("Conectado.");
@@ -627,7 +665,6 @@
             const phone = document.getElementById('login-phone').value;
             if(!name || !phone) return alert("Preencha nome e telefone.");
             
-            // Limpa formatação do telefone para salvar apenas números
             const cleanPhone = phone.replace(/\D/g, '');
 
             currentUser = { name, phone: cleanPhone };
@@ -648,7 +685,7 @@
             }
         }
 
-        // --- HISTÓRICO DE PEDIDOS ---
+        // --- HISTÓRICO DE PEDIDOS & EDIÇÃO ---
         function openOrdersModal() {
             document.getElementById('orders-modal').classList.add('open');
             loadUserOrders();
@@ -660,8 +697,6 @@
             const list = document.getElementById('user-orders-list');
             list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #999;">Carregando...</p>';
 
-            // REMOVIDA ORDENAÇÃO NO FIREBASE PARA EVITAR ERRO DE ÍNDICE
-            // Filtragem e ordenação feitas no cliente
             db.collection(COL_ORDERS)
               .where('userPhone', '==', currentUser.phone)
               .limit(20) 
@@ -673,9 +708,8 @@
                   }
 
                   let orders = [];
-                  snap.forEach(doc => orders.push(doc.data()));
+                  snap.forEach(doc => orders.push({ _id: doc.id, ...doc.data() }));
                   
-                  // Ordenação manual por data (mais recente primeiro)
                   orders.sort((a, b) => {
                       const tA = a.timestamp ? a.timestamp.seconds : 0;
                       const tB = b.timestamp ? b.timestamp.seconds : 0;
@@ -686,10 +720,14 @@
                       const status = order.status || 'pending'; 
                       let statusText = 'Pendente';
                       let statusClass = 'status-pending';
+                      let editBtn = '';
 
                       if (status === 'archived' || status === 'done') {
                           statusText = 'Concluído';
                           statusClass = 'status-done';
+                      } else {
+                          // Botão de editar para pedidos pendentes
+                          editBtn = `<button onclick="editOrder('${order._id}')" style="background:#2196F3; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:11px; cursor:pointer; margin-left:auto;"><i class="fas fa-pencil-alt"></i> Editar</button>`;
                       }
 
                       const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
@@ -700,6 +738,7 @@
                             <div class="order-history-header">
                                 <span style="font-weight:700;">#${order.orderId || '???'}</span>
                                 <span class="order-history-status ${statusClass}">${statusText}</span>
+                                ${editBtn}
                             </div>
                             <div style="font-size:13px; color:#666; margin-bottom:5px;">${dateStr}</div>
                             <div style="font-size:14px; font-weight:600;">Total: R$ ${order.total.toFixed(2)}</div>
@@ -710,6 +749,60 @@
                       `;
                   });
               });
+        }
+
+        // --- FUNÇÃO DE EDIÇÃO ---
+        function editOrder(docId) {
+            // Busca o pedido completo
+            db.collection(COL_ORDERS).doc(docId).get().then(doc => {
+                if(!doc.exists) return;
+                const order = doc.data();
+                
+                // Popula o carrinho com os itens do pedido
+                cart = order.cart || [];
+                
+                // Configura o estado de edição
+                editingOrder = { docId: doc.id, orderId: order.orderId };
+                
+                // Fecha modal de pedidos e abre o carrinho
+                closeOrdersModal();
+                toggleCart();
+                
+                // Preenche formulário
+                document.getElementById('customer-name').value = order.customerName;
+                
+                // Tipo de Pedido
+                const typeRadio = document.querySelector(`input[name="orderType"][value="${order.type}"]`);
+                if(typeRadio) {
+                    typeRadio.checked = true;
+                    toggleOrderType(order.type);
+                }
+                
+                // Pagamento
+                // Mapeia os valores antigos para os IDs novos se necessário, ou usa direto
+                let payVal = order.payment; 
+                const payRadio = document.querySelector(`input[name="pay"][value="${payVal}"]`);
+                if(payRadio) {
+                    payRadio.checked = true;
+                    togglePaymentInfo(payVal);
+                }
+                
+                // Campos Específicos
+                if(order.address) document.getElementById('address-text').value = order.address;
+                if(order.mapsLink) document.getElementById('maps-link').value = order.mapsLink;
+                if(order.change) document.getElementById('change-amount').value = order.change;
+                if(order.pickupTime) document.getElementById('pickup-time').value = order.pickupTime;
+                
+                updateUI(); // Atualiza visual do carrinho
+            });
+        }
+        
+        function cancelEdit() {
+            editingOrder = null;
+            cart = [];
+            updateUI();
+            toggleCart(); // Fecha o carrinho
+            alert("Edição cancelada.");
         }
 
         // --- FIREBASE DATA ---
@@ -885,6 +978,18 @@
             const actionsBar = document.getElementById('cart-actions-bar');
             const btnAddMore = document.getElementById('btn-add-more');
             
+            // Controle visual do modo de edição
+            const editBanner = document.getElementById('edit-mode-banner');
+            const finishBtn = document.getElementById('btn-finish-order');
+            
+            if (editingOrder) {
+                editBanner.classList.add('visible');
+                finishBtn.innerHTML = '<i class="fas fa-sync"></i> Atualizar Pedido';
+            } else {
+                editBanner.classList.remove('visible');
+                finishBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Enviar Pedido';
+            }
+            
             if (totalQty > 0) {
                 floatBtn.classList.remove('hidden');
                 modalFooter.classList.remove('hidden');
@@ -1013,7 +1118,13 @@
             if(!paymentElement) return alert("Escolha a forma de pagamento.");
             
             const now = new Date();
-            const orderId = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+            let orderId = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+            
+            // SE ESTIVER EDITANDO, MANTÉM O ID ORIGINAL
+            if (editingOrder) {
+                orderId = editingOrder.orderId;
+            }
+
             const payment = paymentElement.value;
             const changeAmount = document.getElementById('change-amount').value;
             const type = typeRadio.value;
@@ -1028,11 +1139,10 @@
                 if (!mapsLink && !addressText) return alert("Para entrega, precisamos da sua localização ou endereço.");
                 if(mapsLink) { addressMsg += `\n📍 *GPS:* ${mapsLink}`; mapsLinkData = mapsLink; }
                 if(addressText) { addressMsg += `\n🏠 *Endereço:* ${addressText}`; addressData = addressText; }
+                addressMsg += `\n⚠️ _Taxa a calcular._`;
             }
 
             const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
-            
-            // --- CORREÇÃO AQUI: USA O TELEFONE DO USUÁRIO LOGADO SE EXISTIR ---
             const userPhoneToSave = currentUser ? currentUser.phone : null;
 
             const orderData = {
@@ -1047,16 +1157,34 @@
                 mapsLink: mapsLinkData,
                 cart: cart,
                 total: total,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                // Em edição, não alteramos timestamp para não perder a ordem
+                ...(editingOrder ? {} : { timestamp: firebase.firestore.FieldValue.serverTimestamp() }),
                 status: 'pending' 
             };
 
-            db.collection(COL_ORDERS).add(orderData).then(() => {
+            const phone = "5588996768158";
+            let msgHeader = `*PEDIDO N° ${orderId}*`;
+            
+            // LÓGICA DE SALVAMENTO (NOVO OU ATUALIZAÇÃO)
+            let savePromise;
+            
+            if (editingOrder) {
+                savePromise = db.collection(COL_ORDERS).doc(editingOrder.docId).update(orderData);
+                msgHeader = `*🔄 ATUALIZAÇÃO PEDIDO N° ${orderId}*`;
+            } else {
+                savePromise = db.collection(COL_ORDERS).add(orderData);
+            }
+
+            savePromise.then(() => {
                 console.log("Pedido salvo!");
+                if (editingOrder) {
+                    // Limpa estado de edição após sucesso
+                    editingOrder = null;
+                }
             }).catch(err => console.error("Erro ao salvar:", err));
 
             // --- MENSAGEM WHATSAPP ---
-            let msg = `*PEDIDO N° ${orderId}*\n----------------------------\n👤 *Cliente:* ${name}\n📦 *Tipo:* ${type}\n💰 *Pagamento:* ${payment}\n`;
+            let msg = `${msgHeader}\n----------------------------\n👤 *Cliente:* ${name}\n📦 *Tipo:* ${type}\n💰 *Pagamento:* ${payment}\n`;
             if (payment === 'Dinheiro' && changeAmount) msg += `💵 *Troco para:* R$ ${changeAmount}\n`;
             msg += `\n*ITENS:*\n`;
             cart.forEach(i => {
@@ -1066,7 +1194,7 @@
             msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
             if(addressMsg) msg += `\n\n*ENTREGA:*${addressMsg}`;
             
-            window.open(`https://wa.me/5588996768158?text=${encodeURIComponent(msg)}`, '_blank');
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
         }
         
         function searchProducts(val) {
