@@ -82,11 +82,6 @@
         .btn-archive { background: #4CAF50; }
         .btn-delete-forever { background: #ff4444; }
         
-        .btn-edit-order:hover { background: #1976D2; }
-        .btn-copy:hover { background: #455A64; }
-        .btn-share:hover { background: #128C7E; }
-        .btn-archive:hover { background: #388E3C; }
-        
         /* Select de Status */
         .status-select {
             width: 100%; padding: 10px; margin-top: 10px;
@@ -153,6 +148,7 @@
         .edit-qty-group { display: flex; align-items: center; gap: 5px; }
         .btn-mini { width: 24px; height: 24px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-mini-trash { color: var(--danger); border-color: #ffcccc; background: #fff0f0; }
+        .btn-mini-extras { color: var(--primary-dark); border-color: var(--primary); background: #fff8e1; width: auto; padding: 0 8px; font-size: 11px; }
         .price-edit-input { width: 70px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; text-align: right; }
 
         /* Filtros de Pedidos */
@@ -180,6 +176,11 @@
         /* Checkboxes no Form de Adicionais */
         .cat-check-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 150px; overflow-y: auto; background: #f9f9f9; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
         .cat-check-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+
+        /* Lista de Seleção de Adicionais no Modal de Pedido */
+        .item-extras-selection-list { display: flex; flex-direction: column; gap: 5px; max-height: 300px; overflow-y: auto; }
+        .item-extra-option { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; }
+        .item-extra-option input { accent-color: var(--primary); width: 18px; height: 18px; }
 
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 30px; }
@@ -468,6 +469,24 @@
             <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
                 <button class="btn" style="background: #eee; color: #333;" onclick="closeOrderEditModal()">Cancelar</button>
                 <button class="btn" style="background: var(--primary);" onclick="saveOrderChanges()">Salvar Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Selecionar Extras de um Item do Pedido -->
+    <div id="order-item-extras-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px; height: auto; max-height: 80vh;">
+            <h2 id="item-extras-title" style="margin-top: 0; font-family: 'Bebas Neue'; color: var(--primary-dark);">Adicionais</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Selecione os adicionais para este item:</p>
+            <input type="hidden" id="editing-item-index">
+            
+            <div id="item-extras-container" class="item-extras-selection-list">
+                <!-- Checkboxes Renderizados via JS -->
+            </div>
+
+            <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
+                <button class="btn" style="background: #eee; color: #333;" onclick="document.getElementById('order-item-extras-modal').classList.remove('open')">Cancelar</button>
+                <button class="btn" style="background: var(--primary);" onclick="saveItemExtras()">Confirmar</button>
             </div>
         </div>
     </div>
@@ -832,7 +851,14 @@
             document.getElementById('edit-order-address').value = order.address || '';
             document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
             
-            editingOrderCart = JSON.parse(JSON.stringify(order.cart || []));
+            // Garante IDs únicos para edição se vierem sem (pedidos antigos)
+            editingOrderCart = (order.cart || []).map(i => ({
+                ...i,
+                _uuid: i._uuid || 'admin_old_' + Math.random(),
+                extrasTotal: i.extrasTotal || 0,
+                selectedExtras: i.selectedExtras || []
+            }));
+            
             renderEditOrderItems();
             
             document.getElementById('order-edit-modal').classList.add('open');
@@ -859,11 +885,12 @@
                         <div style="flex:1;">
                             <div style="font-weight:600;">${item.name}</div>
                             ${extrasDisplay}
-                            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#666;">
+                            <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#666; margin-top:3px;">
                                 Base: R$ <input type="number" step="0.50" class="price-edit-input" value="${item.price.toFixed(2)}" onchange="updateOrderItemPrice(${index}, this.value)"> un.
                             </div>
                         </div>
                         <div class="edit-qty-group">
+                            <button class="btn-mini btn-mini-extras" onclick="openItemExtrasModal(${index})"><i class="fas fa-plus"></i> Extras</button>
                             <button class="btn-mini" onclick="updateOrderQty(${index}, -1)">-</button>
                             <span>${item.qty}</span>
                             <button class="btn-mini" onclick="updateOrderQty(${index}, 1)">+</button>
@@ -918,26 +945,81 @@
             
             const menuItem = currentItems.find(i => i.id === itemId);
             if(menuItem) {
-                const existing = editingOrderCart.find(i => i.id === itemId);
-                // NOTA: Ao adicionar via admin, não estamos abrindo modal de extras por enquanto.
-                // Adiciona o item "seco". Se precisar de extras, melhor adicionar como item avulso ou fazer via app cliente.
-                if(existing) {
-                    existing.qty++;
-                } else {
-                    editingOrderCart.push({
-                        id: menuItem.id,
-                        name: menuItem.name,
-                        price: menuItem.price,
-                        qty: 1,
-                        obs: '',
-                        category: menuItem.category,
-                        extrasTotal: 0,
-                        selectedExtras: []
-                    });
-                }
+                // SEMPRE ADICIONA NOVO ITEM para evitar herança de extras indesejada
+                editingOrderCart.push({
+                    id: menuItem.id,
+                    name: menuItem.name,
+                    price: menuItem.price,
+                    qty: 1,
+                    obs: '',
+                    category: menuItem.category,
+                    extrasTotal: 0,
+                    selectedExtras: [],
+                    _uuid: 'admin_' + Date.now()
+                });
+                
                 renderEditOrderItems();
                 select.value = ""; 
             }
+        }
+
+        // --- GESTÃO DE EXTRAS NO ITEM DO PEDIDO ---
+        function openItemExtrasModal(index) {
+            const item = editingOrderCart[index];
+            const container = document.getElementById('item-extras-container');
+            document.getElementById('editing-item-index').value = index;
+            document.getElementById('item-extras-title').innerText = "Adicionais: " + item.name;
+            
+            // Filtra extras disponíveis para a categoria deste item
+            const availableExtras = extrasConfig.filter(ex => ex.categories && ex.categories.includes(item.category));
+            
+            if (availableExtras.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Nenhum adicional disponível para esta categoria.</p>';
+            } else {
+                container.innerHTML = availableExtras.map((extra, i) => {
+                    const isChecked = item.selectedExtras && item.selectedExtras.some(e => e.name === extra.name);
+                    return `
+                        <label class="item-extra-option">
+                            <div>
+                                <span style="font-weight:600;">${extra.name}</span>
+                                <div style="font-size:11px; color:#666;">+ R$ ${parseFloat(extra.price).toFixed(2)}</div>
+                            </div>
+                            <input type="checkbox" value="${i}" ${isChecked ? 'checked' : ''}>
+                        </label>
+                    `;
+                }).join('');
+            }
+            
+            document.getElementById('order-item-extras-modal').classList.add('open');
+        }
+
+        function saveItemExtras() {
+            const index = document.getElementById('editing-item-index').value;
+            const item = editingOrderCart[index];
+            
+            // Re-filtra para garantir consistência
+            const availableExtras = extrasConfig.filter(ex => ex.categories && ex.categories.includes(item.category));
+            
+            const checkboxes = document.querySelectorAll('#item-extras-container input[type="checkbox"]');
+            const newExtras = [];
+            let newExtrasTotal = 0;
+            
+            checkboxes.forEach((cb, i) => {
+                if (cb.checked) {
+                    const extra = availableExtras[i]; // Mapeia pelo índice filtrado
+                    newExtras.push({
+                        name: extra.name,
+                        price: parseFloat(extra.price)
+                    });
+                    newExtrasTotal += parseFloat(extra.price);
+                }
+            });
+            
+            editingOrderCart[index].selectedExtras = newExtras;
+            editingOrderCart[index].extrasTotal = newExtrasTotal;
+            
+            document.getElementById('order-item-extras-modal').classList.remove('open');
+            renderEditOrderItems();
         }
 
         function saveOrderChanges() {
@@ -968,7 +1050,6 @@
                   .catch(e => alert("Erro ao salvar: " + e.message));
             } else {
                 // SE NÃO EXISTE, É NOVO PEDIDO
-                // Gera um ID simples baseado na hora
                 const now = new Date();
                 const orderId = String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
                 
