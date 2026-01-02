@@ -160,6 +160,8 @@
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
         .form-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; }
+        .form-input-group { display: flex; gap: 10px; }
+        .form-select-country { width: 100px; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: white; font-size: 14px; }
         
         .radio-group { display: flex; gap: 10px; flex-wrap: wrap; }
         .radio-option { flex: 1; position: relative; min-width: 90px; }
@@ -444,8 +446,21 @@
                     <input type="text" id="login-name" class="form-input" placeholder="Ex: João Silva">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Seu WhatsApp (apenas números)</label>
-                    <input type="tel" id="login-phone" class="form-input" placeholder="Ex: 88999999999">
+                    <label class="form-label">Seu WhatsApp</label>
+                    <div class="form-input-group">
+                        <!-- Select DDI -->
+                        <select id="login-ddi" class="form-select-country">
+                            <option value="55" selected>🇧🇷 +55</option>
+                            <option value="1">🇺🇸 +1</option>
+                            <option value="351">🇵🇹 +351</option>
+                            <option value="54">🇦🇷 +54</option>
+                            <option value="598">🇺🇾 +598</option>
+                            <option value="44">🇬🇧 +44</option>
+                            <option value="34">🇪🇸 +34</option>
+                            <option value="33">🇫🇷 +33</option>
+                        </select>
+                        <input type="tel" id="login-phone" class="form-input" placeholder="Ex: 88999999999" style="flex:1;">
+                    </div>
                 </div>
                 <button class="btn btn-whatsapp" onclick="performLogin()" style="width: 100%; margin-top: 10px;">Salvar e Entrar</button>
             </div>
@@ -713,9 +728,12 @@
         function performLogin() {
             const name = document.getElementById('login-name').value;
             const phone = document.getElementById('login-phone').value;
+            const ddi = document.getElementById('login-ddi').value; // Pega DDI
+
             if(!name || !phone) return alert("Preencha nome e telefone.");
             
-            const cleanPhone = phone.replace(/\D/g, '');
+            // Limpa formatação do telefone e adiciona DDI
+            const cleanPhone = ddi + phone.replace(/\D/g, '');
 
             currentUser = { name, phone: cleanPhone };
             localStorage.setItem('dogao_user', JSON.stringify(currentUser));
@@ -1140,7 +1158,7 @@
             if(card) card.classList.add('hidden');
             if(cash) cash.classList.add('hidden');
 
-            if (method === 'PIX') pix.classList.remove('hidden');
+            if (method === 'PIX' && pix) pix.classList.remove('hidden');
             if ((method === 'Cartão de Crédito' || method === 'Cartão de Débito') && card) card.classList.remove('hidden');
             if (method === 'Dinheiro' && cash) cash.classList.remove('hidden');
         }
@@ -1173,7 +1191,7 @@
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
             const paymentElement = document.querySelector('input[name="pay"]:checked');
             
-            // VALIDACAO: Se não escolheu, para
+            // VALIDAÇÃO: Se não escolheu, para
             if(!typeRadio) return alert("Por favor, escolha o tipo de pedido (Entrega, Retirada ou Mesa).");
             if(!paymentElement) return alert("Por favor, escolha a forma de pagamento.");
             
@@ -1194,9 +1212,18 @@
             if (type === 'Entrega') {
                 const mapsLink = document.getElementById('maps-link').value;
                 const addressText = document.getElementById('address-text').value;
+                
+                // Validação de endereço
                 if (!mapsLink && !addressText) return alert("Para entrega, precisamos da sua localização ou endereço.");
-                if(mapsLink) { addressMsg += `\n📍 *GPS:* ${mapsLink}`; mapsLinkData = mapsLink; }
-                if(addressText) { addressMsg += `\n🏠 *Endereço:* ${addressText}`; addressData = addressText; }
+
+                if(mapsLink) {
+                    addressMsg += `\n📍 *GPS:* ${mapsLink}`;
+                    mapsLinkData = mapsLink;
+                }
+                if(addressText) {
+                    addressMsg += `\n🏠 *Endereço:* ${addressText}`;
+                    addressData = addressText;
+                }
                 addressMsg += `\n⚠️ _Taxa a calcular._`;
             } else if (type === 'Retirada') {
                  const pickupTime = document.getElementById('pickup-time').value;
@@ -1256,6 +1283,12 @@
             if(addressMsg) msg += `\n\n*INFO:*${addressMsg}`;
             
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            
+            // REDIRECIONAMENTO PARA MEUS PEDIDOS
+            setTimeout(() => {
+                toggleCart(); // Fecha o carrinho
+                openOrdersModal(); // Abre o histórico
+            }, 1000);
         }
         
         function searchProducts(val) {
