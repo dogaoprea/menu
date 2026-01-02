@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>App de Pedidos - DOGÃO PREÁ</title>
     
+    <!-- PWA Settings -->
+    <meta name="theme-color" content="#ff9f1c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dogão Preá">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3075/3075977.png">
+    <!-- Manifest Placeholder -->
+    <link rel="manifest" id="pwa-manifest">
+
     <!-- Fontes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,15 +89,54 @@
         .status-strip-closed { background-color: rgba(255, 68, 68, 0.9); border-top: 1px solid rgba(255, 68, 68, 0.3); }
         .status-dot-strip { width: 6px; height: 6px; border-radius: 50%; background-color: #fff; display: inline-block; }
         
-        #sticky-wrapper { position: sticky; top: 0; z-index: 900; background-color: var(--bg-body); padding-top: 20px; border-bottom: 1px solid var(--border-color); backdrop-filter: blur(10px); }
-        .search-container { margin-bottom: 5px; display: flex; gap: 12px; align-items: center; }
+        /* --- AJUSTES DE ESPAÇAMENTO --- */
+        #sticky-wrapper { 
+            position: sticky; top: 0; z-index: 900; 
+            background-color: var(--bg-body); 
+            padding-top: 20px; 
+            border-bottom: 1px solid var(--border-color); 
+            backdrop-filter: blur(10px); 
+        }
+        
+        .search-container { 
+            margin-bottom: 5px;
+            display: flex; gap: 12px; align-items: center; 
+        }
+        
         .search-box { flex: 1; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 50px; padding: 6px 16px; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.03); height: 48px; }
         .search-input { background: transparent; border: none; color: var(--text-main); width: 100%; font-size: 15px; outline: none; font-family: inherit; font-weight: 500; }
         
-        .clear-search { background: transparent; border: none; color: #ccc; font-size: 16px; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s ease; }
-        .clear-search:hover { background-color: #f0f0f0; color: #666; }
+        /* BOTÃO DE LIMPAR BUSCA MELHORADO */
+        .clear-search {
+            background: transparent;
+            border: none;
+            color: #ccc;
+            font-size: 16px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        .clear-search:hover {
+            background-color: #f0f0f0;
+            color: #666;
+        }
 
-        .category-nav { padding: 5px 0 15px 0; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-left: -15px; margin-right: -15px; width: calc(100% + 30px); position: relative; }
+        .category-nav { 
+            padding: 5px 0 15px 0;
+            overflow-x: auto; 
+            white-space: nowrap; 
+            -webkit-overflow-scrolling: touch; 
+            scrollbar-width: none; 
+            margin-left: -15px; 
+            margin-right: -15px; 
+            width: calc(100% + 30px); 
+            position: relative; 
+        }
         .category-list { display: flex; gap: 12px; padding-left: 15px; padding-right: 15px; list-style: none; }
         .category-list::after { content: ''; display: block; min-width: 5px; height: 1px; }
         .cat-btn { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px 20px; border-radius: 50px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03); cursor: pointer; }
@@ -182,7 +230,7 @@
         .user-tab-content { display: none; margin-top: 20px; }
         .user-tab-content.active { display: block; }
         
-        /* ESTILOS DETALHADOS DE PEDIDO (NOVO) */
+        /* ESTILOS DETALHADOS DE PEDIDO */
         .order-history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; transition: 0.2s; border-left: 5px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .order-history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
         .order-history-status { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -266,6 +314,9 @@
         <ul class="sidebar-menu">
             <li><a href="#" class="sidebar-link" onclick="openProfileModal(); toggleSidebar()"><i class="fas fa-user-cog"></i> Meu Perfil</a></li>
             <li><a href="#" class="sidebar-link" onclick="openOrdersModal(); toggleSidebar()"><i class="fas fa-receipt"></i> Meus Pedidos</a></li>
+            <!-- Botão de Instalação PWA na Sidebar -->
+            <li id="install-app-li" style="display:none;"><a href="#" class="sidebar-link" onclick="installPWA(); toggleSidebar()"><i class="fas fa-download"></i> Instalar App</a></li>
+            
             <li><a href="https://www.instagram.com/dogaoprea" target="_blank" class="sidebar-link"><i class="fab fa-instagram"></i> Instagram</a></li>
             <li><a href="https://wa.me/5588996768158" target="_blank" class="sidebar-link"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
             <li><a href="https://maps.app.goo.gl/MvT3UvF9AXrKJphj8" target="_blank" class="sidebar-link"><i class="fas fa-map-marker-alt"></i> Localização</a></li>
@@ -345,7 +396,7 @@
                     <small style="color:#888; font-size:11px;">Inclua o DDI (ex: 55 para Brasil) e o DDD.</small>
                 </div>
                 
-                <!-- NOVO: CAMPO DE ENDEREÇO NO PERFIL -->
+                <!-- CAMPO DE ENDEREÇO NO PERFIL -->
                 <div class="form-group">
                     <label class="form-label">Endereço Padrão (Opcional)</label>
                     <textarea id="profile-address" class="form-input" rows="2" placeholder="Rua, Número, Bairro..."></textarea>
@@ -373,6 +424,30 @@
                 <div id="user-orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #999;">Carregando...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Produto (Adicionais) -->
+    <div class="modal-overlay" id="product-modal">
+        <div class="modal-content product-modal-content">
+            <div class="modal-header">
+                <h2 class="brand-font" id="pm-title">Nome do Produto</h2>
+                <button class="close-modal" onclick="closeProductModal()" style="background:none; border:none; font-size:20px;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-scrollable-content">
+                <p id="pm-desc" style="color: #666; font-size: 13px; margin-bottom: 15px;"></p>
+                
+                <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--primary-dark);">Turbine seu pedido (Opcional)</h3>
+                <div id="pm-extras-list" class="extras-list">
+                    <!-- Checkboxes de Extras -->
+                </div>
+            </div>
+            <div class="modal-fixed-footer">
+                <button class="btn btn-whatsapp" onclick="confirmAddProduct()" style="background: var(--primary); color: black;">
+                    <span style="flex:1; text-align:left;">ADICIONAR</span>
+                    <span id="pm-total-price">R$ 0,00</span>
+                </button>
             </div>
         </div>
     </div>
@@ -496,6 +571,54 @@
     <div id="toast"><i class="fas fa-check-circle"></i> <span id="toast-msg">Item adicionado!</span></div>
 
     <script>
+        // --- MANIFEST DINÂMICO PARA PWA ---
+        const manifestData = {
+            "name": "Dogão Preá Delivery",
+            "short_name": "Dogão Preá",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#f0f2f5",
+            "theme_color": "#ff9f1c",
+            "icons": [
+                {
+                    "src": "https://cdn-icons-png.flaticon.com/512/3075/3075977.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                },
+                {
+                    "src": "https://cdn-icons-png.flaticon.com/512/3075/3075977.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        };
+        const stringManifest = JSON.stringify(manifestData);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        document.querySelector('#pwa-manifest').setAttribute('href', manifestURL);
+
+        // --- PWA INSTALL PROMPT ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // Mostra o botão na sidebar
+            const installLi = document.getElementById('install-app-li');
+            if(installLi) installLi.style.display = 'block';
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    const installLi = document.getElementById('install-app-li');
+                    if(installLi) installLi.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        }
+
         // --- CONFIGURAÇÃO FIREBASE ---
         const firebaseConfig = {
           apiKey: "AIzaSyClYFGSNXxPmAn3DRWiB7eSxCQ3Nf81IHI",
@@ -847,6 +970,7 @@
             }
         }
 
+        // --- ATUALIZADO: createItemCard (Com Lógica de Contador) ---
         function createItemCard(item) {
              const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
              const isUnavailable = item.available === false;
@@ -895,6 +1019,7 @@
             renderMenu(catId);
         }
 
+        // --- ATUALIZADO: addToCart (Direto) ---
         function addToCart(id) {
             const item = menuData.find(i => i.id === id);
             if (!item || item.available === false) return;
@@ -921,6 +1046,7 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
+        // --- CARRINHO & MENU ---
         function updateQty(id, change) {
             const idx = cart.findIndex(i => i.id === id);
             if (idx > -1) {
@@ -976,10 +1102,12 @@
             }
             
             renderCartItems();
-            updateMenuCounters();
+            updateMenuCounters(); // ATUALIZA OS BOTÕES DO CARDÁPIO
         }
         
+        // --- NOVO: ATUALIZA BOTÕES DO MENU EM TEMPO REAL ---
         function updateMenuCounters() {
+            // Varre todos os produtos visíveis no DOM
             menuData.forEach(item => {
                 const wrapper = document.getElementById(`action-wrapper-${item.id}`);
                 if(wrapper) {
