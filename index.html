@@ -80,54 +80,15 @@
         .status-strip-closed { background-color: rgba(255, 68, 68, 0.9); border-top: 1px solid rgba(255, 68, 68, 0.3); }
         .status-dot-strip { width: 6px; height: 6px; border-radius: 50%; background-color: #fff; display: inline-block; }
         
-        /* --- AJUSTES DE ESPAÇAMENTO --- */
-        #sticky-wrapper { 
-            position: sticky; top: 0; z-index: 900; 
-            background-color: var(--bg-body); 
-            padding-top: 20px; /* AUMENTADO DE 10px para 20px */
-            border-bottom: 1px solid var(--border-color); 
-            backdrop-filter: blur(10px); 
-        }
-        
-        .search-container { 
-            margin-bottom: 5px; /* REDUZIDO DE 15px para 5px */
-            display: flex; gap: 12px; align-items: center; 
-        }
-        
+        #sticky-wrapper { position: sticky; top: 0; z-index: 900; background-color: var(--bg-body); padding-top: 20px; border-bottom: 1px solid var(--border-color); backdrop-filter: blur(10px); }
+        .search-container { margin-bottom: 5px; display: flex; gap: 12px; align-items: center; }
         .search-box { flex: 1; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 50px; padding: 6px 16px; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.03); height: 48px; }
         .search-input { background: transparent; border: none; color: var(--text-main); width: 100%; font-size: 15px; outline: none; font-family: inherit; font-weight: 500; }
         
-        /* BOTÃO DE LIMPAR BUSCA MELHORADO */
-        .clear-search {
-            background: transparent;
-            border: none;
-            color: #ccc;
-            font-size: 16px;
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-        .clear-search:hover {
-            background-color: #f0f0f0;
-            color: #666;
-        }
+        .clear-search { background: transparent; border: none; color: #ccc; font-size: 16px; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s ease; }
+        .clear-search:hover { background-color: #f0f0f0; color: #666; }
 
-        .category-nav { 
-            padding: 5px 0 15px 0; /* REDUZIDO TOP DE 10px para 5px */
-            overflow-x: auto; 
-            white-space: nowrap; 
-            -webkit-overflow-scrolling: touch; 
-            scrollbar-width: none; 
-            margin-left: -15px; 
-            margin-right: -15px; 
-            width: calc(100% + 30px); 
-            position: relative; 
-        }
+        .category-nav { padding: 5px 0 15px 0; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-left: -15px; margin-right: -15px; width: calc(100% + 30px); position: relative; }
         .category-list { display: flex; gap: 12px; padding-left: 15px; padding-right: 15px; list-style: none; }
         .category-list::after { content: ''; display: block; min-width: 5px; height: 1px; }
         .cat-btn { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px 20px; border-radius: 50px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03); cursor: pointer; }
@@ -384,9 +345,15 @@
                     <small style="color:#888; font-size:11px;">Inclua o DDI (ex: 55 para Brasil) e o DDD.</small>
                 </div>
                 
+                <!-- NOVO: CAMPO DE ENDEREÇO NO PERFIL -->
+                <div class="form-group">
+                    <label class="form-label">Endereço Padrão (Opcional)</label>
+                    <textarea id="profile-address" class="form-input" rows="2" placeholder="Rua, Número, Bairro..."></textarea>
+                </div>
+                
                 <div style="display:flex; flex-direction:column; gap:10px; margin-top: 20px;">
                     <button class="btn btn-whatsapp" onclick="saveProfile()" style="width: 100%;">Salvar Alterações</button>
-                    <!-- BOTÃO SAIR DA CONTA ATUALIZADO (MESMO ESTILO DO DE CIMA) -->
+                    <!-- BOTÃO SAIR DA CONTA -->
                     <button class="btn" onclick="logout()" style="width: 100%; background:#eee; color:#333; padding: 16px; font-size: 16px; border-radius: 12px;">
                         <i class="fas fa-sign-out-alt"></i> Sair da Conta
                     </button>
@@ -410,37 +377,13 @@
         </div>
     </div>
 
-    <!-- Modal de Produto (Adicionais) -->
-    <div class="modal-overlay" id="product-modal">
-        <div class="modal-content product-modal-content">
-            <div class="modal-header">
-                <h2 class="brand-font" id="pm-title">Nome do Produto</h2>
-                <button class="close-modal" onclick="closeProductModal()" style="background:none; border:none; font-size:20px;"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-scrollable-content">
-                <p id="pm-desc" style="color: #666; font-size: 13px; margin-bottom: 15px;"></p>
-                
-                <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--primary-dark);">Turbine seu pedido (Opcional)</h3>
-                <div id="pm-extras-list" class="extras-list">
-                    <!-- Checkboxes de Extras -->
-                </div>
-            </div>
-            <div class="modal-fixed-footer">
-                <button class="btn btn-whatsapp" onclick="confirmAddProduct()" style="background: var(--primary); color: black;">
-                    <span style="flex:1; text-align:left;">ADICIONAR</span>
-                    <span id="pm-total-price">R$ 0,00</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <div id="sticky-wrapper">
         <div class="container">
             <div class="search-container">
                 <div class="search-box" id="search-box-container">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" id="search-input" placeholder="O que você quer comer hoje?" oninput="searchProducts(this.value)">
-                    <button class="clear-search" onclick="clearSearchInput()" title="Limpar busca"><i class="fas fa-times"></i></button>
+                    <button class="clear-search" onclick="clearSearchInput()" title="Limpar busca"><i class="fas fa-times-circle"></i></button>
                 </div>
             </div>
             <nav class="category-nav">
@@ -572,17 +515,12 @@
         const COL_ORDERS = 'orders';
 
         let categoriesConfig = [];
-        let extrasConfig = []; // Lista de Adicionais
         let menuData = [];
         let cart = [];
         let currentUser = null; 
         
         let editingOrder = null; 
         let loginTriggeredByCart = false;
-        
-        // Variável temporária para o modal de produto
-        let tempProduct = null;
-        let tempExtras = [];
 
         const statusMap = {
             'pending': { text: 'Aguardando Confirmação', class: 'status-pending', icon: 'fas fa-clock' },
@@ -627,8 +565,6 @@
 
         function openLoginModal(isFromCart = false) {
             loginTriggeredByCart = isFromCart; 
-            // Se já logado, mas chamado diretamente (não pelo carrinho), abre perfil
-            // Se chamado pelo carrinho e já logado, não deve acontecer, mas por segurança ok
             if (currentUser && !isFromCart) {
                 openOrdersModal(); 
             } else {
@@ -649,7 +585,15 @@
             if(!name || !phone) return alert("Preencha nome e telefone.");
             const cleanPhone = ddi + phone.replace(/\D/g, '');
 
-            currentUser = { name, phone: cleanPhone };
+            // Mantém endereço se já existir no storage (caso o usuário esteja relogando)
+            const existingUser = localStorage.getItem('dogao_user');
+            let existingAddress = '';
+            if(existingUser) {
+                const parsed = JSON.parse(existingUser);
+                if(parsed.address) existingAddress = parsed.address;
+            }
+
+            currentUser = { name, phone: cleanPhone, address: existingAddress };
             localStorage.setItem('dogao_user', JSON.stringify(currentUser));
             
             updateLoginButton(true);
@@ -658,12 +602,10 @@
             if (loginTriggeredByCart) toggleCart();
         }
 
-        // --- ATUALIZADO: LÓGICA DO HEADER DE LOGIN ---
         function updateLoginButton(isLogged) {
             const container = document.querySelector('.social-links-header');
             
             if (isLogged) {
-                // Layout LOGADO: Botão Meus Pedidos (Icon+Texto) + Botão Perfil (Só Icon)
                 container.innerHTML = `
                     <button class="header-action-btn btn-orders-header" onclick="openOrdersModal()">
                         <i class="fas fa-receipt"></i> <span>Meus Pedidos</span>
@@ -673,7 +615,6 @@
                     </button>
                 `;
             } else {
-                // Layout DESLOGADO: Apenas botão Entrar
                 container.innerHTML = `
                     <button class="header-action-btn btn-login-header" onclick="openLoginModal()">
                         <i class="fas fa-user-circle"></i> <span>Entrar</span>
@@ -682,7 +623,7 @@
             }
         }
 
-        // --- NOVO: GERENCIAMENTO DE PERFIL ---
+        // --- ATUALIZADO: GERENCIAMENTO DE PERFIL COM ENDEREÇO ---
         function openProfileModal() {
             if (!currentUser) {
                 openLoginModal();
@@ -690,6 +631,7 @@
             }
             document.getElementById('profile-name').value = currentUser.name;
             document.getElementById('profile-phone').value = currentUser.phone;
+            document.getElementById('profile-address').value = currentUser.address || '';
             document.getElementById('profile-modal').classList.add('open');
         }
 
@@ -700,11 +642,12 @@
         function saveProfile() {
             const name = document.getElementById('profile-name').value;
             const phone = document.getElementById('profile-phone').value;
+            const address = document.getElementById('profile-address').value;
 
-            if(!name || !phone) return alert("Preencha todos os dados.");
+            if(!name || !phone) return alert("Preencha nome e telefone.");
             const cleanPhone = phone.replace(/\D/g, '');
 
-            currentUser = { name, phone: cleanPhone };
+            currentUser = { ...currentUser, name, phone: cleanPhone, address: address };
             localStorage.setItem('dogao_user', JSON.stringify(currentUser));
             
             showToast("Perfil atualizado!");
@@ -768,10 +711,43 @@
                                 <span style="font-weight:700;">#${order.orderId || '???'}</span>
                                 <div class="order-history-status ${statusInfo.class}"><i class="${statusInfo.icon}"></i> ${statusInfo.text}</div>
                             </div>
-                            <div style="font-size:13px; color:#666; margin-bottom:5px;">${dateStr}</div>
-                            <div style="font-size:14px; font-weight:600;">Total: R$ ${order.total.toFixed(2)}</div>
-                            <div style="margin-top:10px; font-size:13px;">
-                                ${order.cart.map(i => `<div>${i.qty}x ${i.name}</div>`).join('')}
+                            
+                            <div class="order-history-info-grid">
+                                <div><i class="far fa-calendar-alt"></i> ${dateStr}</div>
+                                <div><i class="fas fa-truck"></i> ${order.type}</div>
+                                <div><i class="far fa-credit-card"></i> ${order.payment}</div>
+                            </div>
+
+                            <div class="order-history-divider"></div>
+
+                            <div class="order-history-items">
+                                ${order.cart.map(i => {
+                                    const totalItem = i.price * i.qty;
+                                    return `
+                                    <div class="oh-item">
+                                        <div class="oh-item-top">
+                                            <span class="oh-item-name">${i.qty}x ${i.name}</span>
+                                            <span class="oh-item-price">R$ ${totalItem.toFixed(2)}</span>
+                                        </div>
+                                        ${i.obs ? `<div class="oh-obs">Obs: ${i.obs}</div>` : ''}
+                                    </div>
+                                    `
+                                }).join('')}
+                            </div>
+
+                            <div class="order-history-divider"></div>
+
+                            <div class="order-history-summary">
+                                ${order.deliveryFee > 0 ? `
+                                    <div class="oh-summary-row">
+                                        <span>Taxa de Entrega:</span>
+                                        <span>R$ ${order.deliveryFee.toFixed(2)}</span>
+                                    </div>
+                                ` : ''}
+                                <div class="oh-summary-row oh-total">
+                                    <span>TOTAL:</span>
+                                    <span>R$ ${order.total.toFixed(2)}</span>
+                                </div>
                             </div>
                         </div>
                       `;
@@ -780,7 +756,6 @@
         }
 
         function initFirebaseData() {
-            // Categorias
             db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
                 if (doc.exists && doc.data().list) {
                     categoriesConfig = doc.data().list;
@@ -789,16 +764,6 @@
                 }
             });
 
-            // Adicionais Globais
-            db.collection(COL_SETTINGS).doc('extras').onSnapshot(doc => {
-                if (doc.exists && doc.data().list) {
-                    extrasConfig = doc.data().list;
-                } else {
-                    extrasConfig = [];
-                }
-            });
-
-            // Produtos
             db.collection(COL_ITEMS).onSnapshot((snapshot) => {
                   menuData = [];
                   snapshot.forEach(doc => { menuData.push({ id: doc.id, ...doc.data() }); });
@@ -808,7 +773,6 @@
                   if(error.code === 'permission-denied') document.getElementById('error-banner').classList.remove('hidden');
               });
 
-            // Status Loja
             db.collection(COL_SETTINGS).doc('store').onSnapshot((doc) => {
                   if (doc.exists) updateStoreStatus(doc.data());
                   else checkTimeStatus();
@@ -883,7 +847,6 @@
             }
         }
 
-        // --- ATUALIZADO: createItemCard (Com Lógica de Contador) ---
         function createItemCard(item) {
              const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
              const isUnavailable = item.available === false;
@@ -932,107 +895,6 @@
             renderMenu(catId);
         }
 
-        // --- LÓGICA DE ADICIONAR AO CARRINHO (COM MODAL DE EXTRAS) ---
-        function initAddToCart(id) {
-            const item = menuData.find(i => i.id === id);
-            if (!item || item.available === false) return;
-
-            // Filtra adicionais globais que correspondem à categoria deste item
-            // OU adicionais específicos do item (retrocompatibilidade)
-            const itemSpecificExtras = item.extras || [];
-            const globalExtras = extrasConfig.filter(e => e.categories && e.categories.includes(item.category));
-            
-            // Combina os dois sem duplicatas (pelo nome)
-            const allExtras = [...globalExtras];
-            itemSpecificExtras.forEach(ie => {
-                if(!allExtras.find(ge => ge.name === ie.name)) {
-                    allExtras.push(ie);
-                }
-            });
-
-            if (allExtras.length > 0) {
-                // Tem adicionais: Abre modal
-                openProductModal(item, allExtras);
-            } else {
-                // Não tem adicionais: Adiciona direto
-                addItemToCartDirectly(item, []);
-            }
-        }
-
-        function openProductModal(item, extras) {
-            tempProduct = item;
-            tempExtras = extras;
-            
-            document.getElementById('pm-title').innerText = item.name;
-            document.getElementById('pm-desc').innerText = item.desc || '';
-            document.getElementById('pm-total-price').innerText = `R$ ${item.price.toFixed(2).replace('.',',')}`;
-            
-            const list = document.getElementById('pm-extras-list');
-            list.innerHTML = extras.map((extra, idx) => `
-                <label class="extra-item">
-                    <div style="display:flex; align-items:center;">
-                        <input type="checkbox" value="${idx}" onchange="updateModalTotal()">
-                        <div class="extra-info">${extra.name}</div>
-                    </div>
-                    <div class="extra-price">+ R$ ${parseFloat(extra.price).toFixed(2).replace('.',',')}</div>
-                </label>
-            `).join('');
-            
-            document.getElementById('product-modal').classList.add('open');
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-modal').classList.remove('open');
-            tempProduct = null;
-            tempExtras = [];
-        }
-
-        function updateModalTotal() {
-            if (!tempProduct) return;
-            let total = tempProduct.price;
-            
-            const checkboxes = document.querySelectorAll('#pm-extras-list input:checked');
-            checkboxes.forEach(cb => {
-                const idx = parseInt(cb.value);
-                total += parseFloat(tempExtras[idx].price);
-            });
-            
-            document.getElementById('pm-total-price').innerText = `R$ ${total.toFixed(2).replace('.',',')}`;
-        }
-
-        function confirmAddProduct() {
-            if (!tempProduct) return;
-            
-            const selectedExtras = [];
-            const checkboxes = document.querySelectorAll('#pm-extras-list input:checked');
-            checkboxes.forEach(cb => {
-                const idx = parseInt(cb.value);
-                selectedExtras.push({
-                    name: tempExtras[idx].name,
-                    price: parseFloat(tempExtras[idx].price)
-                });
-            });
-            
-            addItemToCartDirectly(tempProduct, selectedExtras);
-            closeProductModal();
-        }
-
-        function addItemToCartDirectly(item, extras) {
-            // Gera um ID único para este item no carrinho, permitindo personalizações diferentes
-            const cartItem = {
-                ...item,
-                _uuid: 'cart_' + Date.now() + Math.random().toString(36).substr(2, 9),
-                qty: 1,
-                selectedExtras: extras,
-                extrasTotal: extras.reduce((acc, e) => acc + e.price, 0)
-            };
-            
-            cart.push(cartItem);
-            updateUI();
-            showToast();
-        }
-
-        // --- ATUALIZADO: addToCart (Direto) ---
         function addToCart(id) {
             const item = menuData.find(i => i.id === id);
             if (!item || item.available === false) return;
@@ -1059,7 +921,6 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // --- CARRINHO & MENU ---
         function updateQty(id, change) {
             const idx = cart.findIndex(i => i.id === id);
             if (idx > -1) {
@@ -1115,12 +976,10 @@
             }
             
             renderCartItems();
-            updateMenuCounters(); // ATUALIZA OS BOTÕES DO CARDÁPIO
+            updateMenuCounters();
         }
         
-        // --- NOVO: ATUALIZA BOTÕES DO MENU EM TEMPO REAL ---
         function updateMenuCounters() {
-            // Varre todos os produtos visíveis no DOM
             menuData.forEach(item => {
                 const wrapper = document.getElementById(`action-wrapper-${item.id}`);
                 if(wrapper) {
@@ -1186,6 +1045,7 @@
         
         function clearCart() { if(confirm("Esvaziar a sacola?")) { cart = []; updateUI(); } }
 
+        // --- ATUALIZADO: PREENCHE ENDEREÇO SE DISPONÍVEL ---
         function toggleOrderType(type) {
             const addr = document.getElementById('address-section');
             const feeMsg = document.getElementById('footer-delivery-msg');
@@ -1198,6 +1058,12 @@
             if (type === 'Entrega') {
                 if(addr) addr.classList.remove('hidden');
                 if(feeMsg) feeMsg.classList.remove('hidden');
+                
+                // Preenche endereço se o usuário tiver
+                const addrInput = document.getElementById('address-text');
+                if(currentUser && currentUser.address && !addrInput.value) {
+                    addrInput.value = currentUser.address;
+                }
             } else if (type === 'Retirada') {
                 if(pickupSection) pickupSection.classList.remove('hidden');
             }
@@ -1238,6 +1104,7 @@
             );
         }
 
+        // --- ATUALIZADO: SALVA ENDEREÇO AO FINALIZAR ---
         function finalizeOrder() {
             const name = currentUser ? currentUser.name : "Cliente Anônimo";
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
@@ -1261,6 +1128,7 @@
             if (type === 'Entrega') {
                 const mapsLink = document.getElementById('maps-link').value;
                 const addressText = document.getElementById('address-text').value;
+                
                 if (!mapsLink && !addressText) return alert("Para entrega, precisamos da sua localização ou endereço.");
 
                 if(mapsLink) {
@@ -1270,6 +1138,12 @@
                 if(addressText) {
                     addressMsg += `\n🏠 *Endereço:* ${addressText}`;
                     addressData = addressText;
+                    
+                    // SALVA ENDEREÇO NO PERFIL SE NÃO EXISTIR
+                    if(currentUser) {
+                        currentUser.address = addressText;
+                        localStorage.setItem('dogao_user', JSON.stringify(currentUser));
+                    }
                 }
                 addressMsg += `\n⚠️ _Taxa a calcular._`;
             } else if (type === 'Retirada') {
