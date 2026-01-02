@@ -103,9 +103,26 @@
         .item-price { color: var(--primary-dark); font-weight: 800; font-size: 18px; }
         .category-separator { margin-top: 25px; margin-bottom: 10px; font-size: 22px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
         
-        .add-btn { width: auto; padding: 8px 16px; height: 40px; background: rgba(255, 159, 28, 0.15); color: var(--primary-dark); border: 1px solid transparent; border-radius: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font-size: 14px; text-transform: uppercase; }
+        .add-btn { width: auto; padding: 8px 16px; height: 40px; background: rgba(255, 159, 28, 0.15); color: var(--primary-dark); border: 1px solid transparent; border-radius: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; font-size: 14px; text-transform: uppercase; transition: 0.2s; }
         .add-btn:hover { background: var(--primary); color: #000; }
         .add-btn.disabled { background: #eee; color: #999; cursor: not-allowed; border: 1px solid #ddd; }
+
+        /* CONTROLE DE QUANTIDADE NO CARD */
+        .qty-selector-card { 
+            display: flex; align-items: center; gap: 5px; 
+            background: #fff; border: 1px solid var(--border-color); 
+            border-radius: 10px; padding: 4px; height: 40px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02); 
+        }
+        .qty-selector-card button { 
+            width: 32px; height: 32px; border: none; 
+            background: transparent; color: var(--text-main); 
+            font-weight: bold; border-radius: 8px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            transition: 0.2s; font-size: 20px; /* Aumentado para 20px */
+        }
+        .qty-selector-card button:hover { background: var(--bg-element); }
+        .qty-selector-card span { font-weight: 700; font-size: 15px; min-width: 24px; text-align: center; color: var(--text-main); }
 
         /* CARRINHO FLUTUANTE */
         .floating-cart { position: fixed; bottom: 20px; right: 15px; left: 15px; background-color: var(--primary); color: #000; padding: 14px 20px; border-radius: 50px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4); cursor: pointer; z-index: 1000; animation: popUp 0.5s; }
@@ -157,17 +174,23 @@
 
         footer { text-align: center; padding: 30px 15px; color: var(--text-muted); font-size: 11px; margin-top: 20px; border-top: 1px solid var(--border-color); }
         
-        /* Banner de Erro */
+        /* Banner de Erro/Ajuda */
         #error-banner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .error-box { background: #222; padding: 20px; border-radius: 10px; border: 1px solid #ff4444; max-width: 600px; }
         .code-block { background: #000; padding: 10px; border-radius: 5px; text-align: left; font-family: monospace; font-size: 12px; margin: 10px 0; color: #0f0; overflow-x: auto; }
         .geo-btn { background: #25D366; color: #fff; width: 100%; margin-top: 10px; border: none; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; }
 
         /* ABA LOGIN & PEDIDOS */
+        .login-btn-top {
+            background: var(--primary); color: #000; border: none;
+            padding: 6px 12px; border-radius: 20px; font-weight: 700;
+            font-size: 12px; display: flex; align-items: center; gap: 5px; cursor: pointer;
+        }
+
         .user-tab-content { display: none; margin-top: 20px; }
         .user-tab-content.active { display: block; }
         
-        /* ESTILOS DETALHADOS DE PEDIDO */
+        /* ESTILOS DETALHADOS DE PEDIDO (NOVO) */
         .order-history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; transition: 0.2s; border-left: 5px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .order-history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
         .order-history-status { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -263,9 +286,12 @@
     <header>
         <div class="header-top">
             <div class="logo-section">
+                <!-- Botão Hamburger -->
                 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div class="logo brand-font">DOGÃO PREÁ</div>
             </div>
+            
+            <!-- ÁREA DE AÇÕES (LOGIN/PEDIDOS/PERFIL) -->
             <div class="social-links-header">
                 <!-- Injetado via JS -->
             </div>
@@ -329,6 +355,7 @@
                 
                 <div style="display:flex; flex-direction:column; gap:10px; margin-top: 20px;">
                     <button class="btn btn-whatsapp" onclick="saveProfile()" style="width: 100%;">Salvar Alterações</button>
+                    <!-- BOTÃO SAIR DA CONTA ATUALIZADO (MESMO ESTILO DO DE CIMA) -->
                     <button class="btn" onclick="logout()" style="width: 100%; background:#eee; color:#333; padding: 16px; font-size: 16px; border-radius: 12px;">
                         <i class="fas fa-sign-out-alt"></i> Sair da Conta
                     </button>
@@ -811,19 +838,39 @@
             }
         }
 
+        // --- ATUALIZADO: createItemCard (Com Lógica de Contador) ---
         function createItemCard(item) {
              const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
              const isUnavailable = item.available === false;
-             // Botão sempre diz "ADICIONAR" agora
-             let btnHtml = isUnavailable 
-                ? `<button class="add-btn disabled">Indisponível</button>` 
-                : `<button class="add-btn" onclick="addToCart('${item.id}')">ADICIONAR</button>`;
+             
+             // Verifica se está no carrinho
+             const cartItem = cart.find(c => c.id === item.id);
+             
+             let btnHtml = '';
+             if(isUnavailable) {
+                 btnHtml = `<button class="add-btn disabled">Indisponível</button>`;
+             } else if(cartItem) {
+                 // MOSTRA CONTADOR SE JÁ TIVER NO CARRINHO
+                 btnHtml = `
+                    <div class="qty-selector-card" id="qty-${item.id}">
+                        <button onclick="updateQty('${item.id}', -1)">-</button>
+                        <span>${cartItem.qty}</span>
+                        <button class="plus-btn" onclick="updateQty('${item.id}', 1)">+</button>
+                    </div>
+                 `;
+             } else {
+                 // MOSTRA BOTÃO ADICIONAR
+                 btnHtml = `<button class="add-btn" id="add-${item.id}" onclick="addToCart('${item.id}')">ADICIONAR</button>`;
+             }
 
              return `<div class="menu-item ${isUnavailable ? 'unavailable' : ''}">
                         <div class="item-content">
                             <div class="item-title">${item.name}</div>
                             <p class="item-desc">${item.desc || ''}</p>
-                            <div class="item-footer"><span class="item-price">${priceDisplay}</span>${btnHtml}</div>
+                            <div class="item-footer">
+                                <span class="item-price">${priceDisplay}</span>
+                                <div id="action-wrapper-${item.id}">${btnHtml}</div>
+                            </div>
                         </div>
                     </div>`;
         }
@@ -840,6 +887,7 @@
             renderMenu(catId);
         }
 
+        // --- ATUALIZADO: addToCart (Direto) ---
         function addToCart(id) {
             const item = menuData.find(i => i.id === id);
             if (!item || item.available === false) return;
@@ -866,8 +914,8 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // --- CARRINHO ---
-        function updateCartQty(id, change) {
+        // --- CARRINHO & MENU ---
+        function updateQty(id, change) {
             const idx = cart.findIndex(i => i.id === id);
             if (idx > -1) {
                 cart[idx].qty += change;
@@ -912,13 +960,44 @@
                 checkoutForm.style.display = 'block';
                 actionsBar.style.display = 'flex';
                 btnAddMore.style.display = 'flex';
+                modalFooter.classList.remove('hidden'); 
             } else {
                 floatBtn.classList.add('hidden');
                 modalFooter.classList.add('hidden');
                 checkoutForm.style.display = 'none';
                 actionsBar.style.display = 'none';
+                modalFooter.classList.add('hidden'); 
             }
+            
             renderCartItems();
+            updateMenuCounters(); // ATUALIZA OS BOTÕES DO CARDÁPIO
+        }
+        
+        // --- NOVO: ATUALIZA BOTÕES DO MENU EM TEMPO REAL ---
+        function updateMenuCounters() {
+            // Varre todos os produtos visíveis no DOM
+            menuData.forEach(item => {
+                const wrapper = document.getElementById(`action-wrapper-${item.id}`);
+                if(wrapper) {
+                    const cartItem = cart.find(c => c.id === item.id);
+                    if(cartItem) {
+                        wrapper.innerHTML = `
+                            <div class="qty-selector-card">
+                                <button onclick="updateQty('${item.id}', -1)">-</button>
+                                <span>${cartItem.qty}</span>
+                                <button class="plus-btn" onclick="updateQty('${item.id}', 1)">+</button>
+                            </div>
+                        `;
+                    } else {
+                        const isUnavailable = item.available === false;
+                        if(isUnavailable) {
+                             wrapper.innerHTML = `<button class="add-btn disabled">Indisponível</button>`;
+                        } else {
+                             wrapper.innerHTML = `<button class="add-btn" onclick="addToCart('${item.id}')">ADICIONAR</button>`;
+                        }
+                    }
+                }
+            });
         }
 
         function renderCartItems() {
@@ -937,9 +1016,9 @@
                             <span>R$ ${lineTotal.toFixed(2).replace('.',',')}</span>
                         </div>
                         <div class="qty-controls">
-                            <button class="qty-btn" onclick="updateCartQty('${item.id}', -1)"><i class="fas fa-minus"></i></button>
+                            <button class="qty-btn" onclick="updateQty('${item.id}', -1)"><i class="fas fa-minus"></i></button>
                             <span class="qty-input">${item.qty}</span>
-                            <button class="qty-btn" onclick="updateCartQty('${item.id}', 1)"><i class="fas fa-plus"></i></button>
+                            <button class="qty-btn" onclick="updateQty('${item.id}', 1)"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
                     <input type="text" class="item-obs-input" style="width: 100%; margin-top: 5px;" placeholder="Obs? Ex: Sem cebola" value="${item.obs || ''}" oninput="updateItemObs('${item.id}', this.value)">
