@@ -106,7 +106,6 @@
         .search-box { flex: 1; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 50px; padding: 6px 16px; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.03); height: 48px; }
         .search-input { background: transparent; border: none; color: var(--text-main); width: 100%; font-size: 15px; outline: none; font-family: inherit; font-weight: 500; }
         
-        /* BOTÃO DE LIMPAR BUSCA MELHORADO */
         .clear-search {
             background: transparent;
             border: none;
@@ -656,12 +655,28 @@
             'cancelled': { text: 'Cancelado', class: 'status-cancelled', icon: 'fas fa-times' }
         };
 
+        // --- STORAGE HELPER ---
+        function saveCartToStorage() {
+            localStorage.setItem('dogao_cart', JSON.stringify(cart));
+        }
+
         window.onload = () => {
             document.getElementById('copyright-year').textContent = new Date().getFullYear();
             checkSavedUser();
             const radios = document.querySelectorAll('input[type="radio"]');
             radios.forEach(r => r.checked = false);
             
+            // CARREGA CARRINHO SALVO
+            const savedCart = localStorage.getItem('dogao_cart');
+            if (savedCart) {
+                try {
+                    cart = JSON.parse(savedCart);
+                } catch (e) {
+                    console.error("Erro ao carregar carrinho", e);
+                    localStorage.removeItem('dogao_cart');
+                }
+            }
+
             auth.signInAnonymously().then(() => {
                 initFirebaseData(); 
             }).catch(e => { console.error(e); initFirebaseData(); });
@@ -746,7 +761,6 @@
             }
         }
 
-        // --- ATUALIZADO: GERENCIAMENTO DE PERFIL COM ENDEREÇO ---
         function openProfileModal() {
             if (!currentUser) {
                 openLoginModal();
@@ -891,6 +905,9 @@
                   menuData = [];
                   snapshot.forEach(doc => { menuData.push({ id: doc.id, ...doc.data() }); });
                   document.getElementById('loading-indicator').classList.add('hidden');
+                  
+                  // Atualiza UI com itens do carrinho carregado
+                  updateUI(); 
                   renderMenu('all');
               }, (error) => {
                   if(error.code === 'permission-denied') document.getElementById('error-banner').classList.remove('hidden');
@@ -1035,6 +1052,7 @@
                 });
             }
             
+            saveCartToStorage(); // SALVA CARRINHO
             updateUI();
             showToast("Item adicionado!");
         }
@@ -1052,13 +1070,17 @@
             if (idx > -1) {
                 cart[idx].qty += change;
                 if (cart[idx].qty <= 0) cart.splice(idx, 1);
+                saveCartToStorage(); // SALVA CARRINHO
                 updateUI();
             }
         }
 
         function updateItemObs(id, val) {
             const item = cart.find(i => i.id === id);
-            if(item) item.obs = val;
+            if(item) {
+                item.obs = val;
+                saveCartToStorage(); // SALVA CARRINHO
+            }
         }
 
         function updateUI() {
@@ -1102,7 +1124,7 @@
             }
             
             renderCartItems();
-            updateMenuCounters(); // ATUALIZA OS BOTÕES DO CARDÁPIO
+            updateMenuCounters();
         }
         
         // --- NOVO: ATUALIZA BOTÕES DO MENU EM TEMPO REAL ---
@@ -1171,7 +1193,13 @@
             else document.body.classList.remove('no-scroll');
         }
         
-        function clearCart() { if(confirm("Esvaziar a sacola?")) { cart = []; updateUI(); } }
+        function clearCart() { 
+            if(confirm("Esvaziar a sacola?")) { 
+                cart = []; 
+                saveCartToStorage(); // LIMPA O STORAGE
+                updateUI(); 
+            } 
+        }
 
         // --- ATUALIZADO: PREENCHE ENDEREÇO SE DISPONÍVEL ---
         function toggleOrderType(type) {
@@ -1314,6 +1342,7 @@
             savePromise.then(() => {
                 if (editingOrder) editingOrder = null;
                 cart = []; 
+                saveCartToStorage(); // LIMPA STORAGE APÓS SUCESSO
                 updateUI();
                 toggleCart(); 
                 openOrdersModal(); 
@@ -1373,12 +1402,13 @@
                 closeOrdersModal();
                 toggleCart();
                 updateUI();
-             });
+            });
         }
         
         function cancelEdit() {
             editingOrder = null;
             cart = [];
+            saveCartToStorage(); // LIMPA O CARRINHO SALVO
             updateUI();
             const modal = document.getElementById('cart-modal');
             modal.classList.remove('open');
