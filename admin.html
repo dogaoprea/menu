@@ -41,6 +41,15 @@
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* Filtros de Pedidos */
+        .order-filters { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
+        .filter-btn { 
+            background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; 
+            font-size: 13px; font-weight: 600; color: #666; cursor: pointer; white-space: nowrap; 
+        }
+        .filter-btn.active { background: var(--primary); color: #000; border-color: var(--primary); }
+        .filter-btn:hover { background: #eee; }
         
         /* Login */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-body); z-index: 2000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
@@ -60,9 +69,8 @@
         .order-card.status-payment_pending { border-left-color: var(--warning); }
         .order-card.status-payment_confirmed { border-left-color: var(--success); }
         .order-card.status-delivering, .order-card.status-ready { border-left-color: var(--primary); }
-        /* Done e Cancelled não aparecerão mais na lista principal, mas deixo o estilo caso queira uma aba de histórico futuro */
-        .order-card.status-done { border-left-color: #4CAF50; opacity: 0.6; }
-        .order-card.status-cancelled { border-left-color: var(--danger); opacity: 0.6; }
+        .order-card.status-done { border-left-color: #4CAF50; opacity: 0.8; background: #f9fff9; }
+        .order-card.status-cancelled { border-left-color: var(--danger); opacity: 0.8; background: #fff5f5; }
 
         .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
         .order-id { font-weight: 800; color: #333; font-size: 16px; }
@@ -80,6 +88,7 @@
         .btn-copy { background: #607D8B; }
         .btn-share { background: #25D366; }
         .btn-archive { background: #4CAF50; }
+        .btn-delete-forever { background: #ff4444; } /* Botão para apagar do histórico */
         
         .btn-edit-order:hover { background: #1976D2; }
         .btn-copy:hover { background: #455A64; }
@@ -153,6 +162,14 @@
         .btn-mini-trash { color: var(--danger); border-color: #ffcccc; background: #fff0f0; }
         .price-edit-input { width: 70px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; text-align: right; }
 
+        /* SEPARAÇÃO DE HISTÓRICO */
+        .history-section { border-top: 3px solid #eee; margin-top: 30px; padding-top: 20px; }
+        .history-title { font-family: 'Bebas Neue'; color: #666; font-size: 20px; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .history-title i { transition: 0.3s; }
+        .history-title.collapsed i { transform: rotate(-90deg); }
+        #history-list { display: block; }
+        #history-list.hidden { display: none; }
+
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 30px; }
     </style>
@@ -185,11 +202,28 @@
 
             <!-- ABA DE PEDIDOS -->
             <div id="tab-orders" class="tab-content active">
-                <div class="card" style="text-align: center; color: #666; font-size: 13px;">
-                     Mostrando apenas pedidos ativos. Pedidos concluídos ou cancelados são removidos da lista.
+                
+                <!-- FILTROS DE STATUS -->
+                <div class="order-filters">
+                    <button class="filter-btn active" onclick="filterOrders('all', this)">Todos (Ativos)</button>
+                    <button class="filter-btn" onclick="filterOrders('pending', this)">Pendentes</button>
+                    <button class="filter-btn" onclick="filterOrders('confirmed', this)">Confirmados</button>
+                    <button class="filter-btn" onclick="filterOrders('active_delivery', this)">Em Entrega/Retirada</button>
                 </div>
+                
                 <div id="orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #888;">Aguardando novos pedidos...</p>
+                </div>
+
+                <!-- SEÇÃO DE HISTÓRICO (CONCLUÍDOS/CANCELADOS) -->
+                <div class="history-section">
+                    <div class="history-title" onclick="toggleHistory()">
+                        <i id="history-arrow" class="fas fa-chevron-down"></i> Histórico (Concluídos/Cancelados)
+                    </div>
+                    <div id="history-list">
+                        <!-- Pedidos antigos aqui -->
+                        <p style="text-align: center; color: #ccc; font-size: 13px;">Carregando histórico...</p>
+                    </div>
                 </div>
             </div>
 
@@ -398,7 +432,10 @@
         let categoriesConfig = JSON.parse(JSON.stringify(defaultCategories));
         let currentItems = [];
         let editingOrderCart = [];
-        let editingOrderFee = 0; // Taxa de entrega em edição
+        let editingOrderFee = 0; 
+        
+        let allOrders = []; // Armazena todos os pedidos para filtragem local
+        let currentFilter = 'all'; // Filtro atual
 
         // --- AUTH ---
         function checkLogin() {
@@ -445,110 +482,167 @@
                 populateAddItemSelect(); 
             });
 
-            // ORDERS - Filtro local para remover 'done' e 'cancelled' visualmente
-            db.collection(COL_ORDERS).orderBy('timestamp', 'desc').limit(50).onSnapshot(snap => {
-                const list = document.getElementById('orders-list');
-                list.innerHTML = '';
+            // ORDERS LISTENER
+            db.collection(COL_ORDERS).orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
+                allOrders = [];
+                snap.forEach(doc => allOrders.push({ _id: doc.id, ...doc.data() }));
+                renderOrders(); // Chama a função de renderização com filtro
+            });
+        }
+        
+        function filterOrders(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderOrders();
+        }
+
+        function toggleHistory() {
+            const list = document.getElementById('history-list');
+            const arrow = document.getElementById('history-arrow');
+            if (list.classList.contains('hidden')) {
+                list.classList.remove('hidden');
+                arrow.className = 'fas fa-chevron-down';
+            } else {
+                list.classList.add('hidden');
+                arrow.className = 'fas fa-chevron-right';
+            }
+        }
+
+        function renderOrders() {
+            const activeContainer = document.getElementById('orders-list');
+            const historyContainer = document.getElementById('history-list');
+            
+            activeContainer.innerHTML = '';
+            historyContainer.innerHTML = '';
+
+            let hasActive = false;
+            let hasHistory = false;
+
+            allOrders.forEach(order => {
+                const status = order.status || 'pending';
+                const isFinished = status === 'done' || status === 'cancelled';
                 
-                let visibleCount = 0;
+                // --- FILTRAGEM ---
+                // Se o pedido for finalizado, vai pro histórico sempre
+                if (isFinished) {
+                    hasHistory = true;
+                    historyContainer.appendChild(createOrderCard(order, true));
+                    return;
+                }
 
-                snap.forEach(doc => {
-                    const order = doc.data();
-                    
-                    // FILTRAGEM: Se estiver concluído ou cancelado, NÃO exibe na lista principal
-                    if (order.status === 'done' || order.status === 'cancelled') return;
+                // Lógica para lista de ativos baseada no filtro selecionado
+                let show = false;
+                if (currentFilter === 'all') show = true;
+                else if (currentFilter === 'pending' && status === 'pending') show = true;
+                else if (currentFilter === 'confirmed' && status === 'confirmed') show = true;
+                else if (currentFilter === 'active_delivery' && (status === 'delivering' || status === 'ready')) show = true;
 
-                    visibleCount++;
-                    const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
-                    const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const isNew = (new Date() - date) < 300000;
-                    
-                    let itemsHtml = '';
-                    if (order.cart) {
-                        itemsHtml = order.cart.map(i => `
-                            <div class="order-item-line">
-                                <span>${i.qty}x ${i.name}</span>
-                                <span>R$ ${(i.price * i.qty).toFixed(2)}</span>
-                            </div>
-                            ${i.obs ? `<div style="font-size:11px; color:#666; margin-bottom:4px; font-style:italic;">Obs: ${i.obs}</div>` : ''}
-                        `).join('');
-                    }
-
-                    const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + (i.price * i.qty), 0) : 0;
-                    const fee = order.deliveryFee || 0;
-                    const total = subtotal + fee;
-
-                    const clipboardText = `*PEDIDO #${order.orderId || '???'}*\n` +
-                        `Cliente: ${order.customerName}\n` +
-                        `Tipo: ${order.type}\n` +
-                        `Pagamento: ${order.payment}\n` +
-                        `Endereço: ${order.address || 'N/A'}\n` +
-                        `----------------\n` +
-                        (order.cart ? order.cart.map(i => `${i.qty}x ${i.name}`).join('\n') : '') +
-                        `\n----------------\n` +
-                        `Taxa: R$ ${fee.toFixed(2)}\n` +
-                        `*TOTAL: R$ ${total.toFixed(2)}*`;
-
-                    const waLink = `https://wa.me/?text=${encodeURIComponent(clipboardText)}`;
-                    const clientWaLink = order.userPhone ? `<a href="https://wa.me/55${order.userPhone}" target="_blank" style="margin-left:5px; color:#25D366;"><i class="fab fa-whatsapp"></i></a>` : '';
-
-                    let statusOptions = `
-                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
-                        <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Pedido Confirmado</option>
-                        <option value="payment_pending" ${order.status === 'payment_pending' ? 'selected' : ''}>Pagamento Pendente</option>
-                        <option value="payment_confirmed" ${order.status === 'payment_confirmed' ? 'selected' : ''}>Pagamento Confirmado</option>
-                    `;
-                    
-                    if (order.type === 'Entrega') {
-                        statusOptions += `<option value="delivering" ${order.status === 'delivering' ? 'selected' : ''}>Saiu para Entrega</option>`;
-                    } else {
-                        statusOptions += `<option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Pronto para Retirada</option>`;
-                    }
-                    
-                    statusOptions += `<option value="done" ${order.status === 'done' ? 'selected' : ''}>Concluído</option>`;
-                    statusOptions += `<option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>`;
-                    
-                    const statusClass = order.status ? `status-${order.status}` : '';
-
-                    const card = document.createElement('div');
-                    card.className = `order-card ${isNew ? 'new' : ''} ${statusClass}`;
-                    card.innerHTML = `
-                        <div class="order-header">
-                            <div>
-                                <span class="order-id">#${order.orderId || '???'}</span>
-                                <div class="order-time"><i class="far fa-clock"></i> ${timeString}</div>
-                            </div>
-                            <div class="btn-action-group">
-                                <button class="btn-sm btn-copy" onclick="copyToClipboard(this, \`${clipboardText.replace(/`/g, '\\`')}\`)" title="Copiar"><i class="far fa-copy"></i></button>
-                                <a href="${waLink}" target="_blank" class="btn-sm btn-share" title="Compartilhar"><i class="fab fa-whatsapp"></i></a>
-                                <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${doc.id}')" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                            </div>
-                        </div>
-                        <div class="order-info">
-                            <p><strong>Cliente:</strong> ${order.customerName} ${clientWaLink}</p>
-                            <p><strong>Tipo:</strong> ${order.type} ${order.pickupTime ? `(${order.pickupTime})` : ''}</p>
-                            <p><strong>Pagamento:</strong> ${order.payment} ${order.change ? `(Troco p/ ${order.change})` : ''}</p>
-                            ${order.address ? `<p><strong>Endereço:</strong> ${order.address}</p>` : ''}
-                            ${order.mapsLink ? `<p><a href="${order.mapsLink}" target="_blank" style="color:var(--primary); text-decoration:none;">📍 Ver no Mapa</a></p>` : ''}
-                        </div>
-                        <div class="order-items">
-                            ${itemsHtml}
-                        </div>
-                        <select class="status-select" onchange="updateOrderStatus('${doc.id}', this.value, '${order.customerName}', '${order.userPhone || ''}')">
-                            ${statusOptions}
-                        </select>
-                        <div class="order-total">
-                            ${fee > 0 ? `<small style="font-weight:400; color:#666; font-size:12px;">Sub: R$ ${subtotal.toFixed(2)} | Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
-                            Total: R$ ${total.toFixed(2)}
-                        </div>
-                    `;
-                    list.appendChild(card);
-                });
-
-                if (visibleCount === 0) {
-                    list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Não há pedidos ativos no momento.</p>';
+                if (show) {
+                    hasActive = true;
+                    activeContainer.appendChild(createOrderCard(order, false));
                 }
             });
+
+            if (!hasActive) activeContainer.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Nenhum pedido ativo neste filtro.</p>';
+            if (!hasHistory) historyContainer.innerHTML = '<p style="text-align: center; color: #ccc; font-size: 13px;">Histórico vazio.</p>';
+        }
+
+        function createOrderCard(order, isHistory) {
+            const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
+            const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const isNew = (new Date() - date) < 300000;
+            
+            let itemsHtml = '';
+            if (order.cart) {
+                itemsHtml = order.cart.map(i => `
+                    <div class="order-item-line">
+                        <span>${i.qty}x ${i.name}</span>
+                        <span>R$ ${(i.price * i.qty).toFixed(2)}</span>
+                    </div>
+                    ${i.obs ? `<div style="font-size:11px; color:#666; margin-bottom:4px; font-style:italic;">Obs: ${i.obs}</div>` : ''}
+                `).join('');
+            }
+
+            const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + (i.price * i.qty), 0) : 0;
+            const fee = order.deliveryFee || 0;
+            const total = subtotal + fee;
+
+            const clipboardText = `*PEDIDO #${order.orderId || '???'}*\n` +
+                `Cliente: ${order.customerName}\n` +
+                `Tipo: ${order.type}\n` +
+                `Pagamento: ${order.payment}\n` +
+                `Endereço: ${order.address || 'N/A'}\n` +
+                `----------------\n` +
+                (order.cart ? order.cart.map(i => `${i.qty}x ${i.name} (R$ ${i.price.toFixed(2)})`).join('\n') : '') +
+                `\n----------------\n` +
+                `Taxa: R$ ${fee.toFixed(2)}\n` +
+                `*TOTAL: R$ ${total.toFixed(2)}*`;
+
+            const waLink = `https://wa.me/?text=${encodeURIComponent(clipboardText)}`;
+            
+            // Link do cliente
+            const clientWaLink = order.userPhone ? `<a href="https://wa.me/55${order.userPhone}" target="_blank" style="margin-left:5px; color:#25D366;"><i class="fab fa-whatsapp"></i></a>` : '';
+
+            let statusOptions = `
+                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendente</option>
+                <option value="confirmed" ${order.status === 'confirmed' ? 'selected' : ''}>Pedido Confirmado</option>
+                <option value="payment_pending" ${order.status === 'payment_pending' ? 'selected' : ''}>Pagamento Pendente</option>
+                <option value="payment_confirmed" ${order.status === 'payment_confirmed' ? 'selected' : ''}>Pagamento Confirmado</option>
+            `;
+            
+            if (order.type === 'Entrega') {
+                statusOptions += `<option value="delivering" ${order.status === 'delivering' ? 'selected' : ''}>Saiu para Entrega</option>`;
+            } else {
+                statusOptions += `<option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Pronto para Retirada</option>`;
+            }
+            
+            statusOptions += `<option value="done" ${order.status === 'done' ? 'selected' : ''}>Concluído</option>`;
+            statusOptions += `<option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>`;
+            
+            // Se for histórico, mostra apenas botão de deletar permanentemente
+            let actionButtons = '';
+            if (isHistory) {
+                actionButtons = `<button class="btn-sm btn-delete-forever" onclick="deleteOrderForever('${order._id}')" title="Apagar"><i class="fas fa-trash"></i></button>`;
+            } else {
+                actionButtons = `
+                    <button class="btn-sm btn-copy" onclick="copyToClipboard(this, \`${clipboardText.replace(/`/g, '\\`')}\`)" title="Copiar"><i class="far fa-copy"></i></button>
+                    <a href="${waLink}" target="_blank" class="btn-sm btn-share" title="Compartilhar"><i class="fab fa-whatsapp"></i></a>
+                    <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${order._id}')" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                `;
+            }
+            
+            const card = document.createElement('div');
+            card.className = `order-card ${isNew ? 'new' : ''} status-${order.status || 'pending'}`;
+            card.innerHTML = `
+                <div class="order-header">
+                    <div>
+                        <span class="order-id">#${order.orderId || '???'}</span>
+                        <div class="order-time"><i class="far fa-clock"></i> ${timeString}</div>
+                    </div>
+                    <div class="btn-action-group">${actionButtons}</div>
+                </div>
+                <div class="order-info">
+                    <p><strong>Cliente:</strong> ${order.customerName} ${clientWaLink}</p>
+                    <p><strong>Tipo:</strong> ${order.type} ${order.pickupTime ? `(${order.pickupTime})` : ''}</p>
+                    <p><strong>Pagamento:</strong> ${order.payment} ${order.change ? `(Troco p/ ${order.change})` : ''}</p>
+                    ${order.address ? `<p><strong>Endereço:</strong> ${order.address}</p>` : ''}
+                    ${order.mapsLink ? `<p><a href="${order.mapsLink}" target="_blank" style="color:var(--primary); text-decoration:none;">📍 Ver no Mapa</a></p>` : ''}
+                </div>
+                <div class="order-items">
+                    ${itemsHtml}
+                </div>
+                
+                <select class="status-select" onchange="updateOrderStatus('${order._id}', this.value, '${order.customerName}', '${order.userPhone || ''}')">
+                    ${statusOptions}
+                </select>
+
+                <div class="order-total">
+                    ${fee > 0 ? `<small style="font-weight:400; color:#666; font-size:12px;">Sub: R$ ${subtotal.toFixed(2)} | Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
+                    Total: R$ ${total.toFixed(2)}
+                </div>
+            `;
+            return card;
         }
         
         function updateOrderStatus(docId, newStatus, customerName, customerPhone) {
@@ -577,6 +671,12 @@
                 btn.innerHTML = '<i class="fas fa-check"></i>';
                 setTimeout(() => btn.innerHTML = originalIcon, 1500);
             });
+        }
+        
+        function deleteOrderForever(docId) {
+             if(confirm("Tem certeza que deseja apagar este pedido do histórico permanentemente?")) {
+                 db.collection(COL_ORDERS).doc(docId).delete();
+             }
         }
 
         // --- EDIÇÃO DE PEDIDOS ---
@@ -710,7 +810,7 @@
                 payment: document.getElementById('edit-order-payment').value,
                 address: document.getElementById('edit-order-address').value,
                 cart: editingOrderCart,
-                deliveryFee: fee, // Salva a taxa separadamente
+                deliveryFee: fee, 
                 total: total
             };
             
@@ -720,6 +820,12 @@
                   showToast("Pedido atualizado!");
               })
               .catch(e => alert("Erro ao salvar: " + e.message));
+        }
+
+        function archiveOrder(docId) {
+            if(confirm("Arquivar este pedido? Ele sumirá da lista.")) {
+                db.collection(COL_ORDERS).doc(docId).delete().then(() => showToast("Pedido arquivado"));
+            }
         }
 
         function updateStatusText(d) {
