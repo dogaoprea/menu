@@ -34,6 +34,7 @@
             --text-muted: #65676b;
             --border-color: #e4e6eb;
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            --glass-border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
@@ -56,41 +57,22 @@
         .hidden { display: none !important; }
         
         /* HEADER */
-        header { background-color: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; z-index: 10; border-bottom: 1px solid rgba(0,0,0,0.05); padding-top: 12px; padding-bottom: 0; display: flex; flex-direction: column; }
-        
-        .header-top { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding-bottom: 12px; 
-            gap: 10px; 
-            width: 100%;
-            padding-left: 20px;
-            padding-right: 20px;
-        }
-
+        header { background-color: var(--bg-header); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); position: relative; z-index: 10; border-bottom: var(--glass-border); padding-top: 12px; padding-bottom: 0; display: flex; flex-direction: column; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; gap: 10px; width: 100%; padding-left: 20px; padding-right: 20px; }
         .logo-section { display: flex; align-items: center; gap: 10px; flex-shrink: 1; min-width: 0; } 
         .logo { font-size: 28px; color: var(--primary); text-shadow: 0 2px 10px rgba(255, 159, 28, 0.3); line-height: 1; margin: 0; padding-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer; padding: 5px; }
         
-        /* ÁREA DE BOTÕES DO HEADER (LOGIN/PERFIL/PEDIDOS) */
+        /* Botões Header */
         .social-links-header { display: flex; align-items: center; gap: 8px; }
-
-        .header-action-btn { 
-            border: none; border-radius: 50px; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; 
-            font-weight: 700; font-size: 13px; transition: 0.2s; height: 36px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        .header-action-btn { border: none; border-radius: 50px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; transition: 0.2s; height: 36px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .btn-login-header { background: var(--primary); color: #000; padding: 0 15px; gap: 6px; }
         .btn-orders-header { background: #333; color: #fff; padding: 0 15px; gap: 6px; }
         .btn-orders-header:hover { background: #000; transform: translateY(-1px); }
         .btn-profile-header { background: var(--bg-element); color: var(--text-main); width: 38px; padding: 0; font-size: 18px; border: 1px solid var(--border-color); }
         .btn-profile-header:hover { background: #e4e6eb; color: var(--primary-dark); }
 
-        #edit-mode-banner {
-            background-color: #fff3cd; color: #856404; padding: 10px; text-align: center; font-size: 13px; border-bottom: 1px solid #ffeeba; display: none;
-        }
+        #edit-mode-banner { background-color: #fff3cd; color: #856404; padding: 10px; text-align: center; font-size: 13px; border-bottom: 1px solid #ffeeba; display: none; }
         #edit-mode-banner.visible { display: block; }
 
         .status-bar-strip { width: 100%; padding: 4px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; text-align: center; letter-spacing: 1px; color: #fff; transition: background-color 0.5s ease; display: flex; justify-content: center; align-items: center; gap: 6px; }
@@ -103,17 +85,7 @@
         .search-box { flex: 1; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 50px; padding: 6px 16px; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.03); height: 48px; }
         .search-input { background: transparent; border: none; color: var(--text-main); width: 100%; font-size: 15px; outline: none; font-family: inherit; font-weight: 500; }
         
-        .category-nav { 
-            padding: 10px 0 15px 0; 
-            overflow-x: auto; 
-            white-space: nowrap; 
-            -webkit-overflow-scrolling: touch; 
-            scrollbar-width: none; 
-            margin-left: -15px; 
-            margin-right: -15px; 
-            width: calc(100% + 30px); 
-            position: relative;
-        }
+        .category-nav { padding: 10px 0 15px 0; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-left: -15px; margin-right: -15px; width: calc(100% + 30px); position: relative; }
         .category-list { display: flex; gap: 12px; padding-left: 15px; padding-right: 15px; list-style: none; }
         .category-list::after { content: ''; display: block; min-width: 5px; height: 1px; }
         .cat-btn { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px 20px; border-radius: 50px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.03); cursor: pointer; }
@@ -136,15 +108,7 @@
         .add-btn.disabled { background: #eee; color: #999; cursor: not-allowed; border: 1px solid #ddd; }
 
         /* CARRINHO FLUTUANTE */
-        .floating-cart { 
-            position: fixed; bottom: 20px; right: 15px; left: 15px; 
-            background-color: var(--primary); color: #000; 
-            padding: 14px 20px; border-radius: 50px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            font-weight: 700; font-size: 16px; 
-            box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4); 
-            cursor: pointer; z-index: 1000; animation: popUp 0.5s;
-        }
+        .floating-cart { position: fixed; bottom: 20px; right: 15px; left: 15px; background-color: var(--primary); color: #000; padding: 14px 20px; border-radius: 50px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 16px; box-shadow: 0 8px 20px rgba(255, 159, 28, 0.4); cursor: pointer; z-index: 1000; animation: popUp 0.5s; }
         .floating-cart-left { display: flex; align-items: center; gap: 10px; }
         .cart-count { background: #000; color: var(--primary); min-width: 24px; height: 24px; border-radius: 12px; padding: 0 6px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
 
@@ -157,14 +121,6 @@
         .modal-scrollable-content { flex: 1; overflow-y: auto; padding: 20px; }
         .modal-fixed-footer { padding: 15px 20px; background: var(--bg-card); border-top: 1px solid var(--border-color); z-index: 10; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
 
-        /* Modal de Produto (Adicionais) */
-        .product-modal-content { height: auto; max-height: 85vh; border-radius: 20px 20px 0 0; }
-        .extras-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .extra-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-element); border-radius: 10px; border: 1px solid var(--border-color); cursor: pointer; }
-        .extra-item input { width: 18px; height: 18px; accent-color: var(--primary); }
-        .extra-info { flex: 1; margin-left: 10px; font-size: 14px; font-weight: 600; }
-        .extra-price { font-weight: 700; color: var(--primary-dark); }
-        
         .form-group { margin-bottom: 15px; }
         .form-label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
         .form-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; }
@@ -178,22 +134,18 @@
         .radio-option label i { font-size: 18px; }
         .radio-option input:checked + label { background: rgba(255, 159, 28, 0.15); color: var(--primary); border-color: var(--primary); }
         
-        /* Itens do Carrinho com Adicionais */
+        /* Itens do Carrinho */
         .cart-items { margin-bottom: 20px; }
-        .cart-item-row { display: flex; flex-direction: column; margin-bottom: 15px; background: var(--bg-element); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); }
-        .cart-item-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .cart-item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--bg-element); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); flex-wrap: wrap; }
+        .cart-item-main { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; }
         .cart-item-info h4 { margin: 0; font-size: 15px; color: var(--text-main); }
-        .cart-item-info .base-price { font-size: 13px; color: var(--text-muted); }
-        .cart-item-total-price { font-size: 14px; color: var(--primary); font-weight: 700; white-space: nowrap; margin-left: 10px; }
-        
-        .cart-extras-display { font-size: 11px; color: #666; background: #fff; padding: 6px; border-radius: 6px; border: 1px dashed #ddd; margin-bottom: 8px; }
-        .cart-extras-display span { display: block; }
+        .cart-item-info span { font-size: 13px; color: var(--primary); font-weight: 700; }
         
         .cart-controls-row { display: flex; justify-content: space-between; align-items: center; }
         .qty-controls { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 3px; background: var(--bg-body); }
-        .qty-btn { width: 28px; height: 28px; border-radius: 6px; border: none; background: transparent; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .qty-btn { width: 32px; height: 32px; border-radius: 6px; border: none; background: transparent; color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: 0.2s; }
         .qty-btn:hover { background: var(--primary); color: #000; }
-        .qty-input { width: 30px; background: transparent; border: none; text-align: center; color: var(--text-main); font-weight: 700; font-size: 14px; }
+        .qty-input { width: 40px; background: transparent; border: none; text-align: center; color: var(--text-main); font-weight: 700; font-size: 15px; }
 
         .payment-notice { background-color: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; color: var(--text-main); padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 10px; display: flex; align-items: center; gap: 8px; }
         .pix-notice { background-color: rgba(37, 211, 102, 0.1); border-left: 4px solid var(--whatsapp); }
@@ -205,7 +157,7 @@
 
         footer { text-align: center; padding: 30px 15px; color: var(--text-muted); font-size: 11px; margin-top: 20px; border-top: 1px solid var(--border-color); }
         
-        /* Banner de Erro/Ajuda */
+        /* Banner de Erro */
         #error-banner { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .error-box { background: #222; padding: 20px; border-radius: 10px; border: 1px solid #ff4444; max-width: 600px; }
         .code-block { background: #000; padding: 10px; border-radius: 5px; text-align: left; font-family: monospace; font-size: 12px; margin: 10px 0; color: #0f0; overflow-x: auto; }
@@ -215,49 +167,19 @@
         .user-tab-content { display: none; margin-top: 20px; }
         .user-tab-content.active { display: block; }
         
-        /* ESTILOS DETALHADOS DE PEDIDO (NOVO) */
-        .order-history-card { 
-            background: var(--bg-card); 
-            border: 1px solid var(--border-color); 
-            border-radius: 12px; 
-            padding: 15px; 
-            margin-bottom: 20px; 
-            transition: 0.2s; 
-            border-left: 5px solid transparent; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-        
-        .order-history-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid var(--border-color); 
-            padding-bottom: 10px; 
-            margin-bottom: 10px; 
-        }
-        
-        .order-history-status { 
-            font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; 
-            display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-
-        .order-history-info-grid {
-            display: flex; gap: 15px; font-size: 12px; color: #666; margin-bottom: 12px; flex-wrap: wrap;
-        }
+        /* ESTILOS DETALHADOS DE PEDIDO */
+        .order-history-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; transition: 0.2s; border-left: 5px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .order-history-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
+        .order-history-status { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .order-history-info-grid { display: flex; gap: 15px; font-size: 12px; color: #666; margin-bottom: 12px; flex-wrap: wrap; }
         .order-history-info-grid div { display: flex; align-items: center; gap: 5px; }
         .order-history-info-grid i { color: var(--primary); font-size: 14px; }
-
         .order-history-divider { height: 1px; background: var(--border-color); margin: 10px 0; border-top: 1px dashed #ddd; background: none; }
-
         .order-history-items { display: flex; flex-direction: column; gap: 8px; }
-        
         .oh-item { background: var(--bg-element); border-radius: 8px; padding: 10px; font-size: 13px; }
         .oh-item-top { display: flex; justify-content: space-between; font-weight: 600; color: var(--text-main); }
         .oh-item-price { white-space: nowrap; margin-left: 10px; }
-        
-        .oh-extras { font-size: 11px; color: #666; margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--primary); line-height: 1.4; }
         .oh-obs { font-size: 11px; color: #888; font-style: italic; margin-top: 4px; }
-
         .order-history-summary { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; margin-top: 10px; }
         .oh-summary-row { display: flex; gap: 15px; font-size: 13px; color: #555; }
         .oh-total { font-weight: 800; font-size: 16px; color: var(--primary-dark); margin-top: 4px; }
@@ -341,12 +263,9 @@
     <header>
         <div class="header-top">
             <div class="logo-section">
-                <!-- Botão Hamburger -->
                 <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div class="logo brand-font">DOGÃO PREÁ</div>
             </div>
-            
-            <!-- ÁREA DE AÇÕES (LOGIN/PEDIDOS/PERFIL) -->
             <div class="social-links-header">
                 <!-- Injetado via JS -->
             </div>
@@ -410,7 +329,6 @@
                 
                 <div style="display:flex; flex-direction:column; gap:10px; margin-top: 20px;">
                     <button class="btn btn-whatsapp" onclick="saveProfile()" style="width: 100%;">Salvar Alterações</button>
-                    <!-- BOTÃO SAIR DA CONTA ATUALIZADO (MESMO ESTILO DO DE CIMA) -->
                     <button class="btn" onclick="logout()" style="width: 100%; background:#eee; color:#333; padding: 16px; font-size: 16px; border-radius: 12px;">
                         <i class="fas fa-sign-out-alt"></i> Sair da Conta
                     </button>
@@ -430,30 +348,6 @@
                 <div id="user-orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #999;">Carregando...</p>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Produto (Adicionais) -->
-    <div class="modal-overlay" id="product-modal">
-        <div class="modal-content product-modal-content">
-            <div class="modal-header">
-                <h2 class="brand-font" id="pm-title">Nome do Produto</h2>
-                <button class="close-modal" onclick="closeProductModal()" style="background:none; border:none; font-size:20px;"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-scrollable-content">
-                <p id="pm-desc" style="color: #666; font-size: 13px; margin-bottom: 15px;"></p>
-                
-                <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--primary-dark);">Turbine seu pedido (Opcional)</h3>
-                <div id="pm-extras-list" class="extras-list">
-                    <!-- Checkboxes de Extras -->
-                </div>
-            </div>
-            <div class="modal-fixed-footer">
-                <button class="btn btn-whatsapp" onclick="confirmAddProduct()" style="background: var(--primary); color: black;">
-                    <span style="flex:1; text-align:left;">ADICIONAR</span>
-                    <span id="pm-total-price">R$ 0,00</span>
-                </button>
             </div>
         </div>
     </div>
@@ -574,7 +468,6 @@
         </div>
     </div>
 
-    <!-- Toast de Confirmação -->
     <div id="toast"><i class="fas fa-check-circle"></i> <span id="toast-msg">Item adicionado!</span></div>
 
     <script>
@@ -597,17 +490,12 @@
         const COL_ORDERS = 'orders';
 
         let categoriesConfig = [];
-        let extrasConfig = []; // Lista de Adicionais
         let menuData = [];
         let cart = [];
         let currentUser = null; 
         
         let editingOrder = null; 
         let loginTriggeredByCart = false;
-        
-        // Variável temporária para o modal de produto
-        let tempProduct = null;
-        let tempExtras = [];
 
         const statusMap = {
             'pending': { text: 'Aguardando Confirmação', class: 'status-pending', icon: 'fas fa-clock' },
@@ -652,8 +540,6 @@
 
         function openLoginModal(isFromCart = false) {
             loginTriggeredByCart = isFromCart; 
-            // Se já logado, mas chamado diretamente (não pelo carrinho), abre perfil
-            // Se chamado pelo carrinho e já logado, não deve acontecer, mas por segurança ok
             if (currentUser && !isFromCart) {
                 openOrdersModal(); 
             } else {
@@ -683,12 +569,10 @@
             if (loginTriggeredByCart) toggleCart();
         }
 
-        // --- ATUALIZADO: LÓGICA DO HEADER DE LOGIN ---
         function updateLoginButton(isLogged) {
             const container = document.querySelector('.social-links-header');
             
             if (isLogged) {
-                // Layout LOGADO: Botão Meus Pedidos (Icon+Texto) + Botão Perfil (Só Icon)
                 container.innerHTML = `
                     <button class="header-action-btn btn-orders-header" onclick="openOrdersModal()">
                         <i class="fas fa-receipt"></i> <span>Meus Pedidos</span>
@@ -698,7 +582,6 @@
                     </button>
                 `;
             } else {
-                // Layout DESLOGADO: Apenas botão Entrar
                 container.innerHTML = `
                     <button class="header-action-btn btn-login-header" onclick="openLoginModal()">
                         <i class="fas fa-user-circle"></i> <span>Entrar</span>
@@ -707,7 +590,6 @@
             }
         }
 
-        // --- NOVO: GERENCIAMENTO DE PERFIL ---
         function openProfileModal() {
             if (!currentUser) {
                 openLoginModal();
@@ -794,7 +676,6 @@
                                 <div class="order-history-status ${statusInfo.class}"><i class="${statusInfo.icon}"></i> ${statusInfo.text}</div>
                             </div>
                             
-                            <!-- INFO GERAL DO PEDIDO -->
                             <div class="order-history-info-grid">
                                 <div><i class="far fa-calendar-alt"></i> ${dateStr}</div>
                                 <div><i class="fas fa-truck"></i> ${order.type}</div>
@@ -803,26 +684,15 @@
 
                             <div class="order-history-divider"></div>
 
-                            <!-- ITENS DO PEDIDO DETALHADOS -->
                             <div class="order-history-items">
                                 ${order.cart.map(i => {
-                                    // Calcula preço total unitário (base + extras)
-                                    const unitPrice = (i.price || 0) + (i.extrasTotal || 0);
-                                    const totalItem = unitPrice * i.qty;
-                                    
-                                    // Monta HTML de extras se houver
-                                    let extrasHtml = '';
-                                    if(i.selectedExtras && i.selectedExtras.length > 0) {
-                                        extrasHtml = '<div class="oh-extras">' + i.selectedExtras.map(e => `+ ${e.name}`).join('<br>') + '</div>';
-                                    }
-                                    
+                                    const totalItem = i.price * i.qty;
                                     return `
                                     <div class="oh-item">
                                         <div class="oh-item-top">
                                             <span class="oh-item-name">${i.qty}x ${i.name}</span>
                                             <span class="oh-item-price">R$ ${totalItem.toFixed(2)}</span>
                                         </div>
-                                        ${extrasHtml}
                                         ${i.obs ? `<div class="oh-obs">Obs: ${i.obs}</div>` : ''}
                                     </div>
                                     `
@@ -831,7 +701,6 @@
 
                             <div class="order-history-divider"></div>
 
-                            <!-- RESUMO FINANCEIRO -->
                             <div class="order-history-summary">
                                 ${order.deliveryFee > 0 ? `
                                     <div class="oh-summary-row">
@@ -851,7 +720,6 @@
         }
 
         function initFirebaseData() {
-            // Categorias
             db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
                 if (doc.exists && doc.data().list) {
                     categoriesConfig = doc.data().list;
@@ -860,16 +728,6 @@
                 }
             });
 
-            // Adicionais Globais
-            db.collection(COL_SETTINGS).doc('extras').onSnapshot(doc => {
-                if (doc.exists && doc.data().list) {
-                    extrasConfig = doc.data().list;
-                } else {
-                    extrasConfig = [];
-                }
-            });
-
-            // Produtos
             db.collection(COL_ITEMS).onSnapshot((snapshot) => {
                   menuData = [];
                   snapshot.forEach(doc => { menuData.push({ id: doc.id, ...doc.data() }); });
@@ -879,7 +737,6 @@
                   if(error.code === 'permission-denied') document.getElementById('error-banner').classList.remove('hidden');
               });
 
-            // Status Loja
             db.collection(COL_SETTINGS).doc('store').onSnapshot((doc) => {
                   if (doc.exists) updateStoreStatus(doc.data());
                   else checkTimeStatus();
@@ -960,7 +817,7 @@
              // Botão sempre diz "ADICIONAR" agora
              let btnHtml = isUnavailable 
                 ? `<button class="add-btn disabled">Indisponível</button>` 
-                : `<button class="add-btn" onclick="initAddToCart('${item.id}')">ADICIONAR</button>`;
+                : `<button class="add-btn" onclick="addToCart('${item.id}')">ADICIONAR</button>`;
 
              return `<div class="menu-item ${isUnavailable ? 'unavailable' : ''}">
                         <div class="item-content">
@@ -983,104 +840,23 @@
             renderMenu(catId);
         }
 
-        // --- LÓGICA DE ADICIONAR AO CARRINHO (COM MODAL DE EXTRAS) ---
-        function initAddToCart(id) {
+        function addToCart(id) {
             const item = menuData.find(i => i.id === id);
             if (!item || item.available === false) return;
 
-            // Filtra adicionais globais que correspondem à categoria deste item
-            // OU adicionais específicos do item (retrocompatibilidade)
-            const itemSpecificExtras = item.extras || [];
-            const globalExtras = extrasConfig.filter(e => e.categories && e.categories.includes(item.category));
-            
-            // Combina os dois sem duplicatas (pelo nome)
-            const allExtras = [...globalExtras];
-            itemSpecificExtras.forEach(ie => {
-                if(!allExtras.find(ge => ge.name === ie.name)) {
-                    allExtras.push(ie);
-                }
-            });
-
-            if (allExtras.length > 0) {
-                // Tem adicionais: Abre modal
-                openProductModal(item, allExtras);
+            const existingItem = cart.find(i => i.id === id);
+            if (existingItem) {
+                existingItem.qty++;
             } else {
-                // Não tem adicionais: Adiciona direto
-                addItemToCartDirectly(item, []);
-            }
-        }
-
-        function openProductModal(item, extras) {
-            tempProduct = item;
-            tempExtras = extras;
-            
-            document.getElementById('pm-title').innerText = item.name;
-            document.getElementById('pm-desc').innerText = item.desc || '';
-            document.getElementById('pm-total-price').innerText = `R$ ${item.price.toFixed(2).replace('.',',')}`;
-            
-            const list = document.getElementById('pm-extras-list');
-            list.innerHTML = extras.map((extra, idx) => `
-                <label class="extra-item">
-                    <div style="display:flex; align-items:center;">
-                        <input type="checkbox" value="${idx}" onchange="updateModalTotal()">
-                        <div class="extra-info">${extra.name}</div>
-                    </div>
-                    <div class="extra-price">+ R$ ${parseFloat(extra.price).toFixed(2).replace('.',',')}</div>
-                </label>
-            `).join('');
-            
-            document.getElementById('product-modal').classList.add('open');
-        }
-
-        function closeProductModal() {
-            document.getElementById('product-modal').classList.remove('open');
-            tempProduct = null;
-            tempExtras = [];
-        }
-
-        function updateModalTotal() {
-            if (!tempProduct) return;
-            let total = tempProduct.price;
-            
-            const checkboxes = document.querySelectorAll('#pm-extras-list input:checked');
-            checkboxes.forEach(cb => {
-                const idx = parseInt(cb.value);
-                total += parseFloat(tempExtras[idx].price);
-            });
-            
-            document.getElementById('pm-total-price').innerText = `R$ ${total.toFixed(2).replace('.',',')}`;
-        }
-
-        function confirmAddProduct() {
-            if (!tempProduct) return;
-            
-            const selectedExtras = [];
-            const checkboxes = document.querySelectorAll('#pm-extras-list input:checked');
-            checkboxes.forEach(cb => {
-                const idx = parseInt(cb.value);
-                selectedExtras.push({
-                    name: tempExtras[idx].name,
-                    price: parseFloat(tempExtras[idx].price)
+                cart.push({
+                    ...item,
+                    qty: 1,
+                    obs: ''
                 });
-            });
+            }
             
-            addItemToCartDirectly(tempProduct, selectedExtras);
-            closeProductModal();
-        }
-
-        function addItemToCartDirectly(item, extras) {
-            // Gera um ID único para este item no carrinho, permitindo personalizações diferentes
-            const cartItem = {
-                ...item,
-                _uuid: 'cart_' + Date.now() + Math.random().toString(36).substr(2, 9),
-                qty: 1,
-                selectedExtras: extras,
-                extrasTotal: extras.reduce((acc, e) => acc + e.price, 0)
-            };
-            
-            cart.push(cartItem);
             updateUI();
-            showToast();
+            showToast("Item adicionado!");
         }
 
         function showToast(msg) {
@@ -1091,8 +867,8 @@
         }
 
         // --- CARRINHO ---
-        function updateCartQty(uuid, change) {
-            const idx = cart.findIndex(i => i._uuid === uuid);
+        function updateCartQty(id, change) {
+            const idx = cart.findIndex(i => i.id === id);
             if (idx > -1) {
                 cart[idx].qty += change;
                 if (cart[idx].qty <= 0) cart.splice(idx, 1);
@@ -1100,16 +876,14 @@
             }
         }
 
-        function updateItemObs(uuid, val) {
-            const item = cart.find(i => i._uuid === uuid);
+        function updateItemObs(id, val) {
+            const item = cart.find(i => i.id === id);
             if(item) item.obs = val;
         }
 
         function updateUI() {
             const totalQty = cart.reduce((acc, i) => acc + i.qty, 0);
-            
-            // Calcula total considerando (Preço Base + Extras) * Qty
-            const totalPrice = cart.reduce((acc, i) => acc + ((i.price + i.extrasTotal) * i.qty), 0);
+            const totalPrice = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             
             document.getElementById('cart-count').innerText = totalQty;
             document.getElementById('cart-total-float').innerText = `R$ ${totalPrice.toFixed(2).replace('.',',')}`;
@@ -1154,36 +928,21 @@
                 return;
             }
             container.innerHTML = cart.map(item => {
-                const unitTotal = item.price + item.extrasTotal;
-                const lineTotal = unitTotal * item.qty;
-                
-                let extrasHtml = '';
-                if(item.selectedExtras && item.selectedExtras.length > 0) {
-                    extrasHtml = `<div class="cart-extras-display">` + 
-                        item.selectedExtras.map(e => `<span>+ ${e.name}</span>`).join('') +
-                        `</div>`;
-                }
-
+                const lineTotal = item.price * item.qty;
                 return `
                 <div class="cart-item-row">
-                    <div class="cart-item-top">
+                    <div class="cart-item-main">
                         <div class="cart-item-info">
                             <h4>${item.name}</h4>
-                            <div class="base-price">Base: R$ ${item.price.toFixed(2)}</div>
+                            <span>R$ ${lineTotal.toFixed(2).replace('.',',')}</span>
                         </div>
-                        <div class="cart-item-total-price">R$ ${lineTotal.toFixed(2).replace('.',',')}</div>
-                    </div>
-                    
-                    ${extrasHtml}
-                    
-                    <div class="cart-controls-row">
                         <div class="qty-controls">
-                            <button class="qty-btn" onclick="updateCartQty('${item._uuid}', -1)"><i class="fas fa-minus"></i></button>
+                            <button class="qty-btn" onclick="updateCartQty('${item.id}', -1)"><i class="fas fa-minus"></i></button>
                             <span class="qty-input">${item.qty}</span>
-                            <button class="qty-btn" onclick="updateCartQty('${item._uuid}', 1)"><i class="fas fa-plus"></i></button>
+                            <button class="qty-btn" onclick="updateCartQty('${item.id}', 1)"><i class="fas fa-plus"></i></button>
                         </div>
-                        <input type="text" class="item-obs-input" style="width: 60%;" placeholder="Obs? Ex: Sem cebola" value="${item.obs || ''}" oninput="updateItemObs('${item._uuid}', this.value)">
                     </div>
+                    <input type="text" class="item-obs-input" style="width: 100%; margin-top: 5px;" placeholder="Obs? Ex: Sem cebola" value="${item.obs || ''}" oninput="updateItemObs('${item.id}', this.value)">
                 </div>
             `}).join('');
         }
@@ -1296,7 +1055,7 @@
                 }
             }
 
-            const total = cart.reduce((acc, i) => acc + ((i.price + i.extrasTotal) * i.qty), 0);
+            const total = cart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const userPhoneToSave = currentUser ? currentUser.phone : null;
 
             const orderData = {
@@ -1340,18 +1099,8 @@
             msg += `\n*ITENS:*\n`;
             
             cart.forEach(i => {
-                const unitTotal = i.price + i.extrasTotal;
-                msg += `${i.qty}x ${i.name} - R$ ${(unitTotal * i.qty).toFixed(2)}\n`;
-                
-                // Lista Extras no Whats
-                if (i.selectedExtras && i.selectedExtras.length > 0) {
-                    i.selectedExtras.forEach(e => {
-                        msg += `   + ${e.name}\n`;
-                    });
-                }
-                
+                msg += `${i.qty}x ${i.name} - R$ ${(i.price * i.qty).toFixed(2)}\n`;
                 if(i.obs) msg += `   _Obs: ${i.obs}_\n`;
-                msg += `\n`; // Espaço entre itens
             });
 
             msg += `*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
@@ -1388,11 +1137,10 @@
                 if(!doc.exists) return;
                 const order = doc.data();
                 
+                // Reverte UUIDs para edição simples se existirem
                 cart = (order.cart || []).map(i => ({
                     ...i,
-                    _uuid: i._uuid || 'cart_' + Math.random(),
-                    selectedExtras: i.selectedExtras || [],
-                    extrasTotal: i.extrasTotal || 0
+                    // Garante que selectedExtras seja removido ou ignorado na nova lógica simples
                 }));
                 
                 editingOrder = { docId: doc.id, orderId: order.orderId };
