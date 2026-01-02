@@ -407,7 +407,7 @@
             <li><a href="https://maps.app.goo.gl/MvT3UvF9AXrKJphj8" target="_blank" class="sidebar-link"><i class="fas fa-map-marker-alt"></i> Localização</a></li>
         </ul>
         <div class="sidebar-footer">
-            &copy; 2024 Dogão Preá
+            &copy; <span id="copyright-year">2024</span> Dogão Preá
         </div>
     </div>
 
@@ -1283,12 +1283,6 @@
             if(addressMsg) msg += `\n\n*INFO:*${addressMsg}`;
             
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-            
-            // REDIRECIONAMENTO PARA MEUS PEDIDOS
-            setTimeout(() => {
-                toggleCart(); // Fecha o carrinho
-                openOrdersModal(); // Abre o histórico
-            }, 1000);
         }
         
         function searchProducts(val) {
