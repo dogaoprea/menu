@@ -71,6 +71,7 @@
         
         .order-items { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
         .order-item-line { display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: 500; }
+        .order-extras-list { font-size: 11px; color: #666; margin-left: 10px; margin-bottom: 6px; border-left: 2px solid #ddd; padding-left: 6px; }
         .order-total { text-align: right; font-weight: 800; color: var(--primary-dark); font-size: 16px; margin-top: 10px; }
 
         .btn-action-group { display: flex; gap: 5px; flex-wrap: wrap; }
@@ -80,11 +81,6 @@
         .btn-share { background: #25D366; }
         .btn-archive { background: #4CAF50; }
         .btn-delete-forever { background: #ff4444; }
-        
-        .btn-edit-order:hover { background: #1976D2; }
-        .btn-copy:hover { background: #455A64; }
-        .btn-share:hover { background: #128C7E; }
-        .btn-archive:hover { background: #388E3C; }
         
         /* Select de Status */
         .status-select {
@@ -146,80 +142,67 @@
         .cat-move-btn { background: none; border: none; color: #999; cursor: pointer; padding: 5px; }
         .cat-move-btn:hover { color: #333; }
 
-        /* Estilo da Lista de Itens no Modal de Edição de Pedido - RESPONSIVO */
+        /* --- NOVO LAYOUT DO ITEM DE PEDIDO (CARD STYLE) --- */
         .edit-order-item { 
             display: flex; 
-            flex-direction: column; /* Coluna por padrão para suportar o campo de OBS */
-            padding: 10px; 
-            border-bottom: 1px solid #eee; 
-            background: white; 
-            border-radius: 6px; 
-            margin-bottom: 8px; 
+            flex-direction: column; 
+            background: #fff; 
+            border: 1px solid #eee; 
+            border-radius: 12px; 
+            margin-bottom: 12px; 
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        
+        /* Cabeçalho do Item: Nome e Botão de Excluir */
+        .edit-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 12px;
+            background: #fcfcfc;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .edit-item-name { font-weight: 700; color: #333; font-size: 14px; line-height: 1.3; }
+        
+        /* Corpo do Item: Preço e Controles */
+        .edit-item-body {
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             gap: 10px;
         }
         
-        .edit-order-item-main {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            gap: 10px;
-        }
-
-        /* A parte do texto (nome e preço) */
-        .edit-order-item-main > div:first-child {
-            flex: 1 1 200px;
-            min-width: 0;
-        }
+        .edit-price-wrapper { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #555; font-weight: 600; }
+        .price-edit-input { width: 70px; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; text-align: center; }
 
         .edit-qty-group { 
             display: flex; 
             align-items: center; 
-            gap: 5px; 
-            flex-wrap: wrap; 
-            justify-content: flex-end;
-            flex: 0 0 auto;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 2px;
         }
+        .btn-mini { width: 32px; height: 32px; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-weight: bold; color: #333; display:flex; align-items:center; justify-content:center; transition:0.2s; }
+        .btn-mini:hover { background: #e0e0e0; }
+        .btn-mini-trash { color: var(--danger); background: transparent; border: none; padding: 5px; cursor: pointer; }
         
-        .btn-mini { width: 28px; height: 28px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-weight: bold; display:flex; align-items:center; justify-content:center; }
-        .btn-mini-trash { color: var(--danger); border-color: #ffcccc; background: #fff0f0; }
-        .price-edit-input { width: 70px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; text-align: right; }
-        
-        /* NOVO: Campo de Observação no Admin */
+        .qty-display { font-weight: 700; font-size: 14px; min-width: 25px; text-align: center; }
+
+        /* Rodapé do Item: Observação */
+        .edit-item-footer { padding: 0 12px 12px 12px; }
         .item-obs-input-admin {
             width: 100%;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #eee;
             background: #fafafa;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 12px;
             color: #555;
+            transition: 0.2s;
         }
-        .item-obs-input-admin:focus {
-            background: #fff;
-            border-color: var(--primary);
-            outline: none;
-        }
-
-        /* AJUSTE PARA CELULAR (Evitar sobreposição) */
-        @media (max-width: 480px) {
-            .edit-order-item-main {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .edit-order-item-main > div:first-child {
-                margin-bottom: 8px;
-            }
-            .edit-qty-group {
-                justify-content: space-between;
-                width: 100%;
-                margin-top: 5px;
-            }
-            .price-edit-input {
-                width: 80px; 
-            }
-        }
+        .item-obs-input-admin:focus { background: #fff; border-color: var(--primary); outline: none; }
 
         /* Filtros de Pedidos */
         .order-filters { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
@@ -812,21 +795,26 @@
             editingOrderCart.forEach((item, index) => {
                 list.innerHTML += `
                     <div class="edit-order-item">
-                        <div class="edit-order-item-main">
-                            <div style="flex:1;">
-                                <div style="font-weight:600;">${item.name}</div>
-                                <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#666; margin-top:3px;">
-                                    Base: R$ <input type="number" step="0.50" class="price-edit-input" value="${item.price.toFixed(2)}" onchange="updateOrderItemPrice(${index}, this.value)"> un.
-                                </div>
+                        <div class="edit-item-header">
+                            <span class="edit-item-name">${item.name}</span>
+                            <button class="btn-mini-trash" onclick="removeOrderItem(${index})"><i class="fas fa-trash"></i></button>
+                        </div>
+                        
+                        <div class="edit-item-body">
+                            <div class="edit-price-wrapper">
+                                R$ <input type="number" step="0.50" class="price-edit-input" value="${item.price.toFixed(2)}" onchange="updateOrderItemPrice(${index}, this.value)"> un.
                             </div>
+                            
                             <div class="edit-qty-group">
                                 <button class="btn-mini" onclick="updateOrderQty(${index}, -1)">-</button>
-                                <span>${item.qty}</span>
+                                <span class="qty-display">${item.qty}</span>
                                 <button class="btn-mini" onclick="updateOrderQty(${index}, 1)">+</button>
-                                <button class="btn-mini btn-mini-trash" onclick="removeOrderItem(${index})"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
-                        <input type="text" class="item-obs-input-admin" placeholder="Observação (Ex: Sem cebola)" value="${item.obs || ''}" onchange="updateItemObs(${index}, this.value)">
+
+                        <div class="edit-item-footer">
+                            <input type="text" class="item-obs-input-admin" placeholder="Observação (Ex: Sem cebola)" value="${item.obs || ''}" onchange="updateItemObs(${index}, this.value)">
+                        </div>
                     </div>
                 `;
             });
