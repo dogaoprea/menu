@@ -71,7 +71,6 @@
         
         .order-items { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
         .order-item-line { display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: 500; }
-        .order-extras-list { font-size: 11px; color: #666; margin-left: 10px; margin-bottom: 6px; border-left: 2px solid #ddd; padding-left: 6px; }
         .order-total { text-align: right; font-weight: 800; color: var(--primary-dark); font-size: 16px; margin-top: 10px; }
 
         .btn-action-group { display: flex; gap: 5px; flex-wrap: wrap; }
@@ -108,7 +107,6 @@
         .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .sort-select { padding: 10px; border-radius: 8px; border: 1px solid var(--border); flex: 1; background: white; font-weight: 600; font-size: 14px; }
         .btn-cats { background: #333; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px; }
-        .btn-extras { background: #e08b15; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px; }
 
         /* Cardápio Items */
         .category-header { font-family: 'Bebas Neue'; font-size: 22px; margin: 25px 0 10px; color: #444; border-bottom: 2px solid var(--primary); display: inline-block; padding-right: 20px; }
@@ -179,7 +177,6 @@
         
         .btn-mini { width: 28px; height: 28px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; font-weight: bold; display:flex; align-items:center; justify-content:center; }
         .btn-mini-trash { color: var(--danger); border-color: #ffcccc; background: #fff0f0; }
-        .btn-mini-extras { color: var(--primary-dark); border-color: var(--primary); background: #fff8e1; width: auto; padding: 0 10px; font-size: 11px; height: 28px; }
         .price-edit-input { width: 70px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; text-align: right; }
 
         /* AJUSTE PARA CELULAR (Evitar sobreposição) */
@@ -212,25 +209,6 @@
         .history-title i { transition: 0.3s; }
         #history-list { display: block; }
         #history-list.hidden { display: none; }
-        
-        /* Estilos do Modal de Adicionais Globais */
-        .extra-global-item {
-            display: flex; flex-direction: column; gap: 5px;
-            background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 8px;
-        }
-        .extra-global-header { display: flex; justify-content: space-between; align-items: center; }
-        .extra-global-name { font-weight: 700; color: #333; }
-        .extra-global-price { font-weight: 700; color: var(--primary-dark); }
-        .extra-global-cats { font-size: 11px; color: #666; background: #f0f0f0; padding: 4px 8px; border-radius: 4px; margin-top: 5px; line-height: 1.4; }
-        
-        /* Checkboxes no Form de Adicionais */
-        .cat-check-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; max-height: 150px; overflow-y: auto; background: #f9f9f9; padding: 10px; border: 1px solid #eee; border-radius: 6px; }
-        .cat-check-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-
-        /* Lista de Seleção de Adicionais no Modal de Pedido */
-        .item-extras-selection-list { display: flex; flex-direction: column; gap: 5px; max-height: 300px; overflow-y: auto; }
-        .item-extra-option { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; }
-        .item-extra-option input { accent-color: var(--primary); width: 18px; height: 18px; }
 
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 30px; }
@@ -320,8 +298,6 @@
                 <!-- Toolbar de Organização -->
                 <div class="toolbar">
                     <button class="btn-cats" onclick="openCategoryModal()"><i class="fas fa-list-ul"></i> Categorias</button>
-                    <!-- NOVO BOTÃO DE ADICIONAIS -->
-                    <button class="btn-extras" onclick="openExtrasModal()"><i class="fas fa-plus-circle"></i> Adicionais</button>
                     
                     <select id="sort-select" class="sort-select" onchange="renderList()">
                         <option value="name_asc">🔤 Nome (A-Z)</option>
@@ -364,8 +340,7 @@
             
             <div class="form-group">
                 <label class="form-label">Categoria</label>
-                <!-- Adicionado onchange para atualizar visualização de extras -->
-                <select id="edit-category" class="form-select" onchange="updateExtrasPreviewInItemModal()">
+                <select id="edit-category" class="form-select">
                     <!-- Preenchido via JS -->
                 </select>
             </div>
@@ -373,22 +348,6 @@
             <div class="form-group">
                 <label class="form-label">Descrição</label>
                 <textarea id="edit-desc" rows="3" placeholder="Ingredientes..."></textarea>
-            </div>
-
-            <!-- SEÇÃO DE ADICIONAIS (APENAS LEITURA) -->
-            <div class="form-group" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #bde0ff; margin-top: 15px;">
-                <label class="form-label" style="display:flex; justify-content:space-between; align-items:center; color: #0056b3;">
-                    Adicionais Ativos
-                    <small style="font-weight:400; cursor:pointer; text-decoration:underline;" onclick="closeModal(); openExtrasModal();">Gerenciar Globalmente</small>
-                </label>
-                <p style="font-size: 11px; color: #666; margin-bottom: 8px;">
-                    Estes adicionais aparecerão para este produto porque estão vinculados à categoria acima.
-                </p>
-                
-                <div id="item-extras-preview" style="font-size: 12px; color: #333; font-weight: 500;">
-                    <!-- Lista de Adicionais Renderizada via JS -->
-                    Nenhum adicional vinculado a esta categoria.
-                </div>
             </div>
 
             <div class="checkbox-wrapper" onclick="document.getElementById('edit-available').click()" style="margin-top: 15px;">
@@ -399,43 +358,6 @@
             <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
                 <button class="btn" style="background: #eee; color: #333;" onclick="closeModal()">Cancelar</button>
                 <button class="btn" style="background: var(--primary);" onclick="saveItem()">Salvar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- NOVO MODAL: GERENCIAR ADICIONAIS GLOBAIS -->
-    <div id="extras-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="margin-top: 0; font-family: 'Bebas Neue'; color: var(--primary-dark);">Adicionais (Extras)</h2>
-            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                Crie adicionais e selecione em quais categorias eles devem aparecer.
-            </p>
-
-            <div style="background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px;">
-                <h4 style="margin: 0 0 10px 0; font-size: 14px;">Novo Adicional</h4>
-                <div style="display: flex; gap: 5px; margin-bottom: 8px;">
-                    <input type="text" id="new-extra-name" class="form-input" placeholder="Nome (Ex: Bacon)" style="flex: 2;">
-                    <input type="number" step="0.50" id="new-extra-price" class="form-input" placeholder="Preço" style="flex: 1;">
-                </div>
-                <div style="margin-bottom: 8px;">
-                    <label class="form-label" style="font-size: 11px;">Aplicar nas categorias:</label>
-                    <div id="new-extra-cats" class="cat-check-grid">
-                        <!-- Checkboxes de categorias -->
-                    </div>
-                </div>
-                <button class="btn" style="width: 100%; background: var(--success); color: white;" onclick="addGlobalExtra()">
-                    <i class="fas fa-plus"></i> Adicionar
-                </button>
-            </div>
-
-            <h4 style="margin: 0 0 10px 0; font-size: 14px;">Lista de Adicionais</h4>
-            <div id="extras-global-list" style="max-height: 300px; overflow-y: auto;">
-                <!-- Lista renderizada -->
-            </div>
-
-            <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-                <button class="btn" style="background: #eee; color: #333;" onclick="closeExtrasModal()">Fechar</button>
-                <button class="btn" style="background: var(--primary);" onclick="saveExtrasSettings()">Salvar Alterações</button>
             </div>
         </div>
     </div>
@@ -523,24 +445,6 @@
         </div>
     </div>
 
-    <!-- Modal para Selecionar Extras de um Item do Pedido -->
-    <div id="order-item-extras-modal" class="modal">
-        <div class="modal-content" style="max-width: 400px; height: auto; max-height: 80vh;">
-            <h2 id="item-extras-title" style="margin-top: 0; font-family: 'Bebas Neue'; color: var(--primary-dark);">Adicionais</h2>
-            <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Selecione os adicionais para este item:</p>
-            <input type="hidden" id="editing-item-index">
-            
-            <div id="item-extras-container" class="item-extras-selection-list">
-                <!-- Checkboxes Renderizados via JS -->
-            </div>
-
-            <div class="form-actions" style="display:flex; justify-content:flex-end; gap:10px; margin-top: 20px;">
-                <button class="btn" style="background: #eee; color: #333;" onclick="document.getElementById('order-item-extras-modal').classList.remove('open')">Cancelar</button>
-                <button class="btn" style="background: var(--primary);" onclick="saveItemExtras()">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
     <div id="toast"><i class="fas fa-check"></i> Salvo com sucesso!</div>
 
     <script>
@@ -574,9 +478,6 @@
         
         let categoriesConfig = JSON.parse(JSON.stringify(defaultCategories));
         
-        // NOVO: Configuração Global de Adicionais
-        let extrasConfig = []; 
-
         let currentItems = [];
         let editingOrderCart = [];
         let editingOrderFee = 0; 
@@ -620,20 +521,6 @@
             db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
                 if (doc.exists && doc.data().list) categoriesConfig = doc.data().list;
                 updateCategorySelect(); renderList();
-            });
-
-            // CARREGAR ADICIONAIS GLOBAIS
-            db.collection(COL_SETTINGS).doc('extras').onSnapshot(doc => {
-                if (doc.exists && doc.data().list) {
-                    extrasConfig = doc.data().list;
-                } else {
-                    extrasConfig = [];
-                }
-                // Não precisa renderizar nada imediato aqui, a não ser que o modal esteja aberto
-                // mas vamos atualizar a prévia se um item estiver sendo editado
-                if(document.getElementById('item-modal').classList.contains('open')) {
-                    updateExtrasPreviewInItemModal();
-                }
             });
 
             db.collection(COL_ITEMS).onSnapshot(snap => {
@@ -715,31 +602,16 @@
             
             let itemsHtml = '';
             if (order.cart) {
-                itemsHtml = order.cart.map(i => {
-                    // Calcula preço unitário (Base + Extras)
-                    const unitPrice = (i.price || 0) + (i.extrasTotal || 0);
-                    const lineTotal = unitPrice * i.qty;
-
-                    // Lógica restaurada para exibir extras
-                    let extrasHtml = '';
-                    if (i.selectedExtras && i.selectedExtras.length > 0) {
-                        extrasHtml = i.selectedExtras.map(e => `<div>+ ${e.name}</div>`).join('');
-                        extrasHtml = `<div class="order-extras-list">${extrasHtml}</div>`;
-                    }
-
-                    return `
+                itemsHtml = order.cart.map(i => `
                     <div class="order-item-line">
                         <span>${i.qty}x ${i.name}</span>
-                        <span>R$ ${lineTotal.toFixed(2)}</span>
+                        <span>R$ ${(i.price * i.qty).toFixed(2)}</span>
                     </div>
-                    ${extrasHtml} 
                     ${i.obs ? `<div style="font-size:11px; color:#666; margin-bottom:4px; font-style:italic;">Obs: ${i.obs}</div>` : ''}
-                `;
-                }).join('');
+                `).join('');
             }
 
-            // Recalcula subtotal considerando extras
-            const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + ((i.price + (i.extrasTotal || 0)) * i.qty), 0) : 0;
+            const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + (i.price * i.qty), 0) : 0;
             const fee = order.deliveryFee || 0;
             const total = subtotal + fee;
 
@@ -749,12 +621,7 @@
                 `Pagamento: ${order.payment}\n` +
                 `Endereço: ${order.address || 'N/A'}\n` +
                 `----------------\n` +
-                (order.cart ? order.cart.map(i => {
-                    const unitTotal = (i.price || 0) + (i.extrasTotal || 0);
-                    let line = `${i.qty}x ${i.name} (R$ ${unitTotal.toFixed(2)})`;
-                    if(i.selectedExtras) i.selectedExtras.forEach(e => line += `\n   + ${e.name}`);
-                    return line;
-                }).join('\n') : '') +
+                (order.cart ? order.cart.map(i => `${i.qty}x ${i.name} (R$ ${i.price.toFixed(2)})`).join('\n') : '') +
                 `\n----------------\n` +
                 `Taxa: R$ ${fee.toFixed(2)}\n` +
                 `*TOTAL: R$ ${total.toFixed(2)}*`;
@@ -899,8 +766,6 @@
             editingOrderCart = (order.cart || []).map(i => ({
                 ...i,
                 _uuid: i._uuid || 'admin_old_' + Math.random(),
-                extrasTotal: i.extrasTotal || 0,
-                selectedExtras: i.selectedExtras || []
             }));
             
             renderEditOrderItems();
@@ -917,24 +782,15 @@
             list.innerHTML = '';
             
             editingOrderCart.forEach((item, index) => {
-                let extrasDisplay = '';
-                if (item.selectedExtras && item.selectedExtras.length > 0) {
-                    extrasDisplay = '<div style="font-size:11px; color:#666; margin-top:2px;">' + 
-                        item.selectedExtras.map(e => `+ ${e.name}`).join(', ') + 
-                        '</div>';
-                }
-
                 list.innerHTML += `
                     <div class="edit-order-item">
                         <div style="flex:1;">
                             <div style="font-weight:600;">${item.name}</div>
-                            ${extrasDisplay}
                             <div style="display:flex; align-items:center; gap:5px; font-size:11px; color:#666; margin-top:3px;">
                                 Base: R$ <input type="number" step="0.50" class="price-edit-input" value="${item.price.toFixed(2)}" onchange="updateOrderItemPrice(${index}, this.value)"> un.
                             </div>
                         </div>
                         <div class="edit-qty-group">
-                            <button class="btn-mini btn-mini-extras" onclick="openItemExtrasModal(${index})"><i class="fas fa-plus"></i> Extras</button>
                             <button class="btn-mini" onclick="updateOrderQty(${index}, -1)">-</button>
                             <span>${item.qty}</span>
                             <button class="btn-mini" onclick="updateOrderQty(${index}, 1)">+</button>
@@ -956,8 +812,8 @@
         }
         
         function calculateOrderTotal() {
-            // Calcula (Preço Base + Extras) * Qty
-            const subtotal = editingOrderCart.reduce((acc, i) => acc + ((i.price + (i.extrasTotal || 0)) * i.qty), 0);
+            // Calcula (Preço Base) * Qty
+            const subtotal = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const total = subtotal + fee;
             document.getElementById('edit-order-total').innerText = `R$ ${total.toFixed(2)}`;
@@ -989,7 +845,7 @@
             
             const menuItem = currentItems.find(i => i.id === itemId);
             if(menuItem) {
-                // SEMPRE ADICIONA NOVO ITEM para evitar herança de extras indesejada
+                // SEMPRE ADICIONA NOVO ITEM
                 editingOrderCart.push({
                     id: menuItem.id,
                     name: menuItem.name,
@@ -997,8 +853,6 @@
                     qty: 1,
                     obs: '',
                     category: menuItem.category,
-                    extrasTotal: 0,
-                    selectedExtras: [],
                     _uuid: 'admin_' + Date.now()
                 });
                 
@@ -1007,71 +861,12 @@
             }
         }
 
-        // --- GESTÃO DE EXTRAS NO ITEM DO PEDIDO ---
-        function openItemExtrasModal(index) {
-            const item = editingOrderCart[index];
-            const container = document.getElementById('item-extras-container');
-            document.getElementById('editing-item-index').value = index;
-            document.getElementById('item-extras-title').innerText = "Adicionais: " + item.name;
-            
-            // Filtra extras disponíveis para a categoria deste item
-            const availableExtras = extrasConfig.filter(ex => ex.categories && ex.categories.includes(item.category));
-            
-            if (availableExtras.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Nenhum adicional disponível para esta categoria.</p>';
-            } else {
-                container.innerHTML = availableExtras.map((extra, i) => {
-                    const isChecked = item.selectedExtras && item.selectedExtras.some(e => e.name === extra.name);
-                    return `
-                        <label class="item-extra-option">
-                            <div>
-                                <span style="font-weight:600;">${extra.name}</span>
-                                <div style="font-size:11px; color:#666;">+ R$ ${parseFloat(extra.price).toFixed(2)}</div>
-                            </div>
-                            <input type="checkbox" value="${i}" ${isChecked ? 'checked' : ''}>
-                        </label>
-                    `;
-                }).join('');
-            }
-            
-            document.getElementById('order-item-extras-modal').classList.add('open');
-        }
-
-        function saveItemExtras() {
-            const index = document.getElementById('editing-item-index').value;
-            const item = editingOrderCart[index];
-            
-            // Re-filtra para garantir consistência
-            const availableExtras = extrasConfig.filter(ex => ex.categories && ex.categories.includes(item.category));
-            
-            const checkboxes = document.querySelectorAll('#item-extras-container input[type="checkbox"]');
-            const newExtras = [];
-            let newExtrasTotal = 0;
-            
-            checkboxes.forEach((cb, i) => {
-                if (cb.checked) {
-                    const extra = availableExtras[i]; // Mapeia pelo índice filtrado
-                    newExtras.push({
-                        name: extra.name,
-                        price: parseFloat(extra.price)
-                    });
-                    newExtrasTotal += parseFloat(extra.price);
-                }
-            });
-            
-            editingOrderCart[index].selectedExtras = newExtras;
-            editingOrderCart[index].extrasTotal = newExtrasTotal;
-            
-            document.getElementById('order-item-extras-modal').classList.remove('open');
-            renderEditOrderItems();
-        }
-
         function saveOrderChanges() {
             const docId = document.getElementById('edit-order-doc-id').value;
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             
             // Recalcula total final para salvar
-            const subtotal = editingOrderCart.reduce((acc, i) => acc + ((i.price + (i.extrasTotal || 0)) * i.qty), 0);
+            const subtotal = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const total = subtotal + fee;
             
             const orderData = {
@@ -1237,37 +1032,14 @@
             document.getElementById('edit-price').value = item.price;
             
             updateCategorySelect();
-            // Define categoria ou padrão
-            document.getElementById('edit-category').value = item.category || categoriesConfig[0].id;
+            document.getElementById('edit-category').value = item.category;
             
             document.getElementById('edit-desc').value = item.desc;
             document.getElementById('edit-available').checked = item.available !== false;
             
-            // Atualiza prévia dos adicionais
-            updateExtrasPreviewInItemModal();
-
             modal.classList.add('open');
         }
-
         function closeModal() { document.getElementById('item-modal').classList.remove('open'); }
-
-        function updateExtrasPreviewInItemModal() {
-            const catId = document.getElementById('edit-category').value;
-            const container = document.getElementById('item-extras-preview');
-            
-            const activeExtras = extrasConfig.filter(ex => ex.categories && ex.categories.includes(catId));
-            
-            if (activeExtras.length === 0) {
-                container.innerHTML = '<em>Nenhum adicional vinculado a esta categoria.</em>';
-            } else {
-                container.innerHTML = activeExtras.map(ex => `
-                    <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #ddd; padding:2px 0;">
-                        <span>${ex.name}</span>
-                        <span>+ R$ ${parseFloat(ex.price).toFixed(2)}</span>
-                    </div>
-                `).join('');
-            }
-        }
 
         function saveItem() {
             const id = document.getElementById('edit-id').value;
@@ -1286,99 +1058,6 @@
 
         function deleteItem(id) {
             if(confirm("Tem certeza que deseja excluir?")) db.collection(COL_ITEMS).doc(id).delete().then(() => showToast("Item excluído"));
-        }
-        
-        // --- GERENCIAMENTO GLOBAL DE ADICIONAIS ---
-        function openExtrasModal() {
-            renderGlobalExtrasList();
-            renderNewExtraCategoryCheckboxes();
-            document.getElementById('extras-modal').classList.add('open');
-        }
-
-        function closeExtrasModal() {
-            document.getElementById('extras-modal').classList.remove('open');
-        }
-
-        function renderNewExtraCategoryCheckboxes() {
-            const container = document.getElementById('new-extra-cats');
-            container.innerHTML = categoriesConfig.map(cat => `
-                <div class="cat-check-item">
-                    <input type="checkbox" id="new-cat-${cat.id}" value="${cat.id}">
-                    <label for="new-cat-${cat.id}">${cat.label}</label>
-                </div>
-            `).join('');
-        }
-
-        function renderGlobalExtrasList() {
-            const container = document.getElementById('extras-global-list');
-            container.innerHTML = '';
-
-            if (extrasConfig.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#999; font-size:13px;">Nenhum adicional cadastrado.</p>';
-                return;
-            }
-
-            extrasConfig.forEach((extra, index) => {
-                const catsLabels = extra.categories 
-                    ? extra.categories.map(cid => categoriesConfig.find(c => c.id === cid)?.label || cid).join(', ')
-                    : 'Nenhuma';
-
-                container.innerHTML += `
-                    <div class="extra-global-item">
-                        <div class="extra-global-header">
-                            <span class="extra-global-name">${extra.name}</span>
-                            <div style="display:flex; gap:10px; align-items:center;">
-                                <span class="extra-global-price">+ R$ ${parseFloat(extra.price).toFixed(2)}</span>
-                                <button class="btn-mini btn-mini-trash" onclick="removeGlobalExtra(${index})"><i class="fas fa-trash"></i></button>
-                            </div>
-                        </div>
-                        <div class="extra-global-cats">
-                            Categorias: ${catsLabels}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function addGlobalExtra() {
-            const name = document.getElementById('new-extra-name').value.trim();
-            const price = parseFloat(document.getElementById('new-extra-price').value);
-            
-            if (!name) return alert("Nome obrigatório");
-            if (isNaN(price)) return alert("Preço inválido");
-
-            const selectedCats = [];
-            document.querySelectorAll('#new-extra-cats input:checked').forEach(cb => selectedCats.push(cb.value));
-            
-            if (selectedCats.length === 0) return alert("Selecione pelo menos uma categoria.");
-
-            extrasConfig.push({
-                name: name,
-                price: price,
-                categories: selectedCats
-            });
-
-            document.getElementById('new-extra-name').value = '';
-            document.getElementById('new-extra-price').value = '';
-            document.querySelectorAll('#new-extra-cats input').forEach(cb => cb.checked = false);
-
-            renderGlobalExtrasList();
-        }
-
-        function removeGlobalExtra(index) {
-            if(confirm("Excluir este adicional globalmente?")) {
-                extrasConfig.splice(index, 1);
-                renderGlobalExtrasList();
-            }
-        }
-
-        function saveExtrasSettings() {
-            db.collection(COL_SETTINGS).doc('extras').set({ list: extrasConfig })
-              .then(() => {
-                  closeExtrasModal();
-                  showToast("Adicionais atualizados!");
-              })
-              .catch(e => alert("Erro ao salvar adicionais: " + e.message));
         }
 
         function toggleStoreStatus() {
