@@ -106,6 +106,7 @@
         .search-box { flex: 1; background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 50px; padding: 6px 16px; color: var(--text-main); font-size: 14px; display: flex; align-items: center; gap: 10px; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.03); height: 48px; }
         .search-input { background: transparent; border: none; color: var(--text-main); width: 100%; font-size: 15px; outline: none; font-family: inherit; font-weight: 500; }
         
+        /* BOTÃO DE LIMPAR BUSCA MELHORADO */
         .clear-search {
             background: transparent;
             border: none;
@@ -416,7 +417,11 @@
     <div class="modal-overlay" id="orders-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="brand-font">Meus Pedidos</h2>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h2 class="brand-font">Meus Pedidos</h2>
+                    <!-- Botão Ativar Notificações -->
+                    <button onclick="enableNotifications()" title="Ativar Notificações" style="background: none; border: none; font-size: 18px; color: var(--primary); cursor: pointer;"><i class="fas fa-bell"></i></button>
+                </div>
                 <button class="close-modal" onclick="closeOrdersModal()" style="background:none; border:none; font-size:20px;"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-scrollable-content">
@@ -761,6 +766,7 @@
             }
         }
 
+        // --- ATUALIZADO: GERENCIAMENTO DE PERFIL COM ENDEREÇO ---
         function openProfileModal() {
             if (!currentUser) {
                 openLoginModal();
@@ -810,6 +816,33 @@
             loadUserOrders();
         }
         function closeOrdersModal() { document.getElementById('orders-modal').classList.remove('open'); }
+        
+        // --- FUNÇÕES DE NOTIFICAÇÃO ---
+        function enableNotifications() {
+            if (!("Notification" in window)) {
+                alert("Este navegador não suporta notificações de desktop.");
+            } else if (Notification.permission === "granted") {
+                showToast("Notificações já estão ativas!");
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(function (permission) {
+                    if (permission === "granted") {
+                        showToast("Notificações ativadas!");
+                        sendNotification("Bem-vindo!", "Você será avisado sobre seus pedidos.");
+                    }
+                });
+            }
+        }
+
+        function sendNotification(title, body) {
+            if (Notification.permission === "granted") {
+                // Em PWA Mobile, pode não aparecer visualmente se o app estiver aberto,
+                // mas funciona bem em background ou desktop.
+                new Notification(title, {
+                    body: body,
+                    icon: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png'
+                });
+            }
+        }
 
         function loadUserOrders() {
             if(!currentUser) return;
@@ -825,6 +858,18 @@
                       list.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #999;">Nenhum pedido encontrado para este número.</p>';
                       return;
                   }
+                  
+                  // DETECTA MUDANÇAS PARA NOTIFICAR
+                  snap.docChanges().forEach(change => {
+                      if (change.type === "modified") {
+                          const data = change.doc.data();
+                          // Só notifica se tiver status novo e for algo relevante
+                          const statusInfo = statusMap[data.status];
+                          if (statusInfo) {
+                             sendNotification(`Atualização no Pedido #${data.orderId}`, statusInfo.text);
+                          }
+                      }
+                  });
 
                   let orders = [];
                   snap.forEach(doc => orders.push({ _id: doc.id, ...doc.data() }));
@@ -1196,7 +1241,7 @@
         function clearCart() { 
             if(confirm("Esvaziar a sacola?")) { 
                 cart = []; 
-                saveCartToStorage(); // LIMPA O STORAGE
+                saveCartToStorage(); // LIMPA STORAGE APÓS SUCESSO
                 updateUI(); 
             } 
         }
@@ -1402,7 +1447,7 @@
                 closeOrdersModal();
                 toggleCart();
                 updateUI();
-            });
+             });
         }
         
         function cancelEdit() {
