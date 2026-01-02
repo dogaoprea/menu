@@ -164,15 +164,15 @@
         
         /* A parte do texto (nome e preço) */
         .edit-order-item > div:first-child {
-            flex: 1 1 200px; /* Cresce, mas tem base mínima de 200px antes de quebrar */
-            min-width: 0; /* Previne overflow de texto */
+            flex: 1 1 200px;
+            min-width: 0;
         }
 
         .edit-qty-group { 
             display: flex; 
             align-items: center; 
             gap: 5px; 
-            flex-wrap: wrap; /* Permite que os botões quebrem se muito apertado */
+            flex-wrap: wrap; 
             justify-content: flex-end;
             flex: 0 0 auto;
         }
@@ -181,6 +181,25 @@
         .btn-mini-trash { color: var(--danger); border-color: #ffcccc; background: #fff0f0; }
         .btn-mini-extras { color: var(--primary-dark); border-color: var(--primary); background: #fff8e1; width: auto; padding: 0 10px; font-size: 11px; height: 28px; }
         .price-edit-input { width: 70px; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; text-align: right; }
+
+        /* AJUSTE PARA CELULAR (Evitar sobreposição) */
+        @media (max-width: 480px) {
+            .edit-order-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .edit-order-item > div:first-child {
+                margin-bottom: 8px;
+            }
+            .edit-qty-group {
+                justify-content: space-between;
+                width: 100%;
+                margin-top: 5px;
+            }
+            .price-edit-input {
+                width: 80px; /* Um pouco maior para facilitar o toque */
+            }
+        }
 
         /* Filtros de Pedidos */
         .order-filters { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; }
@@ -705,7 +724,7 @@
                 `).join('');
             }
 
-            const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + (i.price * i.qty), 0) : 0;
+            const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + ((i.price + (i.extrasTotal || 0)) * i.qty), 0) : 0;
             const fee = order.deliveryFee || 0;
             const total = subtotal + fee;
 
@@ -856,7 +875,14 @@
             document.getElementById('edit-order-address').value = order.address || '';
             document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
             
-            editingOrderCart = JSON.parse(JSON.stringify(order.cart || []));
+            // Garante IDs únicos para edição se vierem sem (pedidos antigos)
+            editingOrderCart = (order.cart || []).map(i => ({
+                ...i,
+                _uuid: i._uuid || 'admin_old_' + Math.random(),
+                extrasTotal: i.extrasTotal || 0,
+                selectedExtras: i.selectedExtras || []
+            }));
+            
             renderEditOrderItems();
             
             document.getElementById('order-edit-modal').classList.add('open');
@@ -910,6 +936,7 @@
         }
         
         function calculateOrderTotal() {
+            // Calcula (Preço Base + Extras) * Qty
             const subtotal = editingOrderCart.reduce((acc, i) => acc + ((i.price + (i.extrasTotal || 0)) * i.qty), 0);
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const total = subtotal + fee;
