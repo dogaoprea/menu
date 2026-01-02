@@ -2,8 +2,18 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin - DOGÃO PREÁ</title>
+    
+    <!-- PWA Settings -->
+    <meta name="theme-color" content="#ff9f1c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dogão Admin">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1046/1046784.png">
+    <!-- Manifest Placeholder -->
+    <link rel="manifest" id="my-manifest">
+
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
@@ -121,6 +131,7 @@
         .btn-delete { background: #ffebee; color: #c62828; }
         .btn-add { background: var(--primary); color: #000; width: 100%; padding: 15px; font-size: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255,159,28,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-restore { background: #2196F3; color: white; width: 100%; padding: 15px; margin-top: 10px; border-radius: 8px; }
+        .btn-install { background: #333; color: white; padding: 8px 12px; border-radius: 8px; margin-right: 10px; display: none; }
 
         /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
@@ -142,7 +153,7 @@
         .cat-move-btn { background: none; border: none; color: #999; cursor: pointer; padding: 5px; }
         .cat-move-btn:hover { color: #333; }
 
-        /* --- NOVO LAYOUT DO ITEM DE PEDIDO (CARD STYLE) --- */
+        /* --- LAYOUT MINI CARD (ITEM DO PEDIDO) --- */
         .edit-order-item { 
             display: flex; 
             flex-direction: column; 
@@ -154,7 +165,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         
-        /* Cabeçalho do Item: Nome e Botão de Excluir */
+        /* Cabeçalho do Item */
         .edit-item-header {
             display: flex;
             justify-content: space-between;
@@ -165,7 +176,7 @@
         }
         .edit-item-name { font-weight: 700; color: #333; font-size: 14px; line-height: 1.3; }
         
-        /* Corpo do Item: Preço e Controles */
+        /* Corpo do Item */
         .edit-item-body {
             padding: 10px 12px;
             display: flex;
@@ -190,7 +201,7 @@
         
         .qty-display { font-weight: 700; font-size: 14px; min-width: 25px; text-align: center; }
 
-        /* Rodapé do Item: Observação */
+        /* Rodapé do Item */
         .edit-item-footer { padding: 0 12px 12px 12px; }
         .item-obs-input-admin {
             width: 100%;
@@ -236,7 +247,10 @@
     <div id="app-content" style="display: none;">
         <header class="admin-header">
             <h1>Dogão Admin</h1>
-            <button class="btn" onclick="logout()" style="background: #eee; color: #333;"><i class="fas fa-sign-out-alt"></i></button>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button id="install-btn" class="btn btn-install" onclick="installPWA()"><i class="fas fa-download"></i> App</button>
+                <button class="btn" onclick="logout()" style="background: #eee; color: #333;"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
         </header>
 
         <div class="container">
@@ -454,6 +468,51 @@
     <div id="toast"><i class="fas fa-check"></i> Salvo com sucesso!</div>
 
     <script>
+        // --- MANIFEST DINÂMICO PARA PWA ---
+        const manifestData = {
+            "name": "Admin Dogão Preá",
+            "short_name": "Dogão Admin",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#f0f2f5",
+            "theme_color": "#ff9f1c",
+            "icons": [
+                {
+                    "src": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                },
+                {
+                    "src": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        };
+        const stringManifest = JSON.stringify(manifestData);
+        const blob = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blob);
+        document.querySelector('#my-manifest').setAttribute('href', manifestURL);
+
+        // --- PWA INSTALL PROMPT ---
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').style.display = 'block';
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-btn').style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        }
+
         // --- CONFIGURAÇÃO FIREBASE ---
         const firebaseConfig = {
           apiKey: "AIzaSyClYFGSNXxPmAn3DRWiB7eSxCQ3Nf81IHI",
