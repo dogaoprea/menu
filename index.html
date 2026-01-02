@@ -259,7 +259,8 @@
             <button class="sidebar-close" onclick="toggleSidebar()"><i class="fas fa-times"></i></button>
         </div>
         <ul class="sidebar-menu">
-            <li><a href="#" class="sidebar-link" onclick="openLoginModal(); toggleSidebar()"><i class="fas fa-user-circle"></i> Meu Perfil / Pedidos</a></li>
+            <li><a href="#" class="sidebar-link" onclick="openProfileModal(); toggleSidebar()"><i class="fas fa-user-cog"></i> Meu Perfil</a></li>
+            <li><a href="#" class="sidebar-link" onclick="openOrdersModal(); toggleSidebar()"><i class="fas fa-receipt"></i> Meus Pedidos</a></li>
             <li><a href="https://www.instagram.com/dogaoprea" target="_blank" class="sidebar-link"><i class="fab fa-instagram"></i> Instagram</a></li>
             <li><a href="https://wa.me/5588996768158" target="_blank" class="sidebar-link"><i class="fab fa-whatsapp"></i> WhatsApp</a></li>
             <li><a href="https://maps.app.goo.gl/MvT3UvF9AXrKJphj8" target="_blank" class="sidebar-link"><i class="fas fa-map-marker-alt"></i> Localização</a></li>
@@ -288,7 +289,7 @@
         </div>
     </header>
 
-    <!-- Modal Login -->
+    <!-- Modal Login (CADASTRO INICIAL) -->
     <div class="modal-overlay" id="login-modal">
         <div class="modal-content" style="height: auto; max-height: 90vh;">
             <div class="modal-header">
@@ -315,6 +316,37 @@
                     </div>
                 </div>
                 <button class="btn btn-whatsapp" onclick="performLogin()" style="width: 100%; margin-top: 10px;">Salvar e Entrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOVO MODAL: MEU PERFIL (EDIÇÃO) -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-content" style="height: auto; max-height: 90vh;">
+            <div class="modal-header">
+                <h2 class="brand-font">Meu Perfil</h2>
+                <button class="close-modal" onclick="closeProfileModal()" style="background:none; border:none; font-size:20px;"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-scrollable-content" style="padding-bottom: 40px;">
+                <p style="text-align: center; color: #666; font-size: 14px; margin-bottom: 20px;">
+                    Mantenha seus dados atualizados para facilitar a entrega.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Seu Nome</label>
+                    <input type="text" id="profile-name" class="form-input" placeholder="Ex: João Silva">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Seu WhatsApp (Somente números)</label>
+                    <input type="tel" id="profile-phone" class="form-input" placeholder="Ex: 5588999999999">
+                    <small style="color:#888; font-size:11px;">Inclua o DDI (ex: 55 para Brasil) e o DDD.</small>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top: 20px;">
+                    <button class="btn btn-whatsapp" onclick="saveProfile()" style="width: 100%;">Salvar Alterações</button>
+                    <button class="btn" onclick="logout()" style="width: 100%; background:#eee; color:#333; margin-top:10px;">
+                        <i class="fas fa-sign-out-alt"></i> Sair da Conta
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -550,6 +582,8 @@
 
         function openLoginModal(isFromCart = false) {
             loginTriggeredByCart = isFromCart; 
+            // Se já logado, mas chamado diretamente (não pelo carrinho), abre perfil
+            // Se chamado pelo carrinho e já logado, não deve acontecer, mas por segurança ok
             if (currentUser && !isFromCart) {
                 openOrdersModal(); 
             } else {
@@ -582,13 +616,62 @@
         function updateLoginButton(isLogged) {
             const btn = document.getElementById('login-btn-header');
             if (isLogged) {
-                btn.innerHTML = `<i class="fas fa-receipt"></i> <span>Meus Pedidos</span>`;
+                btn.innerHTML = `<i class="fas fa-user-check"></i> <span>Perfil</span>`;
                 btn.style.background = "#333";
                 btn.style.color = "#fff";
+                btn.onclick = function() { openProfileModal(); }; // Botão do header abre o perfil agora
+            } else {
+                btn.innerHTML = `<i class="fas fa-user-circle"></i> <span>Entrar</span>`;
+                btn.style.background = "var(--primary)";
+                btn.style.color = "#000";
+                btn.onclick = function() { openLoginModal(); };
+            }
+        }
+
+        // --- NOVO: GERENCIAMENTO DE PERFIL ---
+        function openProfileModal() {
+            if (!currentUser) {
+                openLoginModal();
+                return;
+            }
+            document.getElementById('profile-name').value = currentUser.name;
+            document.getElementById('profile-phone').value = currentUser.phone;
+            document.getElementById('profile-modal').classList.add('open');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.remove('open');
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('profile-name').value;
+            const phone = document.getElementById('profile-phone').value;
+
+            if(!name || !phone) return alert("Preencha todos os dados.");
+            const cleanPhone = phone.replace(/\D/g, '');
+
+            currentUser = { name, phone: cleanPhone };
+            localStorage.setItem('dogao_user', JSON.stringify(currentUser));
+            
+            showToast("Perfil atualizado!");
+            closeProfileModal();
+        }
+
+        function logout() {
+            if(confirm("Tem certeza que deseja sair da conta? Seus pedidos antigos não aparecerão até você entrar novamente.")) {
+                localStorage.removeItem('dogao_user');
+                currentUser = null;
+                updateLoginButton(false);
+                closeProfileModal();
+                showToast("Desconectado.");
             }
         }
 
         function openOrdersModal() {
+            if (!currentUser) {
+                openLoginModal();
+                return;
+            }
             document.getElementById('orders-modal').classList.add('open');
             loadUserOrders();
         }
@@ -1101,7 +1184,7 @@
                 pickupTime: (type === 'Retirada' ? document.getElementById('pickup-time').value : ''),
                 address: addressData,
                 mapsLink: mapsLinkData,
-                cart: cart, // Agora o carrinho inclui os extras
+                cart: cart, 
                 total: total,
                 ...(editingOrder ? {} : { timestamp: firebase.firestore.FieldValue.serverTimestamp() }),
                 status: 'pending' 
@@ -1174,16 +1257,12 @@
             searchProducts('');
         }
 
-        // --- EDIÇÃO DE PEDIDO (Modificado para suportar estrutura nova) ---
+        // --- EDIÇÃO DE PEDIDO ---
         function editOrder(docId) {
-             // ... lógica de edição foi simplificada, o foco aqui é adicionar produtos.
-             // Para manter a funcionalidade completa, seria necessário reidratar o carrinho com os UUIDs.
-             // O código abaixo lida com o básico.
              db.collection(COL_ORDERS).doc(docId).get().then(doc => {
                 if(!doc.exists) return;
                 const order = doc.data();
                 
-                // Garante que itens antigos tenham UUID se não tiverem
                 cart = (order.cart || []).map(i => ({
                     ...i,
                     _uuid: i._uuid || 'cart_' + Math.random(),
