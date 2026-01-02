@@ -197,7 +197,7 @@
                 margin-top: 5px;
             }
             .price-edit-input {
-                width: 80px; /* Um pouco maior para facilitar o toque */
+                width: 80px; 
             }
         }
 
@@ -715,15 +715,30 @@
             
             let itemsHtml = '';
             if (order.cart) {
-                itemsHtml = order.cart.map(i => `
+                itemsHtml = order.cart.map(i => {
+                    // Calcula preço unitário (Base + Extras)
+                    const unitPrice = (i.price || 0) + (i.extrasTotal || 0);
+                    const lineTotal = unitPrice * i.qty;
+
+                    // Lógica restaurada para exibir extras
+                    let extrasHtml = '';
+                    if (i.selectedExtras && i.selectedExtras.length > 0) {
+                        extrasHtml = i.selectedExtras.map(e => `<div>+ ${e.name}</div>`).join('');
+                        extrasHtml = `<div class="order-extras-list">${extrasHtml}</div>`;
+                    }
+
+                    return `
                     <div class="order-item-line">
                         <span>${i.qty}x ${i.name}</span>
-                        <span>R$ ${(i.price * i.qty).toFixed(2)}</span>
+                        <span>R$ ${lineTotal.toFixed(2)}</span>
                     </div>
+                    ${extrasHtml} 
                     ${i.obs ? `<div style="font-size:11px; color:#666; margin-bottom:4px; font-style:italic;">Obs: ${i.obs}</div>` : ''}
-                `).join('');
+                `;
+                }).join('');
             }
 
+            // Recalcula subtotal considerando extras
             const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + ((i.price + (i.extrasTotal || 0)) * i.qty), 0) : 0;
             const fee = order.deliveryFee || 0;
             const total = subtotal + fee;
@@ -734,7 +749,12 @@
                 `Pagamento: ${order.payment}\n` +
                 `Endereço: ${order.address || 'N/A'}\n` +
                 `----------------\n` +
-                (order.cart ? order.cart.map(i => `${i.qty}x ${i.name} (R$ ${i.price.toFixed(2)})`).join('\n') : '') +
+                (order.cart ? order.cart.map(i => {
+                    const unitTotal = (i.price || 0) + (i.extrasTotal || 0);
+                    let line = `${i.qty}x ${i.name} (R$ ${unitTotal.toFixed(2)})`;
+                    if(i.selectedExtras) i.selectedExtras.forEach(e => line += `\n   + ${e.name}`);
+                    return line;
+                }).join('\n') : '') +
                 `\n----------------\n` +
                 `Taxa: R$ ${fee.toFixed(2)}\n` +
                 `*TOTAL: R$ ${total.toFixed(2)}*`;
