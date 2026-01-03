@@ -34,8 +34,8 @@
         .container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
         
         /* Navegação por Abas */
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
-        .nav-tab { padding: 10px 20px; background: none; border: none; border-bottom: 3px solid transparent; font-weight: 600; color: #666; cursor: pointer; transition: 0.3s; }
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px; overflow-x: auto; }
+        .nav-tab { padding: 10px 20px; background: none; border: none; border-bottom: 3px solid transparent; font-weight: 600; color: #666; cursor: pointer; transition: 0.3s; white-space: nowrap; }
         .nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
         .nav-tab:hover { color: var(--primary-dark); }
 
@@ -81,11 +81,6 @@
         .btn-share { background: #25D366; }
         .btn-archive { background: #4CAF50; }
         .btn-delete-forever { background: #ff4444; }
-        
-        .btn-edit-order:hover { background: #1976D2; }
-        .btn-copy:hover { background: #455A64; }
-        .btn-share:hover { background: #128C7E; }
-        .btn-archive:hover { background: #388E3C; }
         
         /* Select de Status */
         .status-select {
@@ -215,10 +210,6 @@
         .filter-btn.active { background: var(--primary); color: #000; border-color: var(--primary); }
         
         /* SEPARAÇÃO DE HISTÓRICO */
-        .history-section { border-top: 3px solid #eee; margin-top: 30px; padding-top: 20px; }
-        .history-title { font-family: 'Bebas Neue'; color: #666; font-size: 20px; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .history-title i { transition: 0.3s; }
-        
         /* Header para sub-seções do histórico */
         .history-subheader { margin: 15px 0 10px; color: #888; font-size: 13px; border-bottom: 1px dashed #ddd; padding-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
@@ -252,10 +243,11 @@
             <!-- Abas -->
             <div class="nav-tabs">
                 <button class="nav-tab active" onclick="switchTab('orders')"><i class="fas fa-receipt"></i> Pedidos</button>
+                <button class="nav-tab" onclick="switchTab('history')"><i class="fas fa-history"></i> Histórico</button>
                 <button class="nav-tab" onclick="switchTab('menu')"><i class="fas fa-hamburger"></i> Cardápio</button>
             </div>
 
-            <!-- ABA DE PEDIDOS -->
+            <!-- ABA DE PEDIDOS (ATIVOS) -->
             <div id="tab-orders" class="tab-content active">
                 
                 <!-- BOTÃO NOVO PEDIDO -->
@@ -274,26 +266,20 @@
                 <div id="orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #888;">Aguardando novos pedidos...</p>
                 </div>
+            </div>
 
-                <!-- SEÇÃO DE HISTÓRICO (CONCLUÍDOS/CANCELADOS) -->
-                <div class="history-section">
-                    <div class="history-title" onclick="toggleHistory()">
-                        <i id="history-arrow" class="fas fa-chevron-down"></i> Histórico (Concluídos/Cancelados)
-                    </div>
-                    
-                    <div id="history-wrapper">
-                        <!-- Sub-seção: Recentes (Últimas 12h) -->
-                        <div class="history-subheader"><i class="far fa-clock"></i> Recentes (Últimas 12h)</div>
-                        <div id="history-recent-list">
-                            <p style="text-align: center; color: #ccc; font-size: 13px;">Nenhum pedido recente.</p>
-                        </div>
+            <!-- ABA DE HISTÓRICO -->
+            <div id="tab-history" class="tab-content">
+                <!-- Sub-seção: Recentes (Últimas 12h) -->
+                <div class="history-subheader"><i class="far fa-clock"></i> Recentes (Últimas 12h)</div>
+                <div id="history-recent-list">
+                    <p style="text-align: center; color: #ccc; font-size: 13px; padding: 20px;">Nenhum pedido recente.</p>
+                </div>
 
-                        <!-- Sub-seção: Antigos -->
-                        <div class="history-subheader" style="margin-top: 25px;"><i class="fas fa-archive"></i> Antigos</div>
-                        <div id="history-old-list">
-                            <p style="text-align: center; color: #ccc; font-size: 13px;">Histórico antigo vazio.</p>
-                        </div>
-                    </div>
+                <!-- Sub-seção: Antigos -->
+                <div class="history-subheader" style="margin-top: 25px;"><i class="fas fa-archive"></i> Antigos</div>
+                <div id="history-old-list">
+                    <p style="text-align: center; color: #ccc; font-size: 13px; padding: 20px;">Histórico antigo vazio.</p>
                 </div>
             </div>
 
