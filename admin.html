@@ -2,18 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - DOGÃO PREÁ</title>
-    
-    <!-- PWA Settings -->
-    <meta name="theme-color" content="#ff9f1c">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Dogão Admin">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1046/1046784.png">
-    <!-- Manifest Placeholder -->
-    <link rel="manifest" id="my-manifest">
-
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
@@ -131,7 +121,6 @@
         .btn-delete { background: #ffebee; color: #c62828; }
         .btn-add { background: var(--primary); color: #000; width: 100%; padding: 15px; font-size: 16px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255,159,28,0.3); border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-restore { background: #2196F3; color: white; width: 100%; padding: 15px; margin-top: 10px; border-radius: 8px; }
-        .btn-install { background: #333; color: white; padding: 8px 12px; border-radius: 8px; margin-right: 10px; display: none; }
 
         /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
@@ -153,7 +142,7 @@
         .cat-move-btn { background: none; border: none; color: #999; cursor: pointer; padding: 5px; }
         .cat-move-btn:hover { color: #333; }
 
-        /* --- LAYOUT MINI CARD (ITEM DO PEDIDO) --- */
+        /* --- NOVO LAYOUT DO ITEM DE PEDIDO (CARD STYLE) --- */
         .edit-order-item { 
             display: flex; 
             flex-direction: column; 
@@ -165,7 +154,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         
-        /* Cabeçalho do Item */
+        /* Cabeçalho do Item: Nome e Botão de Excluir */
         .edit-item-header {
             display: flex;
             justify-content: space-between;
@@ -176,7 +165,7 @@
         }
         .edit-item-name { font-weight: 700; color: #333; font-size: 14px; line-height: 1.3; }
         
-        /* Corpo do Item */
+        /* Corpo do Item: Preço e Controles */
         .edit-item-body {
             padding: 10px 12px;
             display: flex;
@@ -201,7 +190,7 @@
         
         .qty-display { font-weight: 700; font-size: 14px; min-width: 25px; text-align: center; }
 
-        /* Rodapé do Item */
+        /* Rodapé do Item: Observação */
         .edit-item-footer { padding: 0 12px 12px 12px; }
         .item-obs-input-admin {
             width: 100%;
@@ -224,8 +213,12 @@
         .history-section { border-top: 3px solid #eee; margin-top: 30px; padding-top: 20px; }
         .history-title { font-family: 'Bebas Neue'; color: #666; font-size: 20px; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
         .history-title i { transition: 0.3s; }
-        #history-list { display: block; }
-        #history-list.hidden { display: none; }
+        
+        /* Header para sub-seções do histórico */
+        .history-subheader { margin: 15px 0 10px; color: #888; font-size: 13px; border-bottom: 1px dashed #ddd; padding-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        #history-wrapper { display: block; }
+        #history-wrapper.hidden { display: none; }
 
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 30px; }
@@ -247,10 +240,7 @@
     <div id="app-content" style="display: none;">
         <header class="admin-header">
             <h1>Dogão Admin</h1>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <button id="install-btn" class="btn btn-install" onclick="installPWA()"><i class="fas fa-download"></i> App</button>
-                <button class="btn" onclick="logout()" style="background: #eee; color: #333;"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
+            <button class="btn" onclick="logout()" style="background: #eee; color: #333;"><i class="fas fa-sign-out-alt"></i></button>
         </header>
 
         <div class="container">
@@ -285,9 +275,19 @@
                     <div class="history-title" onclick="toggleHistory()">
                         <i id="history-arrow" class="fas fa-chevron-down"></i> Histórico (Concluídos/Cancelados)
                     </div>
-                    <div id="history-list">
-                        <!-- Pedidos antigos aqui -->
-                        <p style="text-align: center; color: #ccc; font-size: 13px;">Carregando histórico...</p>
+                    
+                    <div id="history-wrapper">
+                        <!-- Sub-seção: Recentes (Últimas 12h) -->
+                        <div class="history-subheader"><i class="far fa-clock"></i> Recentes (Últimas 12h)</div>
+                        <div id="history-recent-list">
+                            <p style="text-align: center; color: #ccc; font-size: 13px;">Nenhum pedido recente.</p>
+                        </div>
+
+                        <!-- Sub-seção: Antigos -->
+                        <div class="history-subheader" style="margin-top: 25px;"><i class="fas fa-archive"></i> Antigos</div>
+                        <div id="history-old-list">
+                            <p style="text-align: center; color: #ccc; font-size: 13px;">Histórico antigo vazio.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -468,51 +468,6 @@
     <div id="toast"><i class="fas fa-check"></i> Salvo com sucesso!</div>
 
     <script>
-        // --- MANIFEST DINÂMICO PARA PWA ---
-        const manifestData = {
-            "name": "Admin Dogão Preá",
-            "short_name": "Dogão Admin",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#f0f2f5",
-            "theme_color": "#ff9f1c",
-            "icons": [
-                {
-                    "src": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
-                    "sizes": "192x192",
-                    "type": "image/png"
-                },
-                {
-                    "src": "https://cdn-icons-png.flaticon.com/512/1046/1046784.png",
-                    "sizes": "512x512",
-                    "type": "image/png"
-                }
-            ]
-        };
-        const stringManifest = JSON.stringify(manifestData);
-        const blob = new Blob([stringManifest], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blob);
-        document.querySelector('#my-manifest').setAttribute('href', manifestURL);
-
-        // --- PWA INSTALL PROMPT ---
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('install-btn').style.display = 'block';
-        });
-
-        async function installPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    document.getElementById('install-btn').style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        }
-
         // --- CONFIGURAÇÃO FIREBASE ---
         const firebaseConfig = {
           apiKey: "AIzaSyClYFGSNXxPmAn3DRWiB7eSxCQ3Nf81IHI",
@@ -611,39 +566,52 @@
         }
 
         function toggleHistory() {
-            const list = document.getElementById('history-list');
+            const wrapper = document.getElementById('history-wrapper');
             const arrow = document.getElementById('history-arrow');
-            if (list.classList.contains('hidden')) {
-                list.classList.remove('hidden');
+            if (wrapper.classList.contains('hidden')) {
+                wrapper.classList.remove('hidden');
                 arrow.className = 'fas fa-chevron-down';
             } else {
-                list.classList.add('hidden');
+                wrapper.classList.add('hidden');
                 arrow.className = 'fas fa-chevron-right';
             }
         }
 
         function renderOrders() {
             const activeContainer = document.getElementById('orders-list');
-            const historyContainer = document.getElementById('history-list');
+            const historyRecentContainer = document.getElementById('history-recent-list');
+            const historyOldContainer = document.getElementById('history-old-list');
             
             activeContainer.innerHTML = '';
-            historyContainer.innerHTML = '';
+            historyRecentContainer.innerHTML = '';
+            historyOldContainer.innerHTML = '';
 
             let hasActive = false;
-            let hasHistory = false;
+            let hasRecent = false;
+            let hasOld = false;
+
+            const now = new Date();
+            const twelveHoursAgo = new Date(now.getTime() - (12 * 60 * 60 * 1000));
 
             allOrders.forEach(order => {
                 const status = order.status || 'pending';
                 const isFinished = status === 'done' || status === 'cancelled';
                 
-                // Se for histórico
+                // Se for histórico (concluído ou cancelado)
                 if (isFinished) {
-                    hasHistory = true;
-                    historyContainer.appendChild(createOrderCard(order, true));
+                    const orderDate = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date(0);
+                    
+                    if (orderDate >= twelveHoursAgo) {
+                        hasRecent = true;
+                        historyRecentContainer.appendChild(createOrderCard(order, true));
+                    } else {
+                        hasOld = true;
+                        historyOldContainer.appendChild(createOrderCard(order, true));
+                    }
                     return;
                 }
 
-                // Filtros de ativos
+                // Pedidos ativos
                 let show = false;
                 if (currentFilter === 'all') show = true;
                 else if (currentFilter === 'pending' && status === 'pending') show = true;
@@ -657,7 +625,8 @@
             });
 
             if (!hasActive) activeContainer.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Nenhum pedido ativo neste filtro.</p>';
-            if (!hasHistory) historyContainer.innerHTML = '<p style="text-align: center; color: #ccc; font-size: 13px;">Histórico vazio.</p>';
+            if (!hasRecent) historyRecentContainer.innerHTML = '<p style="text-align: center; color: #ccc; font-size: 13px; padding: 10px;">Nenhum pedido recente.</p>';
+            if (!hasOld) historyOldContainer.innerHTML = '<p style="text-align: center; color: #ccc; font-size: 13px; padding: 10px;">Histórico antigo vazio.</p>';
         }
 
         function createOrderCard(order, isHistory) {
