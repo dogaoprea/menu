@@ -82,6 +82,11 @@
         .btn-archive { background: #4CAF50; }
         .btn-delete-forever { background: #ff4444; }
         
+        .btn-edit-order:hover { background: #1976D2; }
+        .btn-copy:hover { background: #455A64; }
+        .btn-share:hover { background: #128C7E; }
+        .btn-archive:hover { background: #388E3C; }
+        
         /* Select de Status */
         .status-select {
             width: 100%; padding: 10px; margin-top: 10px;
@@ -509,14 +514,30 @@
         function checkLogin() {
             const pass = document.getElementById('admin-pass').value;
             if(pass === 'admin123' || pass === 'dogao') {
-                document.getElementById('login-overlay').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                auth.signInAnonymously().then(loadData).catch(e => alert("Erro Auth: " + e.message));
+                localStorage.setItem('dogao_admin_session', 'true'); 
+                startAdminSession();
             } else {
                 document.getElementById('login-error').style.display = 'block';
             }
         }
-        function logout() { location.reload(); }
+
+        function startAdminSession() {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('app-content').style.display = 'block';
+            auth.signInAnonymously().then(loadData).catch(e => alert("Erro Auth: " + e.message));
+        }
+
+        function logout() { 
+            if(confirm("Sair do painel?")) {
+                localStorage.removeItem('dogao_admin_session');
+                location.reload(); 
+            }
+        }
+
+        // Check session on load
+        if (localStorage.getItem('dogao_admin_session') === 'true') {
+            startAdminSession();
+        }
 
         // --- NAVEGAÇÃO DE ABAS ---
         function switchTab(tabId) {
