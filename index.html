@@ -169,10 +169,25 @@
         .floating-cart-left { display: flex; align-items: center; gap: 10px; }
         .cart-count { background: #000; color: var(--primary); min-width: 24px; height: 24px; border-radius: 12px; padding: 0 6px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
 
-        /* MODAIS */
+        /* MODAIS - AJUSTE PARA ALTURA AUTOMÁTICA */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: flex-end; opacity: 0; pointer-events: none; transition: 0.3s; }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
-        .modal-content { background: var(--bg-card); width: 100%; max-width: 600px; height: 90vh; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; transform: translateY(100%); transition: 0.3s; overflow: hidden; }
+        
+        /* Alteração aqui: height: auto e max-height para evitar espaço em branco */
+        .modal-content { 
+            background: var(--bg-card); 
+            width: 100%; 
+            max-width: 600px; 
+            height: auto; 
+            max-height: 90vh; 
+            border-radius: 20px 20px 0 0; 
+            display: flex; 
+            flex-direction: column; 
+            transform: translateY(100%); 
+            transition: 0.3s; 
+            overflow: hidden; 
+        }
+        
         .modal-overlay.open .modal-content { transform: translateY(0); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
         .modal-scrollable-content { flex: 1; overflow-y: auto; padding: 20px; }
@@ -191,29 +206,55 @@
         .radio-option label i { font-size: 18px; }
         .radio-option input:checked + label { background: rgba(255, 159, 28, 0.15); color: var(--primary); border-color: var(--primary); }
         
-        /* ESTILOS PARA OPÇÕES DO MODAL (NOVO) */
-        .option-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-        .option-btn {
+        /* ESTILOS PARA NOVA LISTA DE SELEÇÃO VERTICAL */
+        .option-list-wrapper {
+            display: flex;
+            flex-direction: column;
             border: 1px solid var(--border-color);
-            background: var(--bg-element);
-            padding: 10px 15px;
-            border-radius: 8px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .option-row-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            color: var(--text-main);
-            flex: 1;
-            min-width: 100px; /* Para não ficar muito pequeno */
-            text-align: center;
+            transition: background 0.2s;
+            position: relative;
         }
-        .option-btn.selected {
-            background: rgba(255, 159, 28, 0.2);
-            border-color: var(--primary);
-            color: var(--primary-dark);
-            font-weight: 700;
-            box-shadow: 0 0 0 1px var(--primary);
+        
+        .option-row-label:last-child { border-bottom: none; }
+        .option-row-label:hover { background: var(--bg-element); }
+        
+        .option-text { font-size: 14px; font-weight: 500; color: var(--text-main); }
+        
+        .radio-circle {
+            width: 22px; height: 22px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            position: relative;
+            flex-shrink: 0;
+            transition: 0.2s;
         }
+
+        .option-row-label.selected { background: rgba(255, 159, 28, 0.05); }
+        .option-row-label.selected .option-text { font-weight: 700; color: var(--primary-dark); }
+        .option-row-label.selected .radio-circle { border-color: var(--primary); border-width: 2px; }
+        .option-row-label.selected .radio-circle::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px; height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
         .modal-options-title {
             font-size: 14px;
             font-weight: 600;
@@ -477,7 +518,8 @@
                 <!-- SEÇÃO DE OPÇÕES (EX: SABORES) -->
                 <div id="pm-options-container" class="hidden">
                     <span class="modal-options-title">Escolha uma opção (Obrigatório):</span>
-                    <div id="pm-options-list" class="option-group"></div>
+                    <!-- LISTA DE SELEÇÃO VERTICAL -->
+                    <div id="pm-options-list" class="option-list-wrapper"></div>
                 </div>
 
                 <!-- SEÇÃO DE EXTRAS (FUTURO) -->
@@ -1162,16 +1204,21 @@
             const optionsContainer = document.getElementById('pm-options-container');
             const optionsList = document.getElementById('pm-options-list');
             
-            // Renderiza opções
+            // Renderiza opções como lista vertical
             optionsList.innerHTML = '';
             if (item.options && item.options.length > 0) {
                 optionsContainer.classList.remove('hidden');
                 item.options.forEach(opt => {
-                    const btn = document.createElement('button');
-                    btn.className = 'option-btn';
-                    btn.innerText = opt;
-                    btn.onclick = () => selectOption(opt, btn);
-                    optionsList.appendChild(btn);
+                    const row = document.createElement('div');
+                    row.className = 'option-row-label';
+                    row.onclick = () => selectOption(opt, row);
+                    
+                    row.innerHTML = `
+                        <span class="option-text">${opt}</span>
+                        <div class="radio-circle"></div>
+                    `;
+                    
+                    optionsList.appendChild(row);
                 });
             } else {
                 optionsContainer.classList.add('hidden');
@@ -1180,10 +1227,10 @@
             document.getElementById('product-modal').classList.add('open');
         }
         
-        function selectOption(opt, btnElement) {
+        function selectOption(opt, rowElement) {
             selectedOptionValue = opt;
-            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-            btnElement.classList.add('selected');
+            document.querySelectorAll('.option-row-label').forEach(b => b.classList.remove('selected'));
+            rowElement.classList.add('selected');
         }
         
         function closeProductModal() {
