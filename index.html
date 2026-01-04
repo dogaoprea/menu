@@ -191,12 +191,44 @@
         .radio-option label i { font-size: 18px; }
         .radio-option input:checked + label { background: rgba(255, 159, 28, 0.15); color: var(--primary); border-color: var(--primary); }
         
+        /* ESTILOS PARA OPÇÕES DO MODAL (NOVO) */
+        .option-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .option-btn {
+            border: 1px solid var(--border-color);
+            background: var(--bg-element);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--text-main);
+            flex: 1;
+            min-width: 100px; /* Para não ficar muito pequeno */
+            text-align: center;
+        }
+        .option-btn.selected {
+            background: rgba(255, 159, 28, 0.2);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+            font-weight: 700;
+            box-shadow: 0 0 0 1px var(--primary);
+        }
+        .modal-options-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-muted);
+            display: block;
+        }
+
         /* Itens do Carrinho */
         .cart-items { margin-bottom: 20px; }
         .cart-item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: var(--bg-element); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); flex-wrap: wrap; }
         .cart-item-main { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 8px; }
         .cart-item-info h4 { margin: 0; font-size: 15px; color: var(--text-main); }
         .cart-item-info span { font-size: 13px; color: var(--primary); font-weight: 700; }
+        .cart-item-option { display:block; font-size: 12px; color: var(--primary-dark); font-weight: 600; margin-top: 2px; }
         
         .cart-controls-row { display: flex; justify-content: space-between; align-items: center; }
         .qty-controls { display: flex; align-items: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 3px; background: var(--bg-body); }
@@ -432,7 +464,7 @@
         </div>
     </div>
 
-    <!-- Modal de Produto (Adicionais) -->
+    <!-- Modal de Produto / Opções -->
     <div class="modal-overlay" id="product-modal">
         <div class="modal-content product-modal-content">
             <div class="modal-header">
@@ -442,14 +474,21 @@
             <div class="modal-scrollable-content">
                 <p id="pm-desc" style="color: #666; font-size: 13px; margin-bottom: 15px;"></p>
                 
-                <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--primary-dark);">Turbine seu pedido (Opcional)</h3>
-                <div id="pm-extras-list" class="extras-list">
-                    <!-- Checkboxes de Extras -->
+                <!-- SEÇÃO DE OPÇÕES (EX: SABORES) -->
+                <div id="pm-options-container" class="hidden">
+                    <span class="modal-options-title">Escolha uma opção (Obrigatório):</span>
+                    <div id="pm-options-list" class="option-group"></div>
+                </div>
+
+                <!-- SEÇÃO DE EXTRAS (FUTURO) -->
+                <div id="pm-extras-container" class="hidden">
+                   <h3 style="font-size: 15px; margin-bottom: 10px; color: var(--primary-dark); margin-top: 20px;">Turbine seu pedido (Opcional)</h3>
+                   <div id="pm-extras-list" class="extras-list"></div>
                 </div>
             </div>
             <div class="modal-fixed-footer">
                 <button class="btn btn-whatsapp" onclick="confirmAddProduct()" style="background: var(--primary); color: black;">
-                    <span style="flex:1; text-align:left;">ADICIONAR</span>
+                    <span style="flex:1; text-align:left;">CONFIRMAR</span>
                     <span id="pm-total-price">R$ 0,00</span>
                 </button>
             </div>
@@ -649,6 +688,10 @@
         let editingOrder = null; 
         let loginTriggeredByCart = false;
 
+        // --- VARIÁVEIS PARA MODAL DE PRODUTO/OPÇÕES ---
+        let currentModalItem = null;
+        let selectedOptionValue = null;
+
         const statusMap = {
             'pending': { text: 'Aguardando Confirmação', class: 'status-pending', icon: 'fas fa-clock' },
             'confirmed': { text: 'Pedido Confirmado', class: 'status-confirmed', icon: 'fas fa-check' },
@@ -676,6 +719,8 @@
             if (savedCart) {
                 try {
                     cart = JSON.parse(savedCart);
+                    // Garante que itens antigos tenham ID interno para funcionar com a nova lógica
+                    cart.forEach(c => { if(!c._cartId) c._cartId = 'legacy_' + Math.random(); });
                 } catch (e) {
                     console.error("Erro ao carregar carrinho", e);
                     localStorage.removeItem('dogao_cart');
@@ -728,7 +773,6 @@
             if(!name || !phone) return alert("Preencha nome e telefone.");
             const cleanPhone = ddi + phone.replace(/\D/g, '');
 
-            // Mantém endereço se já existir no storage (caso o usuário esteja relogando)
             const existingUser = localStorage.getItem('dogao_user');
             let existingAddress = '';
             if(existingUser) {
@@ -835,8 +879,6 @@
 
         function sendNotification(title, body) {
             if (Notification.permission === "granted") {
-                // Em PWA Mobile, pode não aparecer visualmente se o app estiver aberto,
-                // mas funciona bem em background ou desktop.
                 new Notification(title, {
                     body: body,
                     icon: 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png'
@@ -859,11 +901,9 @@
                       return;
                   }
                   
-                  // DETECTA MUDANÇAS PARA NOTIFICAR
                   snap.docChanges().forEach(change => {
                       if (change.type === "modified") {
                           const data = change.doc.data();
-                          // Só notifica se tiver status novo e for algo relevante
                           const statusInfo = statusMap[data.status];
                           if (statusInfo) {
                              sendNotification(`Atualização no Pedido #${data.orderId}`, statusInfo.text);
@@ -911,6 +951,7 @@
                                             <span class="oh-item-name">${i.qty}x ${i.name}</span>
                                             <span class="oh-item-price">R$ ${totalItem.toFixed(2)}</span>
                                         </div>
+                                        ${i.selectedOption ? `<div style="font-size:11px; color:var(--primary-dark); font-weight:600;">Opção: ${i.selectedOption}</div>` : ''}
                                         ${i.obs ? `<div class="oh-obs">Obs: ${i.obs}</div>` : ''}
                                     </div>
                                     `
@@ -950,8 +991,6 @@
                   menuData = [];
                   snapshot.forEach(doc => { menuData.push({ id: doc.id, ...doc.data() }); });
                   document.getElementById('loading-indicator').classList.add('hidden');
-                  
-                  // Atualiza UI com itens do carrinho carregado
                   updateUI(); 
                   renderMenu('all');
               }, (error) => {
@@ -1032,29 +1071,31 @@
             }
         }
 
-        // --- ATUALIZADO: createItemCard (Com Lógica de Contador) ---
+        // --- ATUALIZADO: createItemCard ---
         function createItemCard(item) {
              const priceDisplay = item.price > 0 ? `R$ ${item.price.toFixed(2).replace('.',',')}` : "Consultar";
              const isUnavailable = item.available === false;
+             const hasOptions = item.options && item.options.length > 0;
              
-             // Verifica se está no carrinho
-             const cartItem = cart.find(c => c.id === item.id);
+             // Se tiver opções, não podemos usar find simples por ID, pois podem haver vários
+             // Então, para itens complexos, sempre mostramos o botão de adicionar
+             const cartItem = hasOptions ? null : cart.find(c => c.id === item.id);
              
              let btnHtml = '';
              if(isUnavailable) {
                  btnHtml = `<button class="add-btn disabled">Indisponível</button>`;
-             } else if(cartItem) {
-                 // MOSTRA CONTADOR SE JÁ TIVER NO CARRINHO
+             } else if(cartItem && !hasOptions) {
+                 // MOSTRA CONTADOR (Apenas para itens SIMPLES)
                  btnHtml = `
-                    <div class="qty-selector-card" id="qty-${item.id}">
-                        <button onclick="updateQty('${item.id}', -1)">-</button>
+                    <div class="qty-selector-card" id="qty-wrapper-${item.id}">
+                        <button onclick="updateQty('${cartItem._cartId}', -1)">-</button>
                         <span>${cartItem.qty}</span>
-                        <button class="plus-btn" onclick="updateQty('${item.id}', 1)">+</button>
+                        <button class="plus-btn" onclick="updateQty('${cartItem._cartId}', 1)">+</button>
                     </div>
                  `;
              } else {
-                 // MOSTRA BOTÃO ADICIONAR
-                 btnHtml = `<button class="add-btn" id="add-${item.id}" onclick="addToCart('${item.id}')">ADICIONAR</button>`;
+                 // MOSTRA BOTÃO ADICIONAR (Sempre para itens com opções ou novos simples)
+                 btnHtml = `<button class="add-btn" id="add-${item.id}" onclick="addToCart('${item.id}')">${hasOptions ? 'ESCOLHER' : 'ADICIONAR'}</button>`;
              }
 
              return `<div class="menu-item ${isUnavailable ? 'unavailable' : ''}">
@@ -1081,23 +1122,101 @@
             renderMenu(catId);
         }
 
-        // --- ATUALIZADO: addToCart (Direto) ---
+        // --- ATUALIZADO: addToCart (Com lógica de Opções) ---
         function addToCart(id) {
             const item = menuData.find(i => i.id === id);
             if (!item || item.available === false) return;
 
-            const existingItem = cart.find(i => i.id === id);
+            // Se o item tem opções, abre o modal
+            if (item.options && item.options.length > 0) {
+                openProductModal(item);
+                return;
+            }
+
+            // Lógica padrão para itens simples
+            const existingItem = cart.find(i => i.id === id && !i.selectedOption);
             if (existingItem) {
                 existingItem.qty++;
             } else {
                 cart.push({
                     ...item,
                     qty: 1,
-                    obs: ''
+                    obs: '',
+                    _cartId: 'item_' + Date.now() + Math.random() // Identificador único no carrinho
                 });
             }
             
-            saveCartToStorage(); // SALVA CARRINHO
+            saveCartToStorage(); 
+            updateUI();
+            showToast("Item adicionado!");
+        }
+
+        // --- LÓGICA DO MODAL DE OPÇÕES ---
+        function openProductModal(item) {
+            currentModalItem = item;
+            selectedOptionValue = null;
+            document.getElementById('pm-title').innerText = item.name;
+            document.getElementById('pm-desc').innerText = item.desc || '';
+            document.getElementById('pm-total-price').innerText = `R$ ${item.price.toFixed(2)}`;
+            
+            const optionsContainer = document.getElementById('pm-options-container');
+            const optionsList = document.getElementById('pm-options-list');
+            
+            // Renderiza opções
+            optionsList.innerHTML = '';
+            if (item.options && item.options.length > 0) {
+                optionsContainer.classList.remove('hidden');
+                item.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => selectOption(opt, btn);
+                    optionsList.appendChild(btn);
+                });
+            } else {
+                optionsContainer.classList.add('hidden');
+            }
+            
+            document.getElementById('product-modal').classList.add('open');
+        }
+        
+        function selectOption(opt, btnElement) {
+            selectedOptionValue = opt;
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+            btnElement.classList.add('selected');
+        }
+        
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.remove('open');
+            currentModalItem = null;
+        }
+        
+        function confirmAddProduct() {
+            if (!currentModalItem) return;
+            
+            // Valida se escolheu opção
+            if (currentModalItem.options && currentModalItem.options.length > 0 && !selectedOptionValue) {
+                alert("Por favor, escolha uma opção.");
+                return;
+            }
+            
+            // Verifica se já existe item igual (mesmo ID e mesma Opção)
+            const existing = cart.find(i => i.id === currentModalItem.id && i.selectedOption === selectedOptionValue);
+            
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({
+                    ...currentModalItem,
+                    qty: 1,
+                    obs: '',
+                    selectedOption: selectedOptionValue, // Salva a opção
+                    _cartId: 'item_' + Date.now() + Math.random()
+                });
+            }
+            
+            closeProductModal();
+            saveCartToStorage();
             updateUI();
             showToast("Item adicionado!");
         }
@@ -1109,22 +1228,22 @@
             setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        // --- CARRINHO & MENU ---
-        function updateQty(id, change) {
-            const idx = cart.findIndex(i => i.id === id);
+        // --- ATUALIZADO: updateQty por ID interno do Carrinho ---
+        function updateQty(cartId, change) {
+            const idx = cart.findIndex(i => i._cartId === cartId);
             if (idx > -1) {
                 cart[idx].qty += change;
                 if (cart[idx].qty <= 0) cart.splice(idx, 1);
-                saveCartToStorage(); // SALVA CARRINHO
+                saveCartToStorage(); 
                 updateUI();
             }
         }
 
-        function updateItemObs(id, val) {
-            const item = cart.find(i => i.id === id);
+        function updateItemObs(cartId, val) {
+            const item = cart.find(i => i._cartId === cartId);
             if(item) {
                 item.obs = val;
-                saveCartToStorage(); // SALVA CARRINHO
+                saveCartToStorage(); 
             }
         }
 
@@ -1172,27 +1291,43 @@
             updateMenuCounters();
         }
         
-        // --- NOVO: ATUALIZA BOTÕES DO MENU EM TEMPO REAL ---
+        // --- ATUALIZADO: updateMenuCounters ---
         function updateMenuCounters() {
-            // Varre todos os produtos visíveis no DOM
             menuData.forEach(item => {
                 const wrapper = document.getElementById(`action-wrapper-${item.id}`);
                 if(wrapper) {
-                    const cartItem = cart.find(c => c.id === item.id);
-                    if(cartItem) {
-                        wrapper.innerHTML = `
-                            <div class="qty-selector-card">
-                                <button onclick="updateQty('${item.id}', -1)">-</button>
-                                <span>${cartItem.qty}</span>
-                                <button class="plus-btn" onclick="updateQty('${item.id}', 1)">+</button>
-                            </div>
-                        `;
-                    } else {
+                    const hasOptions = item.options && item.options.length > 0;
+                    
+                    // Se tiver opções, sempre exibe o botão genérico
+                    if(hasOptions) {
                         const isUnavailable = item.available === false;
                         if(isUnavailable) {
                              wrapper.innerHTML = `<button class="add-btn disabled">Indisponível</button>`;
                         } else {
-                             wrapper.innerHTML = `<button class="add-btn" onclick="addToCart('${item.id}')">ADICIONAR</button>`;
+                             // Texto muda se já tiver algo desse item no carrinho
+                             const count = cart.filter(c => c.id === item.id).reduce((acc, i) => acc + i.qty, 0);
+                             const btnText = count > 0 ? 'ADICIONAR +' : 'ESCOLHER';
+                             wrapper.innerHTML = `<button class="add-btn" onclick="addToCart('${item.id}')">${btnText}</button>`;
+                        }
+                    } 
+                    // Se NÃO tiver opções, usa lógica de contador
+                    else {
+                        const cartItem = cart.find(c => c.id === item.id);
+                        if(cartItem) {
+                            wrapper.innerHTML = `
+                                <div class="qty-selector-card">
+                                    <button onclick="updateQty('${cartItem._cartId}', -1)">-</button>
+                                    <span>${cartItem.qty}</span>
+                                    <button class="plus-btn" onclick="updateQty('${cartItem._cartId}', 1)">+</button>
+                                </div>
+                            `;
+                        } else {
+                            const isUnavailable = item.available === false;
+                            if(isUnavailable) {
+                                wrapper.innerHTML = `<button class="add-btn disabled">Indisponível</button>`;
+                            } else {
+                                wrapper.innerHTML = `<button class="add-btn" onclick="addToCart('${item.id}')">ADICIONAR</button>`;
+                            }
                         }
                     }
                 }
@@ -1212,15 +1347,16 @@
                     <div class="cart-item-main">
                         <div class="cart-item-info">
                             <h4>${item.name}</h4>
+                            ${item.selectedOption ? `<span class="cart-item-option">Opção: ${item.selectedOption}</span>` : ''}
                             <span>R$ ${lineTotal.toFixed(2).replace('.',',')}</span>
                         </div>
                         <div class="qty-controls">
-                            <button class="qty-btn" onclick="updateQty('${item.id}', -1)"><i class="fas fa-minus"></i></button>
+                            <button class="qty-btn" onclick="updateQty('${item._cartId}', -1)"><i class="fas fa-minus"></i></button>
                             <span class="qty-input">${item.qty}</span>
-                            <button class="qty-btn" onclick="updateQty('${item.id}', 1)"><i class="fas fa-plus"></i></button>
+                            <button class="qty-btn" onclick="updateQty('${item._cartId}', 1)"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
-                    <input type="text" class="item-obs-input" style="width: 100%; margin-top: 5px;" placeholder="Obs? Ex: Sem cebola" value="${item.obs || ''}" oninput="updateItemObs('${item.id}', this.value)">
+                    <input type="text" class="item-obs-input" style="width: 100%; margin-top: 5px;" placeholder="Obs? Ex: Sem cebola" value="${item.obs || ''}" oninput="updateItemObs('${item._cartId}', this.value)">
                 </div>
             `}).join('');
         }
@@ -1241,12 +1377,11 @@
         function clearCart() { 
             if(confirm("Esvaziar a sacola?")) { 
                 cart = []; 
-                saveCartToStorage(); // LIMPA STORAGE APÓS SUCESSO
+                saveCartToStorage(); 
                 updateUI(); 
             } 
         }
 
-        // --- ATUALIZADO: PREENCHE ENDEREÇO SE DISPONÍVEL ---
         function toggleOrderType(type) {
             const addr = document.getElementById('address-section');
             const feeMsg = document.getElementById('footer-delivery-msg');
@@ -1260,7 +1395,6 @@
                 if(addr) addr.classList.remove('hidden');
                 if(feeMsg) feeMsg.classList.remove('hidden');
                 
-                // Preenche endereço se o usuário tiver
                 const addrInput = document.getElementById('address-text');
                 if(currentUser && currentUser.address && !addrInput.value) {
                     addrInput.value = currentUser.address;
@@ -1305,7 +1439,6 @@
             );
         }
 
-        // --- ATUALIZADO: SALVA ENDEREÇO AO FINALIZAR ---
         function finalizeOrder() {
             const name = currentUser ? currentUser.name : "Cliente Anônimo";
             const typeRadio = document.querySelector('input[name="orderType"]:checked');
@@ -1340,7 +1473,6 @@
                     addressMsg += `\n🏠 *Endereço:* ${addressText}`;
                     addressData = addressText;
                     
-                    // SALVA ENDEREÇO NO PERFIL SE NÃO EXISTIR
                     if(currentUser) {
                         currentUser.address = addressText;
                         localStorage.setItem('dogao_user', JSON.stringify(currentUser));
@@ -1387,7 +1519,7 @@
             savePromise.then(() => {
                 if (editingOrder) editingOrder = null;
                 cart = []; 
-                saveCartToStorage(); // LIMPA STORAGE APÓS SUCESSO
+                saveCartToStorage(); 
                 updateUI();
                 toggleCart(); 
                 openOrdersModal(); 
@@ -1400,6 +1532,7 @@
             
             cart.forEach(i => {
                 msg += `${i.qty}x ${i.name} - R$ ${(i.price * i.qty).toFixed(2)}\n`;
+                if(i.selectedOption) msg += `   *Opção:* ${i.selectedOption}\n`;
                 if(i.obs) msg += `   _Obs: ${i.obs}_\n`;
             });
 
@@ -1437,10 +1570,10 @@
                 if(!doc.exists) return;
                 const order = doc.data();
                 
-                // Reverte UUIDs para edição simples se existirem
+                // Regenera IDs internos para edição
                 cart = (order.cart || []).map(i => ({
                     ...i,
-                    // Garante que selectedExtras seja removido ou ignorado na nova lógica simples
+                    _cartId: i._cartId || 'edit_' + Math.random()
                 }));
                 
                 editingOrder = { docId: doc.id, orderId: order.orderId };
@@ -1453,7 +1586,7 @@
         function cancelEdit() {
             editingOrder = null;
             cart = [];
-            saveCartToStorage(); // LIMPA O CARRINHO SALVO
+            saveCartToStorage(); 
             updateUI();
             const modal = document.getElementById('cart-modal');
             modal.classList.remove('open');
