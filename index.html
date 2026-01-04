@@ -1583,7 +1583,7 @@
                 if(i.obs) msg += `   _Obs: ${i.obs}_\n`;
             });
 
-            msg += `*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
+            msg += `\n*TOTAL: R$ ${total.toFixed(2).replace('.',',')}*`;
             if(addressMsg) msg += `\n\n*INFO:*${addressMsg}`;
             
             window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
