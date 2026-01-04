@@ -82,6 +82,11 @@
         .btn-archive { background: #4CAF50; }
         .btn-delete-forever { background: #ff4444; }
         
+        .btn-edit-order:hover { background: #1976D2; }
+        .btn-copy:hover { background: #455A64; }
+        .btn-share:hover { background: #128C7E; }
+        .btn-archive:hover { background: #388E3C; }
+        
         /* Select de Status */
         .status-select {
             width: 100%; padding: 10px; margin-top: 10px;
@@ -154,7 +159,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         
-        /* Cabeçalho do Item: Nome e Botão de Excluir */
+        /* Cabeçalho do Item */
         .edit-item-header {
             display: flex;
             justify-content: space-between;
@@ -165,7 +170,7 @@
         }
         .edit-item-name { font-weight: 700; color: #333; font-size: 14px; line-height: 1.3; }
         
-        /* Corpo do Item: Preço e Controles */
+        /* Corpo do Item */
         .edit-item-body {
             padding: 10px 12px;
             display: flex;
@@ -190,7 +195,7 @@
         
         .qty-display { font-weight: 700; font-size: 14px; min-width: 25px; text-align: center; }
 
-        /* Rodapé do Item: Observação */
+        /* Rodapé do Item */
         .edit-item-footer { padding: 0 12px 12px 12px; }
         .item-obs-input-admin {
             width: 100%;
@@ -209,12 +214,27 @@
         .filter-btn { background: #fff; border: 1px solid #ddd; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; white-space: nowrap; }
         .filter-btn.active { background: var(--primary); color: #000; border-color: var(--primary); }
         
-        /* SEPARAÇÃO DE HISTÓRICO */
-        /* Header para sub-seções do histórico */
-        .history-subheader { margin: 15px 0 10px; color: #888; font-size: 13px; border-bottom: 1px dashed #ddd; padding-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-
-        #history-wrapper { display: block; }
-        #history-wrapper.hidden { display: none; }
+        /* ESTILO DA ABA HISTÓRICO AVANÇADO */
+        .history-controls { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .filter-group { display: flex; gap: 5px; margin-bottom: 10px; align-items: center; }
+        .filter-group label { width: 30px; font-weight: 600; font-size: 13px; color: #555; }
+        .filter-actions { display: flex; gap: 10px; margin-top: 10px; }
+        
+        .financial-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .fin-card { padding: 15px 10px; border-radius: 10px; color: white; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .fin-card span { font-size: 11px; text-transform: uppercase; font-weight: 600; opacity: 0.9; margin-bottom: 4px; }
+        .fin-card strong { font-size: 16px; font-weight: 800; }
+        
+        .fin-card.revenue { background: linear-gradient(135deg, #00b09b, #96c93d); }
+        .fin-card.fees { background: linear-gradient(135deg, #ff9f1c, #ffc371); }
+        .fin-card.count { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+        
+        @media (max-width: 480px) {
+            .financial-summary { grid-template-columns: 1fr; }
+            .fin-card { padding: 15px; flex-direction: row; justify-content: space-between; }
+            .fin-card span { margin-bottom: 0; font-size: 13px; }
+            .fin-card strong { font-size: 18px; }
+        }
 
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 30px; }
@@ -268,18 +288,46 @@
                 </div>
             </div>
 
-            <!-- ABA DE HISTÓRICO -->
+            <!-- ABA DE HISTÓRICO AVANÇADO -->
             <div id="tab-history" class="tab-content">
-                <!-- Sub-seção: Recentes (Últimas 12h) -->
-                <div class="history-subheader"><i class="far fa-clock"></i> Recentes (Últimas 12h)</div>
-                <div id="history-recent-list">
-                    <p style="text-align: center; color: #ccc; font-size: 13px; padding: 20px;">Nenhum pedido recente.</p>
+                
+                <!-- CONTROLES DE FILTRO -->
+                <div class="history-controls">
+                    <div class="filter-group">
+                        <label>De:</label>
+                        <input type="date" id="filter-date-start" class="form-input">
+                        <input type="time" id="filter-time-start" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label>Até:</label>
+                        <input type="date" id="filter-date-end" class="form-input">
+                        <input type="time" id="filter-time-end" class="form-input">
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn" style="background:var(--primary); width:100%;" onclick="applyHistoryFilter()"><i class="fas fa-search"></i> Filtrar</button>
+                        <button class="btn" style="background:#eee; color:#333; width:100%;" onclick="clearHistoryFilter()"><i class="fas fa-times"></i> Limpar</button>
+                    </div>
                 </div>
 
-                <!-- Sub-seção: Antigos -->
-                <div class="history-subheader" style="margin-top: 25px;"><i class="fas fa-archive"></i> Antigos</div>
-                <div id="history-old-list">
-                    <p style="text-align: center; color: #ccc; font-size: 13px; padding: 20px;">Histórico antigo vazio.</p>
+                <!-- RESUMO FINANCEIRO -->
+                <div class="financial-summary">
+                    <div class="fin-card revenue">
+                        <span>Faturamento</span>
+                        <strong id="summary-total">R$ 0,00</strong>
+                    </div>
+                    <div class="fin-card fees">
+                        <span>Taxas Entrega</span>
+                        <strong id="summary-fees">R$ 0,00</strong>
+                    </div>
+                    <div class="fin-card count">
+                        <span>Pedidos</span>
+                        <strong id="summary-count">0</strong>
+                    </div>
+                </div>
+
+                <!-- LISTA DE HISTÓRICO -->
+                <div id="history-list-container">
+                    <p style="text-align: center; color: #ccc; font-size: 13px; padding: 20px;">Utilize o filtro ou aguarde o carregamento...</p>
                 </div>
             </div>
 
@@ -532,6 +580,10 @@
             
             document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
             event.currentTarget.classList.add('active');
+            
+            if(tabId === 'history') {
+                renderHistoryList(); // Atualiza histórico ao entrar na aba
+            }
         }
 
         // --- DADOS ---
@@ -557,11 +609,16 @@
                 populateAddItemSelect(); 
             });
 
-            // ORDERS
-            db.collection(COL_ORDERS).orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
+            // ORDERS - Aumentado limite para pegar histórico maior
+            db.collection(COL_ORDERS).orderBy('timestamp', 'desc').limit(300).onSnapshot(snap => {
                 allOrders = [];
                 snap.forEach(doc => allOrders.push({ _id: doc.id, ...doc.data() }));
                 renderOrders(); 
+                
+                // Se a aba histórico estiver ativa, atualiza ela também
+                if(document.getElementById('tab-history').classList.contains('active')){
+                    renderHistoryList();
+                }
             });
         }
         
@@ -572,53 +629,18 @@
             renderOrders();
         }
 
-        function toggleHistory() {
-            const wrapper = document.getElementById('history-wrapper');
-            const arrow = document.getElementById('history-arrow');
-            if (wrapper.classList.contains('hidden')) {
-                wrapper.classList.remove('hidden');
-                arrow.className = 'fas fa-chevron-down';
-            } else {
-                wrapper.classList.add('hidden');
-                arrow.className = 'fas fa-chevron-right';
-            }
-        }
-
         function renderOrders() {
             const activeContainer = document.getElementById('orders-list');
-            const historyRecentContainer = document.getElementById('history-recent-list');
-            const historyOldContainer = document.getElementById('history-old-list');
-            
             activeContainer.innerHTML = '';
-            historyRecentContainer.innerHTML = '';
-            historyOldContainer.innerHTML = '';
-
             let hasActive = false;
-            let hasRecent = false;
-            let hasOld = false;
-
-            const now = new Date();
-            const twelveHoursAgo = new Date(now.getTime() - (12 * 60 * 60 * 1000));
 
             allOrders.forEach(order => {
                 const status = order.status || 'pending';
                 const isFinished = status === 'done' || status === 'cancelled';
                 
-                // Se for histórico (concluído ou cancelado)
-                if (isFinished) {
-                    const orderDate = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date(0);
-                    
-                    if (orderDate >= twelveHoursAgo) {
-                        hasRecent = true;
-                        historyRecentContainer.appendChild(createOrderCard(order, true));
-                    } else {
-                        hasOld = true;
-                        historyOldContainer.appendChild(createOrderCard(order, true));
-                    }
-                    return;
-                }
+                if (isFinished) return; // Pula finalizados
 
-                // Pedidos ativos
+                // Filtros de ativos
                 let show = false;
                 if (currentFilter === 'all') show = true;
                 else if (currentFilter === 'pending' && status === 'pending') show = true;
@@ -632,13 +654,88 @@
             });
 
             if (!hasActive) activeContainer.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Nenhum pedido ativo neste filtro.</p>';
-            if (!hasRecent) historyRecentContainer.innerHTML = '<p style="text-align: center; color: #ccc; font-size: 13px; padding: 10px;">Nenhum pedido recente.</p>';
-            if (!hasOld) historyOldContainer.innerHTML = '<p style="text-align: center; color: #ccc; font-size: 13px; padding: 10px;">Histórico antigo vazio.</p>';
+        }
+
+        // --- LÓGICA DE HISTÓRICO AVANÇADO ---
+        let historyFilter = { dateStart: '', timeStart: '', dateEnd: '', timeEnd: '' };
+
+        function applyHistoryFilter() {
+            historyFilter.dateStart = document.getElementById('filter-date-start').value;
+            historyFilter.timeStart = document.getElementById('filter-time-start').value;
+            historyFilter.dateEnd = document.getElementById('filter-date-end').value;
+            historyFilter.timeEnd = document.getElementById('filter-time-end').value;
+            renderHistoryList();
+        }
+
+        function clearHistoryFilter() {
+            document.getElementById('filter-date-start').value = '';
+            document.getElementById('filter-time-start').value = '';
+            document.getElementById('filter-date-end').value = '';
+            document.getElementById('filter-time-end').value = '';
+            historyFilter = { dateStart: '', timeStart: '', dateEnd: '', timeEnd: '' };
+            renderHistoryList();
+        }
+
+        function renderHistoryList() {
+            const container = document.getElementById('history-list-container');
+            container.innerHTML = '';
+
+            let filteredOrders = allOrders.filter(order => {
+                const status = order.status || 'pending';
+                // Filtra apenas concluídos ou cancelados
+                return status === 'done' || status === 'cancelled';
+            });
+
+            // Filtro de Data/Hora
+            if (historyFilter.dateStart || historyFilter.dateEnd) {
+                const startStr = historyFilter.dateStart ? `${historyFilter.dateStart}T${historyFilter.timeStart || '00:00'}` : null;
+                const endStr = historyFilter.dateEnd ? `${historyFilter.dateEnd}T${historyFilter.timeEnd || '23:59'}` : null;
+                
+                const startDate = startStr ? new Date(startStr) : new Date(0);
+                const endDate = endStr ? new Date(endStr) : new Date(8640000000000000); // Data muito futura
+
+                filteredOrders = filteredOrders.filter(order => {
+                    const orderDate = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date(0);
+                    return orderDate >= startDate && orderDate <= endDate;
+                });
+            }
+
+            // --- CÁLCULO DE TOTAIS FINANCEIROS ---
+            let totalRevenue = 0;
+            let totalFees = 0;
+            let count = 0;
+
+            filteredOrders.forEach(order => {
+                if(order.status === 'done') {
+                    totalRevenue += (order.total || 0);
+                    totalFees += (order.deliveryFee || 0);
+                    count++;
+                } else if(order.status === 'cancelled') {
+                     // Cancelados contam no visual, mas não no faturamento
+                }
+            });
+            
+            // Atualiza Dashboard
+            document.getElementById('summary-total').innerText = `R$ ${totalRevenue.toFixed(2)}`;
+            document.getElementById('summary-fees').innerText = `R$ ${totalFees.toFixed(2)}`;
+            document.getElementById('summary-count').innerText = count;
+
+
+            // Renderiza Lista
+            if (filteredOrders.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #ccc; padding: 20px;">Nenhum histórico encontrado para este filtro.</p>';
+                return;
+            }
+
+            filteredOrders.forEach(order => {
+                container.appendChild(createOrderCard(order, true));
+            });
         }
 
         function createOrderCard(order, isHistory) {
             const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
             const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateString = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
             
             let itemsHtml = '';
@@ -662,12 +759,7 @@
                 `Pagamento: ${order.payment}\n` +
                 `Endereço: ${order.address || 'N/A'}\n` +
                 `----------------\n` +
-                (order.cart ? order.cart.map(i => {
-                    const unitTotal = (i.price || 0);
-                    let line = `${i.qty}x ${i.name} (R$ ${unitTotal.toFixed(2)})`;
-                    if(i.obs) line += `\n   Obs: ${i.obs}`;
-                    return line;
-                }).join('\n') : '') +
+                (order.cart ? order.cart.map(i => `${i.qty}x ${i.name} (R$ ${i.price.toFixed(2)})`).join('\n') : '') +
                 `\n----------------\n` +
                 `Taxa: R$ ${fee.toFixed(2)}\n` +
                 `*TOTAL: R$ ${total.toFixed(2)}*`;
@@ -708,7 +800,10 @@
                 <div class="order-header">
                     <div>
                         <span class="order-id">#${order.orderId || '???'}</span>
-                        <div class="order-time"><i class="far fa-clock"></i> ${timeString}</div>
+                        <div class="order-time" style="font-size:11px; color:#666;">
+                            <i class="far fa-calendar"></i> ${dateString} &nbsp; 
+                            <i class="far fa-clock"></i> ${timeString}
+                        </div>
                     </div>
                     <div class="btn-action-group">${actionButtons}</div>
                 </div>
