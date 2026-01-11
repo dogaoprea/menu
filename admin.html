@@ -709,7 +709,7 @@
                     if(i.selectedOption) l+= ` (${i.selectedOption})`;
                     if(i.obs) l+= `\n   Obs: ${i.obs}`; // Incluindo observação no resumo copiado
                     return l;
-                }).join('\n') : '') +
+                }).join('\n\n') : '') +
                 `\n----------------\nTaxa: R$ ${fee.toFixed(2)}\n` +
                 (surcharge > 0 ? `Acréscimo: + R$ ${surcharge.toFixed(2)}\n` : '') +
                 (discount > 0 ? `Desconto: - R$ ${discount.toFixed(2)}\n` : '') +
