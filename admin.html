@@ -65,7 +65,11 @@
         .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
         .order-id { font-weight: 800; color: #333; font-size: 16px; }
         .order-time { font-size: 12px; color: #888; }
-        .order-info p { margin: 4px 0; font-size: 14px; }
+        
+        /* CORREÇÃO: Estilo da info do pedido para suportar labels */
+        .order-info p { margin: 4px 0; font-size: 14px; color: #444; }
+        .order-info strong { font-weight: 700; color: #222; margin-right: 4px; }
+        
         .order-items { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
         .order-item-line { display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: 500; }
         .order-extras-list { font-size: 11px; color: #666; margin-left: 10px; margin-bottom: 6px; border-left: 2px solid #ddd; padding-left: 6px; }
@@ -195,7 +199,6 @@
         .btn-qty { width: 36px; height: 36px; border: none; background: transparent; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-val { min-width: 30px; text-align: center; font-weight: 700; font-size: 15px; }
 
-        /* CORREÇÃO: Layout de Item Personalizado Simplificado */
         .custom-add-box {
             background: #fff;
             padding: 12px;
@@ -429,7 +432,7 @@
                     </div>
                 </div>
 
-                <!-- CORREÇÃO: Adicionar Personalizado (Layout Simplificado) -->
+                <!-- Adicionar Personalizado -->
                 <div class="custom-add-box">
                     <label class="form-label" style="color: #666; font-size:12px;">Adicionar Item Avulso (Fora do Cardápio)</label>
                     <div class="custom-row-1">
@@ -694,6 +697,10 @@
 
             const waLink = `https://wa.me/?text=${encodeURIComponent(clipboardText)}`;
             
+            // Link WhatsApp Cliente
+            const clientWaLink = order.userPhone ? 
+                `<a href="https://wa.me/55${order.userPhone}" target="_blank" style="margin-left:5px; color:#25D366; text-decoration:none;"><i class="fab fa-whatsapp"></i></a>` : '';
+
             let statusOpts = `
                 <option value="pending" ${order.status==='pending'?'selected':''}>Pendente</option>
                 <option value="confirmed" ${order.status==='confirmed'?'selected':''}>Confirmado</option>
@@ -717,9 +724,11 @@
                     <div class="btn-action-group">${actions}</div>
                 </div>
                 <div class="order-info">
-                    <p><strong>${order.customerName}</strong> (${order.type})</p>
-                    <p>${order.payment} ${order.change ? `(Troco: ${order.change})` : ''}</p>
-                    ${order.address ? `<p style="font-size:12px;color:#555;">${order.address}</p>` : ''}
+                    <p><strong>Cliente:</strong> ${order.customerName} ${clientWaLink}</p>
+                    <p><strong>Tipo:</strong> ${order.type} ${order.pickupTime ? `(${order.pickupTime})` : ''}</p>
+                    <p><strong>Pagamento:</strong> ${order.payment} ${order.change ? `(Troco: ${order.change})` : ''}</p>
+                    ${order.address ? `<p><strong>Endereço:</strong> <span style="font-size:13px;color:#555;">${order.address}</span></p>` : ''}
+                    ${order.mapsLink ? `<p><a href="${order.mapsLink}" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:600;"><i class="fas fa-map-marker-alt"></i> Ver no Mapa</a></p>` : ''}
                 </div>
                 <div class="order-items">${itemsHtml}</div>
                 ${!isHistory ? `<select class="status-select" onchange="updateOrderStatus('${order._id}', this.value, '${order.customerName}', '${order.userPhone||''}')">${statusOpts}</select>` : ''}
