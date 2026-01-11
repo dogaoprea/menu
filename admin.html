@@ -704,7 +704,8 @@
 
             const clipboardText = `*PEDIDO #${order.orderId || '???'}*\nCliente: ${order.customerName}\nTipo: ${order.type}\nPagamento: ${order.payment}\nEndereço: ${order.address || 'N/A'}\n----------------\n` +
                 (order.cart ? order.cart.map(i => {
-                    let l = `${i.qty}x ${i.name}`;
+                    const itemTotal = (i.price || 0) * i.qty;
+                    let l = `${i.qty}x ${i.name} - R$ ${itemTotal.toFixed(2)}`;
                     if(i.selectedOption) l+= ` (${i.selectedOption})`;
                     if(i.obs) l+= `\n   Obs: ${i.obs}`; // Incluindo observação no resumo copiado
                     return l;
