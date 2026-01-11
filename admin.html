@@ -441,7 +441,7 @@
                 <div class="custom-add-box">
                     <label class="form-label" style="color: #666; font-size:12px;">Adicionar Item Avulso (Fora do Cardápio)</label>
                     <div class="custom-row-1">
-                        <input type="text" id="custom-item-name" class="form-input" placeholder="Nome do Item">
+                        <input type="text" id="custom-item-name" class="form-input" placeholder="Nome do Item (Ex: Taxa Extra)">
                     </div>
                     <div class="custom-row-2">
                         <input type="number" id="custom-item-price" class="form-input" placeholder="R$ 0.00" step="0.50" style="flex:1;">
@@ -706,6 +706,7 @@
                 (order.cart ? order.cart.map(i => {
                     let l = `${i.qty}x ${i.name}`;
                     if(i.selectedOption) l+= ` (${i.selectedOption})`;
+                    if(i.obs) l+= `\n   Obs: ${i.obs}`; // Incluindo observação no resumo copiado
                     return l;
                 }).join('\n') : '') +
                 `\n----------------\nTaxa: R$ ${fee.toFixed(2)}\n` +
