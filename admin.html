@@ -65,11 +65,8 @@
         .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
         .order-id { font-weight: 800; color: #333; font-size: 16px; }
         .order-time { font-size: 12px; color: #888; }
-        
-        /* CORREÇÃO: Estilo da info do pedido para suportar labels */
         .order-info p { margin: 4px 0; font-size: 14px; color: #444; }
         .order-info strong { font-weight: 700; color: #222; margin-right: 4px; }
-        
         .order-items { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
         .order-item-line { display: flex; justify-content: space-between; margin-bottom: 2px; font-weight: 500; }
         .order-extras-list { font-size: 11px; color: #666; margin-left: 10px; margin-bottom: 6px; border-left: 2px solid #ddd; padding-left: 6px; }
@@ -282,11 +279,19 @@
             <!-- ABA DE HISTÓRICO -->
             <div id="tab-history" class="tab-content">
                 <div class="card">
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
-                        <div style="flex:1"><label>Início</label><input type="date" id="filter-date-start" class="form-input"></div>
-                        <div style="flex:1"><label>Fim</label><input type="date" id="filter-date-end" class="form-input"></div>
+                    <!-- NOVO FILTRO SIMPLIFICADO: DATA DO EXPEDIENTE -->
+                    <div style="margin-bottom:15px;">
+                        <label style="display:block; margin-bottom:5px; font-size:12px; font-weight:600; color:#555;">Data do Expediente</label>
+                        <input type="date" id="filter-ref-date" class="form-input">
+                        <small style="color:#888; font-size:11px; display:block; margin-top:4px;">
+                            <i class="far fa-clock"></i> Filtra das 18h deste dia até as 04h do dia seguinte.
+                        </small>
                     </div>
-                    <button class="btn" style="background:var(--primary); width:100%;" onclick="applyHistoryFilter()">Filtrar</button>
+
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn" style="background:var(--primary); flex:1;" onclick="applyHistoryFilter()">Filtrar</button>
+                        <button class="btn" style="background:#eee; color:#333; width:auto;" onclick="clearHistoryFilter()"><i class="fas fa-times"></i></button>
+                    </div>
                 </div>
 
                 <div class="financial-summary">
@@ -617,12 +622,21 @@
             if (!hasActive) activeContainer.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Nenhum pedido aqui.</p>';
         }
 
-        // --- HISTÓRICO ---
-        let historyFilter = { dateStart: '', dateEnd: '' };
+        // --- HISTÓRICO COM DATA DE REFERÊNCIA ---
+        let historyRefDate = '';
 
         function applyHistoryFilter() {
-            historyFilter.dateStart = document.getElementById('filter-date-start').value;
-            historyFilter.dateEnd = document.getElementById('filter-date-end').value;
+            historyRefDate = document.getElementById('filter-ref-date').value;
+            if (!historyRefDate) {
+                alert("Por favor, selecione uma data de referência.");
+                return;
+            }
+            renderHistoryList();
+        }
+
+        function clearHistoryFilter() {
+            document.getElementById('filter-ref-date').value = '';
+            historyRefDate = '';
             renderHistoryList();
         }
 
@@ -632,10 +646,14 @@
 
             let filteredOrders = allOrders.filter(order => order.status === 'done' || order.status === 'cancelled');
 
-            if (historyFilter.dateStart || historyFilter.dateEnd) {
-                const start = historyFilter.dateStart ? new Date(historyFilter.dateStart) : new Date(0);
-                const end = historyFilter.dateEnd ? new Date(historyFilter.dateEnd + 'T23:59:59') : new Date(8640000000000000);
+            if (historyRefDate) {
+                // Início: 18h do dia selecionado
+                const start = new Date(historyRefDate + 'T18:00:00');
                 
+                // Fim: 04h do dia seguinte
+                const end = new Date(historyRefDate + 'T04:00:00');
+                end.setDate(end.getDate() + 1); // Adiciona 1 dia
+
                 filteredOrders = filteredOrders.filter(order => {
                     const d = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date(0);
                     return d >= start && d <= end;
@@ -656,7 +674,7 @@
             document.getElementById('summary-count').innerText = count;
 
             if (filteredOrders.length === 0) {
-                container.innerHTML = '<p style="text-align:center;color:#ccc;padding:20px;">Vazio.</p>';
+                container.innerHTML = '<p style="text-align:center;color:#ccc;padding:20px;">Nenhum pedido encontrado neste período.</p>';
                 return;
             }
             filteredOrders.forEach(order => container.appendChild(createOrderCard(order, true)));
