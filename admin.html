@@ -522,20 +522,44 @@
                     <!-- Itens renderizados aqui via JS -->
                 </div>
                 
-                <div style="display: flex; gap: 5px;">
+                <!-- SELEÇÃO DE PRODUTO DO MENU -->
+                <div style="display: flex; gap: 5px; margin-bottom: 15px;">
                     <select id="add-item-select" class="form-select" style="flex: 1;">
-                        <option value="">Adicionar produto...</option>
+                        <option value="">Adicionar produto do cardápio...</option>
                         <!-- Produtos preenchidos via JS -->
                     </select>
                     <button type="button" class="btn btn-add" style="width: auto; padding: 0 15px; margin: 0;" onclick="addItemToOrder()">
-                        <i class="fas fa-plus"></i> Add
+                        <i class="fas fa-plus"></i>
                     </button>
                 </div>
 
-                <!-- Taxa de Entrega -->
-                <div style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;">
-                    <label class="form-label" style="display:inline-block;">Taxa de Entrega (R$):</label>
-                    <input type="number" id="edit-order-fee" class="form-input" style="width: 100px; display:inline-block; margin-left: 10px;" value="0.00" step="0.50" onchange="calculateOrderTotal()">
+                <!-- ADICIONAR ITEM PERSONALIZADO (NOVO) -->
+                <div style="border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px;">
+                    <label class="form-label" style="font-size: 11px; color: #777;">ADICIONAR ITEM PERSONALIZADO (FORA DO CARDÁPIO)</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="custom-item-name" class="form-input" placeholder="Nome (Ex: Taxa Extra)" style="flex: 2; font-size: 13px;">
+                        <input type="number" id="custom-item-price" class="form-input" placeholder="R$ 0.00" step="0.50" style="flex: 1; font-size: 13px;">
+                        <input type="number" id="custom-item-qty" class="form-input" value="1" style="width: 50px; font-size: 13px; text-align: center;">
+                        <button type="button" class="btn" style="background: #666; color: white; padding: 0 15px;" onclick="addCustomItemToOrder()" title="Adicionar Personalizado">
+                            <i class="fas fa-magic"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Taxa de Entrega, Acréscimo e Desconto -->
+                <div style="display: flex; gap: 15px; margin-top: 15px; border-top: 1px solid #ccc; padding-top: 10px; justify-content: flex-end; flex-wrap: wrap;">
+                    <div>
+                        <label class="form-label" style="display:inline-block;">Taxa Entrega:</label>
+                        <input type="number" id="edit-order-fee" class="form-input" style="width: 80px; display:inline-block;" value="0.00" step="0.50" onchange="calculateOrderTotal()">
+                    </div>
+                    <div>
+                        <label class="form-label" style="display:inline-block; color: var(--info);">Acréscimo:</label>
+                        <input type="number" id="edit-order-surcharge" class="form-input" style="width: 80px; display:inline-block; color: var(--info);" value="0.00" step="0.50" onchange="calculateOrderTotal()">
+                    </div>
+                    <div>
+                        <label class="form-label" style="display:inline-block; color: var(--danger);">Desconto:</label>
+                        <input type="number" id="edit-order-discount" class="form-input" style="width: 80px; display:inline-block; color: var(--danger);" value="0.00" step="0.50" onchange="calculateOrderTotal()">
+                    </div>
                 </div>
                 
                 <div style="text-align: right; margin-top: 10px; font-weight: 800; font-size: 18px; color: var(--primary-dark);">
@@ -821,7 +845,9 @@
 
             const subtotal = order.cart ? order.cart.reduce((acc, i) => acc + ((i.price + (i.extrasTotal || 0)) * i.qty), 0) : 0;
             const fee = order.deliveryFee || 0;
-            const total = subtotal + fee;
+            const discount = order.discount || 0;
+            const surcharge = order.surcharge || 0;
+            const total = Math.max(0, subtotal + fee + surcharge - discount);
 
             const clipboardText = `*PEDIDO #${order.orderId || '???'}*\n` +
                 `Cliente: ${order.customerName}\n` +
@@ -838,6 +864,8 @@
                 }).join('\n') : '') +
                 `\n----------------\n` +
                 `Taxa: R$ ${fee.toFixed(2)}\n` +
+                (surcharge > 0 ? `Acréscimo: + R$ ${surcharge.toFixed(2)}\n` : '') +
+                (discount > 0 ? `Desconto: - R$ ${discount.toFixed(2)}\n` : '') +
                 `*TOTAL: R$ ${total.toFixed(2)}*`;
 
             const waLink = `https://wa.me/?text=${encodeURIComponent(clipboardText)}`;
@@ -900,6 +928,8 @@
 
                 <div class="order-total">
                     ${fee > 0 ? `<small style="font-weight:400; color:#666; font-size:12px;">Sub: R$ ${subtotal.toFixed(2)} | Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
+                    ${surcharge > 0 ? `<small style="font-weight:400; color:var(--info); font-size:12px;">Acréscimo: + R$ ${surcharge.toFixed(2)}</small><br>` : ''}
+                    ${discount > 0 ? `<small style="font-weight:400; color:var(--danger); font-size:12px;">Desconto: - R$ ${discount.toFixed(2)}</small><br>` : ''}
                     Total: R$ ${total.toFixed(2)}
                 </div>
             `;
@@ -943,7 +973,7 @@
         // --- EDIÇÃO DE PEDIDOS (E NOVO PEDIDO) ---
         function populateAddItemSelect() {
             const select = document.getElementById('add-item-select');
-            select.innerHTML = '<option value="">Adicionar produto...</option>';
+            select.innerHTML = '<option value="">Adicionar produto do cardápio...</option>';
             const sortedItems = [...currentItems].sort((a,b) => a.name.localeCompare(b.name));
             sortedItems.forEach(item => {
                 select.innerHTML += `<option value="${item.id}">${item.name} (R$ ${item.price})</option>`;
@@ -965,7 +995,7 @@
                 document.getElementById('modal-title').innerText = "Novo Pedido";
                 const newOrder = {
                     customerName: '', type: 'Entrega', payment: 'PIX', address: '',
-                    deliveryFee: 0, cart: []
+                    deliveryFee: 0, discount: 0, surcharge: 0, cart: []
                 };
                 fillOrderModal(null, newOrder);
             }
@@ -978,6 +1008,8 @@
             document.getElementById('edit-order-payment').value = order.payment;
             document.getElementById('edit-order-address').value = order.address || '';
             document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
+            document.getElementById('edit-order-discount').value = (order.discount || 0).toFixed(2);
+            document.getElementById('edit-order-surcharge').value = (order.surcharge || 0).toFixed(2);
             
             // Garante IDs únicos para edição se vierem sem (pedidos antigos)
             editingOrderCart = (order.cart || []).map(i => ({
@@ -1044,7 +1076,9 @@
             // Calcula (Preço Base) * Qty
             const subtotal = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
-            const total = subtotal + fee;
+            const discount = parseFloat(document.getElementById('edit-order-discount').value) || 0;
+            const surcharge = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
+            const total = Math.max(0, subtotal + fee + surcharge - discount);
             document.getElementById('edit-order-total').innerText = `R$ ${total.toFixed(2)}`;
         }
 
@@ -1090,13 +1124,46 @@
             }
         }
 
+        // --- NOVA FUNÇÃO: ADICIONAR ITEM PERSONALIZADO ---
+        function addCustomItemToOrder() {
+            const nameInput = document.getElementById('custom-item-name');
+            const priceInput = document.getElementById('custom-item-price');
+            const qtyInput = document.getElementById('custom-item-qty');
+
+            const name = nameInput.value.trim();
+            const price = parseFloat(priceInput.value);
+            const qty = parseInt(qtyInput.value) || 1;
+
+            if(!name) return alert("Digite o nome do item.");
+            if(isNaN(price)) return alert("Digite um preço válido.");
+
+            editingOrderCart.push({
+                id: 'custom_' + Date.now(),
+                name: name,
+                price: price,
+                qty: qty,
+                obs: 'Item Personalizado',
+                category: 'custom',
+                _uuid: 'admin_custom_' + Date.now()
+            });
+
+            renderEditOrderItems();
+
+            // Limpa campos
+            nameInput.value = '';
+            priceInput.value = '';
+            qtyInput.value = '1';
+        }
+
         function saveOrderChanges() {
             const docId = document.getElementById('edit-order-doc-id').value;
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
+            const discount = parseFloat(document.getElementById('edit-order-discount').value) || 0;
+            const surcharge = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
             
             // Recalcula total final para salvar
             const subtotal = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
-            const total = subtotal + fee;
+            const total = Math.max(0, subtotal + fee + surcharge - discount);
             
             const orderData = {
                 customerName: document.getElementById('edit-order-name').value,
@@ -1105,6 +1172,8 @@
                 address: document.getElementById('edit-order-address').value,
                 cart: editingOrderCart,
                 deliveryFee: fee, 
+                discount: discount,
+                surcharge: surcharge,
                 total: total
             };
             
