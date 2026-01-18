@@ -751,7 +751,9 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
-            const isPaid = order.isPaid === true; // Verifica se já foi pago
+            
+            // CORREÇÃO AQUI: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
+            const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             
             let itemsHtml = '';
             if (order.cart) {
@@ -776,9 +778,7 @@
                     const itemTotal = (i.price || 0) * i.qty;
                     let l = `${i.qty}x ${i.name} - R$ ${itemTotal.toFixed(2)}`;
                     
-                    // AQUI A MUDANÇA: Opção na linha de baixo
                     if(i.selectedOption) l+= `\n   Opção: ${i.selectedOption}`;
-                    
                     if(i.obs) l+= `\n   Obs: ${i.obs}`; 
                     return l;
                 }).join('\n\n') : '') +
@@ -819,11 +819,9 @@
             card.className = `order-card ${isNew ? 'new' : ''} status-${order.status || 'pending'}`;
             card.innerHTML = `
                 <div class="order-header">
-                    <div style="display:flex; flex-direction:column;"> 
+                    <div>
                         <span class="order-id">#${order.orderId||'???'}</span>
-                        <span class="order-time" style="font-weight:500; font-size:12px; color:#666;">
-                            <i class="far fa-calendar-alt"></i> ${dateStr} &nbsp; ${timeStr}
-                        </span>
+                        <span class="order-time">${dateStr} ${timeStr}</span>
                     </div>
                     <div class="btn-action-group">${actions}</div>
                 </div>
@@ -850,7 +848,11 @@
         }
         
         function updateOrderStatus(docId, newStatus, customerName, customerPhone) {
-            db.collection(COL_ORDERS).doc(docId).update({ status: newStatus }).then(() => {
+            const updateData = { status: newStatus };
+            if (newStatus === 'done') {
+                updateData.isPaid = true;
+            }
+            db.collection(COL_ORDERS).doc(docId).update(updateData).then(() => {
                 showToast("Atualizado!");
                 if ((newStatus === 'delivering' || newStatus === 'ready') && customerPhone) {
                     const msg = newStatus === 'delivering' ? 
@@ -911,6 +913,9 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
+            // CORREÇÃO AQUI TAMBÉM: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
+            const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
+
             // Build items HTML
             let itemsHtml = (order.cart || []).map(i => `
                 <div class="rp-item">
@@ -950,7 +955,7 @@
                 
                 <div class="rp-divider"></div>
                 <div class="rp-info"><strong>Pagamento:</strong> ${order.payment}</div>
-                <div class="rp-info"><strong>Status:</strong> ${order.isPaid ? 'PAGO' : 'PENDENTE'}</div>
+                <div class="rp-info"><strong>Status:</strong> ${isPaid ? 'PAGO' : 'PENDENTE'}</div>
                 
                 <div class="rp-footer">Obrigado pela preferência!</div>
             `;
