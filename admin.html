@@ -78,6 +78,7 @@
         .btn-copy { background: #607D8B; }
         .btn-share { background: #25D366; }
         .btn-delete-forever { background: #ff4444; }
+        .btn-reopen { background: #FF9800; }
         
         .status-select { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; font-weight: 700; font-size: 14px; background-color: #f8f9fa; }
 
@@ -731,7 +732,8 @@
             `;
             
             const actions = isHistory ? 
-                `<button class="btn-sm btn-delete-forever" onclick="deleteOrderForever('${order._id}')"><i class="fas fa-trash"></i></button>` :
+                `<button class="btn-sm btn-reopen" style="background:#FF9800;margin-right:5px;" onclick="reopenOrder('${order._id}')" title="Reabrir Pedido"><i class="fas fa-undo"></i></button>
+                 <button class="btn-sm btn-delete-forever" onclick="deleteOrderForever('${order._id}')" title="Apagar"><i class="fas fa-trash"></i></button>` :
                 `<button class="btn-sm btn-copy" onclick="copyToClipboard(this, \`${clipboardText.replace(/`/g, '\\`')}\`)"><i class="far fa-copy"></i></button>
                  <a href="${waLink}" target="_blank" class="btn-sm btn-share"><i class="fab fa-whatsapp"></i></a>
                  <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${order._id}')"><i class="fas fa-pencil-alt"></i></button>`;
@@ -772,6 +774,14 @@
                     window.open(`https://wa.me/55${customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
                 }
             });
+        }
+        
+        function reopenOrder(docId) {
+            if(confirm("Deseja reabrir este pedido? Ele voltará para a lista de Pendentes.")) {
+                db.collection(COL_ORDERS).doc(docId).update({ status: 'pending' })
+                  .then(() => showToast("Pedido reaberto!"))
+                  .catch(e => alert("Erro: " + e.message));
+            }
         }
         
         function copyToClipboard(btn, text) {
