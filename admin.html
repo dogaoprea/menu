@@ -11,6 +11,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    
+    <!-- html2canvas para gerar imagens -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         :root {
@@ -79,6 +82,7 @@
         .btn-share { background: #25D366; }
         .btn-delete-forever { background: #ff4444; }
         .btn-reopen { background: #FF9800; }
+        .btn-img { background: #9C27B0; } /* Cor roxa para imagem */
         
         /* Botão de Status de Pagamento */
         .btn-pay-status { border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 5px; text-transform: uppercase; }
@@ -234,6 +238,27 @@
         .fin-card.fees { background: linear-gradient(135deg, #ff9f1c, #ffc371); }
         .fin-card.count { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
 
+        /* Estilos do Recibo para Impressão/Imagem */
+        #receipt-preview {
+            position: fixed; top: 0; left: -9999px; /* Oculto fora da tela */
+            width: 380px;
+            background: #fff;
+            color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            border: 1px solid #ccc;
+            z-index: 5000;
+        }
+        .rp-header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
+        .rp-title { font-weight: 800; font-size: 20px; margin-bottom: 5px; }
+        .rp-info { font-size: 12px; margin-bottom: 2px; }
+        .rp-divider { border-top: 1px dashed #000; margin: 10px 0; }
+        .rp-item { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+        .rp-sub { font-size: 11px; color: #333; margin-left: 10px; margin-bottom: 5px; }
+        .rp-total-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 2px; }
+        .rp-final { font-size: 16px; font-weight: 800; margin-top: 5px; text-align: right; }
+        .rp-footer { text-align: center; font-size: 11px; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px; }
+
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; }
         #toast.show { opacity: 1; bottom: 30px; }
     </style>
@@ -339,6 +364,9 @@
             </div>
         </div>
     </div>
+
+    <!-- ESTRUTURA OCULTA DO RECIBO PARA IMAGEM -->
+    <div id="receipt-preview"></div>
 
     <!-- Modal Item Cardápio -->
     <div id="item-modal" class="modal">
@@ -754,6 +782,7 @@
                  <button class="btn-sm btn-delete-forever" onclick="deleteOrderForever('${order._id}')" title="Apagar"><i class="fas fa-trash"></i></button>` :
                 `<button class="btn-sm btn-copy" onclick="copyToClipboard(this, \`${clipboardText.replace(/`/g, '\\`')}\`)"><i class="far fa-copy"></i></button>
                  <a href="${waLink}" target="_blank" class="btn-sm btn-share"><i class="fab fa-whatsapp"></i></a>
+                 <button class="btn-sm btn-img" onclick="generateOrderImage('${order._id}')"><i class="fas fa-file-image"></i></button>
                  <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${order._id}')"><i class="fas fa-pencil-alt"></i></button>`;
 
             // Botão de Toggle de Pagamento
@@ -842,6 +871,69 @@
             } catch (err) {
                 console.error('Fallback: Oops, unable to copy', err);
             }
+        }
+        
+        function generateOrderImage(orderId) {
+            const order = allOrders.find(o => o._id === orderId);
+            if (!order) return alert("Pedido não encontrado");
+
+            const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
+            const dateStr = date.toLocaleDateString('pt-BR');
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Build items HTML
+            let itemsHtml = (order.cart || []).map(i => `
+                <div class="rp-item">
+                    <span>${i.qty}x ${i.name}</span>
+                    <span>R$ ${(i.price * i.qty).toFixed(2)}</span>
+                </div>
+                ${i.selectedOption ? `<div class="rp-sub">Opção: ${i.selectedOption}</div>` : ''}
+                ${i.obs ? `<div class="rp-sub">Obs: ${i.obs}</div>` : ''}
+            `).join('');
+
+            const sub = (order.cart||[]).reduce((a,i)=>a+(i.price*i.qty),0);
+            const fee = order.deliveryFee || 0;
+            const sur = order.surcharge || 0;
+            const desc = order.discount || 0;
+            const tot = order.total || 0;
+
+            const html = `
+                <div class="rp-header">
+                    <div class="rp-title">DOGÃO PREÁ</div>
+                    <div class="rp-info">Pedido #${order.orderId}</div>
+                    <div class="rp-info">${dateStr} às ${timeStr}</div>
+                </div>
+                <div class="rp-info"><strong>Cliente:</strong> ${order.customerName}</div>
+                <div class="rp-info"><strong>Tel:</strong> ${order.userPhone || 'N/A'}</div>
+                <div class="rp-info"><strong>Tipo:</strong> ${order.type}</div>
+                ${order.address ? `<div class="rp-info"><strong>End:</strong> ${order.address}</div>` : ''}
+                
+                <div class="rp-divider"></div>
+                ${itemsHtml}
+                <div class="rp-divider"></div>
+                
+                <div class="rp-total-row"><span>Subtotal:</span><span>R$ ${sub.toFixed(2)}</span></div>
+                ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
+                ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
+                ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
+                <div class="rp-final">TOTAL: R$ ${tot.toFixed(2)}</div>
+                
+                <div class="rp-divider"></div>
+                <div class="rp-info"><strong>Pagamento:</strong> ${order.payment}</div>
+                <div class="rp-info"><strong>Status Pagto:</strong> ${order.isPaid ? 'PAGO' : 'PENDENTE'}</div>
+                
+                <div class="rp-footer">Obrigado pela preferência!</div>
+            `;
+
+            const container = document.getElementById('receipt-preview');
+            container.innerHTML = html;
+
+            html2canvas(container).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `pedido-${order.orderId}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
         }
         
         function deleteOrderForever(docId) {
