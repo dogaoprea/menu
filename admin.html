@@ -722,8 +722,11 @@
                 (order.cart ? order.cart.map(i => {
                     const itemTotal = (i.price || 0) * i.qty;
                     let l = `${i.qty}x ${i.name} - R$ ${itemTotal.toFixed(2)}`;
-                    if(i.selectedOption) l+= ` (${i.selectedOption})`;
-                    if(i.obs) l+= `\n   Obs: ${i.obs}`; // Incluindo observação no resumo copiado
+                    
+                    // AQUI A MUDANÇA: Opção na linha de baixo
+                    if(i.selectedOption) l+= `\n   Opção: ${i.selectedOption}`;
+                    
+                    if(i.obs) l+= `\n   Obs: ${i.obs}`; 
                     return l;
                 }).join('\n\n') : '') +
                 `\n----------------\nTaxa: R$ ${fee.toFixed(2)}\n` +
@@ -816,10 +819,29 @@
         }
         
         function copyToClipboard(btn, text) {
-            navigator.clipboard.writeText(text).then(() => {
-                const og = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>';
-                setTimeout(() => btn.innerHTML = og, 1500);
-            });
+            // Fallback for environments where navigator.clipboard is blocked
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed'; // Prevent scrolling to bottom
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                
+                if (successful) {
+                    const og = btn.innerHTML; 
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => btn.innerHTML = og, 1500);
+                } else {
+                    console.error("Fallback: Copying text command was unsuccessful");
+                    alert("Não foi possível copiar automaticamente. Selecione e copie manualmente.");
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
         }
         
         function deleteOrderForever(docId) {
