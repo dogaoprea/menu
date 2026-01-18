@@ -80,6 +80,11 @@
         .btn-delete-forever { background: #ff4444; }
         .btn-reopen { background: #FF9800; }
         
+        /* Botão de Status de Pagamento */
+        .btn-pay-status { border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 5px; text-transform: uppercase; }
+        .btn-pay-paid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .btn-pay-pending { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
         .status-select { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; font-weight: 700; font-size: 14px; background-color: #f8f9fa; }
 
         /* Switch & Toolbar */
@@ -419,6 +424,13 @@
                         <option value="Dinheiro">Dinheiro</option>
                     </select>
                 </div>
+                
+                <div style="margin-top:10px; background: #fffde7; padding: 8px; border-radius: 6px; border: 1px solid #ffe082;">
+                    <label style="display:flex; align-items:center; gap:8px; font-weight:700; color:#555; cursor:pointer;">
+                        <input type="checkbox" id="edit-is-paid" style="width:20px; height:20px;"> 
+                        <span>Pedido já está PAGO?</span>
+                    </label>
+                </div>
 
                 <hr style="border:0; border-top:1px dashed #ccc; margin: 20px 0;">
 
@@ -686,6 +698,7 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
+            const isPaid = order.isPaid === true; // Verifica se já foi pago
             
             let itemsHtml = '';
             if (order.cart) {
@@ -703,7 +716,9 @@
             const surcharge = order.surcharge || 0;
             const total = order.total || 0;
 
-            const clipboardText = `*PEDIDO #${order.orderId || '???'}*\nCliente: ${order.customerName}\nTipo: ${order.type}\nPagamento: ${order.payment}\nEndereço: ${order.address || 'N/A'}\n----------------\n` +
+            const paymentStatusText = isPaid ? '✅ PAGO' : '❌ A PAGAR';
+
+            const clipboardText = `*PEDIDO #${order.orderId || '???'}*\nCliente: ${order.customerName}\nTipo: ${order.type}\nPagamento: ${order.payment} (${paymentStatusText})\nEndereço: ${order.address || 'N/A'}\n----------------\n` +
                 (order.cart ? order.cart.map(i => {
                     const itemTotal = (i.price || 0) * i.qty;
                     let l = `${i.qty}x ${i.name} - R$ ${itemTotal.toFixed(2)}`;
@@ -738,6 +753,11 @@
                  <a href="${waLink}" target="_blank" class="btn-sm btn-share"><i class="fab fa-whatsapp"></i></a>
                  <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${order._id}')"><i class="fas fa-pencil-alt"></i></button>`;
 
+            // Botão de Toggle de Pagamento
+            const payBtnClass = isPaid ? 'btn-pay-paid' : 'btn-pay-pending';
+            const payBtnText = isPaid ? '💲 PAGO' : '❌ A PAGAR';
+            const payToggleButton = `<button class="btn-pay-status ${payBtnClass}" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
+
             const card = document.createElement('div');
             card.className = `order-card ${isNew ? 'new' : ''} status-${order.status || 'pending'}`;
             card.innerHTML = `
@@ -748,7 +768,10 @@
                 <div class="order-info">
                     <p><strong>Cliente:</strong> ${order.customerName} ${clientWaLink}</p>
                     <p><strong>Tipo:</strong> ${order.type} ${order.pickupTime ? `(${order.pickupTime})` : ''}</p>
-                    <p><strong>Pagamento:</strong> ${order.payment} ${order.change ? `(Troco: ${order.change})` : ''}</p>
+                    <p style="display:flex; align-items:center;">
+                        <strong>Pagamento:</strong> ${order.payment} ${order.change ? `(Troco: ${order.change})` : ''}
+                        ${payToggleButton}
+                    </p>
                     ${order.address ? `<p><strong>Endereço:</strong> <span style="font-size:13px;color:#555;">${order.address}</span></p>` : ''}
                     ${order.mapsLink ? `<p><a href="${order.mapsLink}" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:600;"><i class="fas fa-map-marker-alt"></i> Ver no Mapa</a></p>` : ''}
                 </div>
@@ -774,6 +797,14 @@
                     window.open(`https://wa.me/55${customerPhone}?text=${encodeURIComponent(msg)}`, '_blank');
                 }
             });
+        }
+        
+        // Função para alternar pagamento
+        function toggleOrderPaid(docId, currentStatus) {
+            const newStatus = !currentStatus;
+            db.collection(COL_ORDERS).doc(docId).update({ isPaid: newStatus })
+              .then(() => showToast(newStatus ? "Marcado como PAGO" : "Marcado como A PAGAR"))
+              .catch(e => alert("Erro: " + e.message));
         }
         
         function reopenOrder(docId) {
@@ -816,7 +847,7 @@
             } else {
                 fillOrderModal(null, {
                     customerName: '', type: 'Entrega', payment: 'PIX', address: '',
-                    deliveryFee: 0, discount: 0, surcharge: 0, cart: []
+                    deliveryFee: 0, discount: 0, surcharge: 0, isPaid: false, cart: []
                 });
             }
         }
@@ -830,6 +861,9 @@
             document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
             document.getElementById('edit-order-discount').value = (order.discount || 0).toFixed(2);
             document.getElementById('edit-order-surcharge').value = (order.surcharge || 0).toFixed(2);
+            
+            // Checkbox de Pago
+            document.getElementById('edit-is-paid').checked = order.isPaid === true;
             
             editingOrderCart = (order.cart || []).map(i => ({ ...i, _uuid: i._uuid || Math.random() }));
             renderEditOrderItems();
@@ -925,6 +959,7 @@
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
+            const isPaid = document.getElementById('edit-is-paid').checked;
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const total = Math.max(0, sub + fee + sur - desc);
             
@@ -934,7 +969,9 @@
                 payment: document.getElementById('edit-order-payment').value,
                 address: document.getElementById('edit-order-address').value,
                 cart: editingOrderCart,
-                deliveryFee: fee, discount: desc, surcharge: sur, total: total
+                deliveryFee: fee, discount: desc, surcharge: sur, 
+                isPaid: isPaid, // Salva status de pagamento
+                total: total
             };
             
             const p = docId ? db.collection(COL_ORDERS).doc(docId).update(data) : 
