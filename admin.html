@@ -66,8 +66,9 @@
         .order-card.status-cancelled { border-left-color: var(--danger); opacity: 0.8; background: #fff5f5; }
 
         .order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 10px; }
-        .order-id { font-weight: 800; color: #333; font-size: 16px; }
-        .order-time { font-size: 12px; color: #888; }
+        .order-id { font-weight: 800; color: #333; font-size: 18px; line-height: 1.2; display: block; }
+        .order-time { font-size: 12px; color: #888; display: block; margin-top: 2px; }
+        
         .order-info p { margin: 4px 0; font-size: 14px; color: #444; }
         .order-info strong { font-weight: 700; color: #222; margin-right: 4px; }
         .order-items { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 13px; }
@@ -818,9 +819,11 @@
             card.className = `order-card ${isNew ? 'new' : ''} status-${order.status || 'pending'}`;
             card.innerHTML = `
                 <div class="order-header">
-                    <div>
+                    <div style="display:flex; flex-direction:column;"> 
                         <span class="order-id">#${order.orderId||'???'}</span>
-                        <span class="order-time">${dateStr} ${timeStr}</span>
+                        <span class="order-time" style="font-weight:500; font-size:12px; color:#666;">
+                            <i class="far fa-calendar-alt"></i> ${dateStr} &nbsp; ${timeStr}
+                        </span>
                     </div>
                     <div class="btn-action-group">${actions}</div>
                 </div>
@@ -943,7 +946,7 @@
                 ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
                 ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
                 ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
-                <div class="rp-final">TOTAL: R$ ${tot.toFixed(2)}</div>
+                <div class="rp-final">Total: R$ ${tot.toFixed(2)}</div>
                 
                 <div class="rp-divider"></div>
                 <div class="rp-info"><strong>Pagamento:</strong> ${order.payment}</div>
