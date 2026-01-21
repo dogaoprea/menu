@@ -464,12 +464,18 @@
 
                 <div class="form-group">
                     <label class="form-label">Pagamento</label>
-                    <select id="edit-order-payment" class="form-select">
+                    <select id="edit-order-payment" class="form-select" onchange="toggleChangeInput()">
                         <option value="PIX">PIX</option>
                         <option value="Cartão de Crédito">Cartão de Crédito</option>
                         <option value="Cartão de Débito">Cartão de Débito</option>
                         <option value="Dinheiro">Dinheiro</option>
                     </select>
+                </div>
+                
+                <!-- INPUT DE TROCO (NOVO) -->
+                <div class="form-group" id="div-change-input" style="display:none;">
+                    <label class="form-label">Troco para quanto?</label>
+                    <input type="text" id="edit-order-change" class="form-input" placeholder="Ex: 50,00">
                 </div>
                 
                 <div style="margin-top:10px; background: #fffde7; padding: 8px; border-radius: 6px; border: 1px solid #ffe082;">
@@ -745,8 +751,6 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
-            
-            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             
             let itemsHtml = '';
@@ -909,7 +913,7 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
+            // CORREÇÃO AQUI TAMBÉM: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
 
             // Build items HTML
@@ -947,7 +951,7 @@
                 ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
                 ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
                 ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
-                <div class="rp-final">Status: ${tot.toFixed(2)}</div>
+                <div class="rp-final">Total: R$ ${tot.toFixed(2)}</div>
                 
                 <div class="rp-divider"></div>
                 <div class="rp-info"><strong>Pagamento:</strong> ${order.payment}</div>
@@ -975,10 +979,7 @@
         function populateAddItemSelect() {
             const select = document.getElementById('add-item-select');
             select.innerHTML = '<option value="">Selecione...</option>';
-            // FILTRO DE DISPONIBILIDADE
-            const activeItems = currentItems.filter(i => i.available !== false);
-
-            [...activeItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
+            [...currentItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
                 select.innerHTML += `<option value="${i.id}">${i.name} (R$ ${i.price.toFixed(2)})</option>`;
             });
         }
@@ -1009,16 +1010,24 @@
             document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
             document.getElementById('edit-order-discount').value = (order.discount || 0).toFixed(2);
             document.getElementById('edit-order-surcharge').value = (order.surcharge || 0).toFixed(2);
+            document.getElementById('edit-order-change').value = order.change || ''; // CHANGE ADDED HERE
             
             // Checkbox de Pago
             document.getElementById('edit-is-paid').checked = order.isPaid === true;
             
             editingOrderCart = (order.cart || []).map(i => ({ ...i, _uuid: i._uuid || Math.random() }));
             renderEditOrderItems();
+            toggleChangeInput(); // Check visibility on load
             document.getElementById('order-edit-modal').classList.add('open');
         }
 
         function closeOrderEditModal() { document.getElementById('order-edit-modal').classList.remove('open'); }
+
+        function toggleChangeInput() {
+            const p = document.getElementById('edit-order-payment').value;
+            const div = document.getElementById('div-change-input');
+            div.style.display = (p === 'Dinheiro') ? 'block' : 'none';
+        }
 
         function renderEditOrderItems() {
             const list = document.getElementById('edit-order-items-list');
@@ -1110,7 +1119,8 @@
             const isPaid = document.getElementById('edit-is-paid').checked;
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const total = Math.max(0, sub + fee + sur - desc);
-            
+            const changeVal = document.getElementById('edit-order-change').value; // CHANGE CAPTURED HERE
+
             const data = {
                 customerName: document.getElementById('edit-order-name').value,
                 type: document.getElementById('edit-order-type').value,
@@ -1119,7 +1129,8 @@
                 cart: editingOrderCart,
                 deliveryFee: fee, discount: desc, surcharge: sur, 
                 isPaid: isPaid, // Salva status de pagamento
-                total: total
+                total: total,
+                change: changeVal // Save change to DB
             };
             
             const p = docId ? db.collection(COL_ORDERS).doc(docId).update(data) : 
