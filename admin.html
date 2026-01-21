@@ -510,8 +510,8 @@
                         <input type="text" id="custom-item-name" class="form-input" placeholder="Nome do Item (Ex: Taxa Extra)">
                     </div>
                     <div class="custom-row-2">
-                        <input type="number" id="custom-item-price" class="form-input" placeholder="R$ 0.00" step="0.50" style="flex:1;">
-                        <input type="number" id="custom-item-qty" class="form-input" value="1" style="width:60px; text-align:center;">
+                        <input type="number" id="custom-item-price" class="form-input" placeholder="R$ 0.00" step="0.50" style="flex:1;" onfocus="this.select()">
+                        <input type="number" id="custom-item-qty" class="form-input" value="1" style="width:60px; text-align:center;" onfocus="this.select()">
                         <button type="button" class="btn" style="background:#607D8B; color:#fff;" onclick="addCustomItemToOrder()"><i class="fas fa-check"></i></button>
                     </div>
                 </div>
@@ -524,15 +524,15 @@
                     </div>
                     <div class="fin-row">
                         <label><i class="fas fa-motorcycle"></i> Taxa Entrega</label>
-                        <input type="number" id="edit-order-fee" value="0.00" step="0.50" onchange="calculateOrderTotal()">
+                        <input type="number" id="edit-order-fee" placeholder="0.00" step="0.50" onfocus="this.select()" onchange="calculateOrderTotal()">
                     </div>
                     <div class="fin-row">
                         <label style="color:var(--info);"><i class="fas fa-plus-circle"></i> Acréscimo</label>
-                        <input type="number" id="edit-order-surcharge" value="0.00" step="0.50" style="color:var(--info);" onchange="calculateOrderTotal()">
+                        <input type="number" id="edit-order-surcharge" placeholder="0.00" step="0.50" style="color:var(--info);" onfocus="this.select()" onchange="calculateOrderTotal()">
                     </div>
                     <div class="fin-row">
                         <label style="color:var(--danger);"><i class="fas fa-minus-circle"></i> Desconto</label>
-                        <input type="number" id="edit-order-discount" value="0.00" step="0.50" style="color:var(--danger);" onchange="calculateOrderTotal()">
+                        <input type="number" id="edit-order-discount" placeholder="0.00" step="0.50" style="color:var(--danger);" onfocus="this.select()" onchange="calculateOrderTotal()">
                     </div>
                     <div class="fin-row" style="margin-top:15px; font-size:18px; border-top:1px solid #eee; padding-top:10px;">
                         <label style="color:var(--primary-dark); font-weight:800;">TOTAL FINAL</label>
@@ -751,6 +751,8 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
+            
+            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             
             let itemsHtml = '';
@@ -979,7 +981,11 @@
         function populateAddItemSelect() {
             const select = document.getElementById('add-item-select');
             select.innerHTML = '<option value="">Selecione...</option>';
-            [...currentItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
+            
+            // FILTRO DE DISPONIBILIDADE ADICIONADO AQUI
+            const activeItems = currentItems.filter(i => i.available !== false);
+
+            [...activeItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
                 select.innerHTML += `<option value="${i.id}">${i.name} (R$ ${i.price.toFixed(2)})</option>`;
             });
         }
@@ -1007,10 +1013,13 @@
             document.getElementById('edit-order-type').value = order.type;
             document.getElementById('edit-order-payment').value = order.payment;
             document.getElementById('edit-order-address').value = order.address || '';
-            document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
-            document.getElementById('edit-order-discount').value = (order.discount || 0).toFixed(2);
-            document.getElementById('edit-order-surcharge').value = (order.surcharge || 0).toFixed(2);
-            document.getElementById('edit-order-change').value = order.change || ''; // CHANGE ADDED HERE
+            
+            // NOVO: Verifica se o valor é maior que 0. Se for, formata. Se não, string vazia.
+            document.getElementById('edit-order-fee').value = (order.deliveryFee > 0) ? order.deliveryFee.toFixed(2) : '';
+            document.getElementById('edit-order-discount').value = (order.discount > 0) ? order.discount.toFixed(2) : '';
+            document.getElementById('edit-order-surcharge').value = (order.surcharge > 0) ? order.surcharge.toFixed(2) : '';
+            
+            document.getElementById('edit-order-change').value = order.change || ''; 
             
             // Checkbox de Pago
             document.getElementById('edit-is-paid').checked = order.isPaid === true;
@@ -1042,7 +1051,7 @@
                         </div>
                         <div class="edit-item-body">
                             <div class="price-edit-group">
-                                R$ <input type="number" step="0.50" class="price-edit-input" value="${item.price.toFixed(2)}" onchange="updateItemPrice(${index}, this.value)">
+                                R$ <input type="number" step="0.50" class="price-edit-input" value="${item.price.toFixed(2)}" onfocus="this.select()" onchange="updateItemPrice(${index}, this.value)">
                             </div>
                             <div class="qty-edit-group">
                                 <button class="btn-qty" onclick="updateOrderQty(${index}, -1)">-</button>
@@ -1074,6 +1083,8 @@
 
         function calculateOrderTotal() {
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            
+            // NOVO: parseFloat pode retornar NaN para string vazia, então usamos || 0
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
@@ -1107,19 +1118,22 @@
             });
             renderEditOrderItems();
             document.getElementById('custom-item-name').value = '';
-            document.getElementById('custom-item-price').value = '';
+            document.getElementById('custom-item-price').value = ''; // Limpa para vazio
             document.getElementById('custom-item-qty').value = '1';
         }
 
         function saveOrderChanges() {
             const docId = document.getElementById('edit-order-doc-id').value;
+            
+            // Usamos || 0 para garantir que salve como número 0 se estiver vazio
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
+            
             const isPaid = document.getElementById('edit-is-paid').checked;
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const total = Math.max(0, sub + fee + sur - desc);
-            const changeVal = document.getElementById('edit-order-change').value; // CHANGE CAPTURED HERE
+            const changeVal = document.getElementById('edit-order-change').value;
 
             const data = {
                 customerName: document.getElementById('edit-order-name').value,
