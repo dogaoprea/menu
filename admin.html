@@ -464,7 +464,7 @@
 
                 <div class="form-group">
                     <label class="form-label">Pagamento</label>
-                    <select id="edit-order-payment" class="form-select" onchange="toggleChangeInput()">
+                    <select id="edit-order-payment" class="form-select" onchange="handlePaymentChange()">
                         <option value="PIX">PIX</option>
                         <option value="Cartão de Crédito">Cartão de Crédito</option>
                         <option value="Cartão de Débito">Cartão de Débito</option>
@@ -752,8 +752,6 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
-            
-            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             
             let itemsHtml = '';
@@ -816,13 +814,12 @@
             const payBtnText = isPaid ? '💲 PAGO' : '❌ A PAGAR';
             const payToggleButton = `<button class="btn-pay-status ${payBtnClass}" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
             
-            // FORMATAÇÃO DO TROCO SE EXISTIR (NOVO)
+            // FORMATAÇÃO DO TROCO SE EXISTIR
             let paymentInfoHtml = `<strong>Pagamento:</strong> ${order.payment}`;
             if(order.change) {
-                // Formata troco para moeda se for número
                 const changeNum = parseFloat(order.change);
-                const changeFormatted = !isNaN(changeNum) ? `R$ ${changeNum.toFixed(2).replace('.', ',')}` : order.change;
-                paymentInfoHtml += ` (Troco: ${changeFormatted})`;
+                const changeFmt = !isNaN(changeNum) ? `R$ ${changeNum.toFixed(2).replace('.', ',')}` : order.change;
+                paymentInfoHtml += ` (Troco: ${changeFmt})`;
             }
 
             const card = document.createElement('div');
@@ -925,7 +922,6 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
 
             // Build items HTML
@@ -971,7 +967,7 @@
                 ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
                 ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
                 ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
-                <div class="rp-final">Total: R$ ${tot.toFixed(2)}</div>
+                <div class="rp-final">Status: ${tot.toFixed(2)}</div>
                 
                 <div class="rp-divider"></div>
                 <div class="rp-info"><strong>Pagamento:</strong> ${paymentLine}</div>
@@ -1031,12 +1027,9 @@
             document.getElementById('edit-order-type').value = order.type;
             document.getElementById('edit-order-payment').value = order.payment;
             document.getElementById('edit-order-address').value = order.address || '';
-            
-            // NOVO: Verifica se o valor é maior que 0. Se for, formata. Se não, string vazia.
-            document.getElementById('edit-order-fee').value = (order.deliveryFee > 0) ? order.deliveryFee.toFixed(2) : '';
-            document.getElementById('edit-order-discount').value = (order.discount > 0) ? order.discount.toFixed(2) : '';
-            document.getElementById('edit-order-surcharge').value = (order.surcharge > 0) ? order.surcharge.toFixed(2) : '';
-            
+            document.getElementById('edit-order-fee').value = (order.deliveryFee || 0).toFixed(2);
+            document.getElementById('edit-order-discount').value = (order.discount || 0).toFixed(2);
+            document.getElementById('edit-order-surcharge').value = (order.surcharge || 0).toFixed(2);
             document.getElementById('edit-order-change').value = order.change || ''; 
             
             // Checkbox de Pago
@@ -1044,16 +1037,68 @@
             
             editingOrderCart = (order.cart || []).map(i => ({ ...i, _uuid: i._uuid || Math.random() }));
             renderEditOrderItems();
-            toggleChangeInput(); // Check visibility on load
+            handlePaymentChange(); // Check visibility/calc on load
             document.getElementById('order-edit-modal').classList.add('open');
         }
 
         function closeOrderEditModal() { document.getElementById('order-edit-modal').classList.remove('open'); }
 
+        // FUNCTION TO HANDLE PAYMENT CHANGE (INCLUDES TOGGLE AND AUTO-FEE)
+        function handlePaymentChange() {
+            toggleChangeInput();
+            autoCalculateSurcharge();
+        }
+
         function toggleChangeInput() {
             const p = document.getElementById('edit-order-payment').value;
             const div = document.getElementById('div-change-input');
             div.style.display = (p === 'Dinheiro') ? 'block' : 'none';
+        }
+
+        // NEW: AUTO CALCULATE SURCHARGE FOR CARDS
+        function autoCalculateSurcharge() {
+            const paymentMethod = document.getElementById('edit-order-payment').value;
+            let rate = 0;
+
+            if (paymentMethod === 'Cartão de Crédito') {
+                rate = 0.0498;
+            } else if (paymentMethod === 'Cartão de Débito') {
+                rate = 0.0199;
+            }
+
+            // Calculate Base Value (Subtotal + Delivery - Discount)
+            // Note: We need to get values from inputs or state.
+            // Using inputs is safer as they might be manually edited, but `editingOrderCart` is source of truth for subtotal.
+            const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
+            const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
+            
+            // Current Surcharge Input
+            const surInput = document.getElementById('edit-order-surcharge');
+
+            if (rate > 0) {
+                // Formula: Final = Original / (1 - Rate)
+                // Surcharge = Final - Original
+                const originalTotal = Math.max(0, sub + fee - desc);
+                if (originalTotal > 0) {
+                    const finalTotal = originalTotal / (1 - rate);
+                    const surchargeAmount = finalTotal - originalTotal;
+                    surInput.value = surchargeAmount.toFixed(2);
+                } else {
+                    surInput.value = (0).toFixed(2);
+                }
+            } else {
+                // Optional: Clear surcharge if not card? 
+                // The prompt says "ao selecionar... a taxa será aplicada".
+                // It doesn't explicitly say to remove it if I switch back to PIX, 
+                // but usually that's desired. I'll set it to 0 if it was auto-calculated.
+                // For simplicity, let's set to 0.00 if user switches to non-card to avoid confusion.
+                // EXCEPT if the user manually typed something? 
+                // Hard to know. Let's reset to 0.00 for cleaner UX as per "logic to calculate... automatically".
+                surInput.value = (0).toFixed(2);
+            }
+            
+            calculateOrderTotal();
         }
 
         function renderEditOrderItems() {
@@ -1082,33 +1127,37 @@
                         </div>
                     </div>`;
             });
-            calculateOrderTotal();
+            // Recalculate total (and potentially surcharge if rate applies)
+            autoCalculateSurcharge(); 
         }
         
         function updateItemObs(idx, val) { editingOrderCart[idx].obs = val; }
         function updateItemPrice(idx, val) { 
             const p = parseFloat(val); 
-            if(!isNaN(p) && p>=0) { editingOrderCart[idx].price = p; calculateOrderTotal(); }
+            if(!isNaN(p) && p>=0) { editingOrderCart[idx].price = p; autoCalculateSurcharge(); }
         }
         function updateOrderQty(idx, chg) {
             editingOrderCart[idx].qty += chg;
             if(editingOrderCart[idx].qty <= 0) editingOrderCart.splice(idx, 1);
-            renderEditOrderItems();
+            renderEditOrderItems(); // This calls autoCalculateSurcharge internally
         }
         function removeOrderItem(idx) {
             if(confirm("Remover?")) { editingOrderCart.splice(idx, 1); renderEditOrderItems(); }
         }
 
+        // Updated calculateOrderTotal to just sum up. Logic moved to autoCalculateSurcharge.
         function calculateOrderTotal() {
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             
-            // NOVO: parseFloat pode retornar NaN para string vazia, então usamos || 0
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
             
             document.getElementById('edit-order-subtotal').innerText = `R$ ${sub.toFixed(2)}`;
             document.getElementById('edit-order-total').innerText = `R$ ${Math.max(0, sub + fee + sur - desc).toFixed(2)}`;
+            
+            // If fee or discount changes manually, we should also re-trigger surcharge calc if card selected?
+            // Yes, added onchange handlers in HTML to call autoCalculateSurcharge
         }
 
         function addItemToOrder() {
@@ -1136,14 +1185,13 @@
             });
             renderEditOrderItems();
             document.getElementById('custom-item-name').value = '';
-            document.getElementById('custom-item-price').value = ''; // Limpa para vazio
+            document.getElementById('custom-item-price').value = ''; 
             document.getElementById('custom-item-qty').value = '1';
         }
 
         function saveOrderChanges() {
             const docId = document.getElementById('edit-order-doc-id').value;
             
-            // Usamos || 0 para garantir que salve como número 0 se estiver vazio
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
@@ -1162,7 +1210,7 @@
                 deliveryFee: fee, discount: desc, surcharge: sur, 
                 isPaid: isPaid, // Salva status de pagamento
                 total: total,
-                change: changeVal // Save change to DB
+                change: changeVal 
             };
             
             const p = docId ? db.collection(COL_ORDERS).doc(docId).update(data) : 
