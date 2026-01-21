@@ -354,6 +354,57 @@
         /* Toast Notification */
         #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 50px; font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         #toast.show { opacity: 1; bottom: 90px; }
+
+        /* OVERLAY DE LOJA FECHADA */
+        #closed-store-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            z-index: 5000;
+            display: none; /* Inicia oculto, JS controla */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+        }
+        #closed-store-overlay.open { display: flex; }
+        
+        .closed-icon-circle {
+            width: 90px; height: 90px;
+            background: #ffebee;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 25px;
+            animation: pulseRed 2s infinite;
+        }
+        @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+        
+        .closed-title { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: #333; margin: 0; }
+        .closed-msg { font-size: 16px; color: #666; margin: 15px 0 25px; max-width: 300px; line-height: 1.5; }
+        
+        .closed-hours {
+            background: #f5f5f5;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #444;
+            display: flex; align-items: center; gap: 8px;
+        }
+        
+        .btn-peek {
+            margin-top: 30px;
+            background: transparent;
+            border: 2px solid #ddd;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 700;
+            color: #888;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-peek:hover { border-color: var(--primary); color: var(--primary-dark); }
+
     </style>
 </head>
 <body>
@@ -375,6 +426,21 @@
             </div>
             <button class="btn btn-primary" onclick="location.reload()">Já ajustei, Recarregar</button>
         </div>
+    </div>
+    
+    <!-- OVERLAY LOJA FECHADA -->
+    <div id="closed-store-overlay">
+        <div class="closed-icon-circle">
+            <i class="fas fa-store-slash" style="font-size: 40px; color: var(--danger);"></i>
+        </div>
+        <h1 class="closed-title">LOJA FECHADA</h1>
+        <p class="closed-msg">No momento não estamos recebendo pedidos. Agradecemos a compreensão!</p>
+        
+        <div class="closed-hours">
+            <i class="far fa-clock"></i> <span>Horário: 19:00 às 00:00</span>
+        </div>
+        
+        <button class="btn-peek" onclick="peekMenu()">Apenas Olhar o Cardápio</button>
     </div>
 
     <!-- SIDEBAR -->
@@ -729,6 +795,7 @@
         
         let editingOrder = null; 
         let loginTriggeredByCart = false;
+        let isStoreOpen = true; // Global Control
 
         // --- VARIÁVEIS PARA MODAL DE PRODUTO/OPÇÕES ---
         let currentModalItem = null;
@@ -1049,9 +1116,13 @@
             const bar = document.getElementById('status-bar');
             const txt = document.getElementById('status-text');
             if (data.manualOverride) {
+                // Se override ativo
                 if (data.isOpen) setOpen(bar, txt, "Aberto (Especial)");
                 else setClosed(bar, txt, "Fechado Temporariamente");
-            } else { checkTimeStatus(); }
+            } else { 
+                // Se override inativo, usa horário
+                checkTimeStatus(); 
+            }
         }
 
         function checkTimeStatus() {
@@ -1064,13 +1135,29 @@
         }
 
         function setOpen(bar, txt, msg) {
+            isStoreOpen = true; // Habilita ações
             bar.className = 'status-bar-strip status-strip-open';
             txt.innerText = msg;
+            
+            // Esconde overlay
+            const overlay = document.getElementById('closed-store-overlay');
+            if(overlay) overlay.classList.remove('open');
         }
 
         function setClosed(bar, txt, msg) {
+            isStoreOpen = false; // Bloqueia ações
             bar.className = 'status-bar-strip status-strip-closed';
             txt.innerText = msg;
+            
+            // Mostra overlay
+            const overlay = document.getElementById('closed-store-overlay');
+            if(overlay) overlay.classList.add('open');
+        }
+        
+        function peekMenu() {
+            // Permite ver o cardápio mas mantém isStoreOpen = false (não deixa pedir)
+            document.getElementById('closed-store-overlay').classList.remove('open');
+            alert("Você está em modo de visualização. A loja está fechada e não receberá pedidos.");
         }
 
         function renderCategories() {
@@ -1166,6 +1253,16 @@
 
         // --- ATUALIZADO: addToCart (Com lógica de Opções) ---
         function addToCart(id) {
+            // BLOQUEIO DE LOJA FECHADA
+            if (!isStoreOpen) {
+                alert("A loja está fechada! Não é possível adicionar itens.");
+                // Se o overlay não estiver visível (ex: cliente fechou), reexibe
+                if (!document.getElementById('closed-store-overlay').classList.contains('open')) {
+                     document.getElementById('closed-store-overlay').classList.add('open');
+                }
+                return;
+            }
+
             const item = menuData.find(i => i.id === id);
             if (!item || item.available === false) return;
 
@@ -1195,6 +1292,12 @@
 
         // --- LÓGICA DO MODAL DE OPÇÕES ---
         function openProductModal(item) {
+            // BLOQUEIO TAMBÉM AQUI
+            if(!isStoreOpen) {
+                alert("A loja está fechada!");
+                return;
+            }
+
             currentModalItem = item;
             selectedOptionValue = null;
             document.getElementById('pm-title').innerText = item.name;
@@ -1411,6 +1514,12 @@
         function toggleCart() { 
             const modal = document.getElementById('cart-modal');
             if (!modal.classList.contains('open')) {
+                // Se a loja estiver fechada, não abre o carrinho para checkout
+                if(!isStoreOpen) {
+                    alert("A loja está fechada. Não é possível finalizar pedidos.");
+                    return;
+                }
+                
                 if (!currentUser) {
                     openLoginModal(true); 
                     return; 
