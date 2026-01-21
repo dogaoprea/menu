@@ -752,6 +752,8 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
+            
+            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             
             let itemsHtml = '';
@@ -772,7 +774,15 @@
 
             const paymentStatusText = isPaid ? '✅ PAGO' : '❌ A PAGAR';
 
-            const clipboardText = `*PEDIDO #${order.orderId || '???'}*\nCliente: ${order.customerName}\nTipo: ${order.type}\nPagamento: ${order.payment} (${paymentStatusText})\nEndereço: ${order.address || 'N/A'}\n----------------\n` +
+            // ATUALIZADO: Troco no texto copiado SOMENTE SE FOR DINHEIRO
+            let paymentTextForClipboard = `${order.payment} (${paymentStatusText})`;
+            if(order.change && order.payment === 'Dinheiro') {
+                 const changeNum = parseFloat(order.change);
+                 const changeFmt = !isNaN(changeNum) ? `R$ ${changeNum.toFixed(2).replace('.', ',')}` : order.change;
+                 paymentTextForClipboard += ` (Troco: ${changeFmt})`;
+            }
+
+            const clipboardText = `*PEDIDO #${order.orderId || '???'}*\nCliente: ${order.customerName}\nTipo: ${order.type}\nPagamento: ${paymentTextForClipboard}\nEndereço: ${order.address || 'N/A'}\n----------------\n` +
                 (order.cart ? order.cart.map(i => {
                     const itemTotal = (i.price || 0) * i.qty;
                     let l = `${i.qty}x ${i.name} - R$ ${itemTotal.toFixed(2)}`;
@@ -814,12 +824,12 @@
             const payBtnText = isPaid ? '💲 PAGO' : '❌ A PAGAR';
             const payToggleButton = `<button class="btn-pay-status ${payBtnClass}" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
             
-            // FORMATAÇÃO DO TROCO SE EXISTIR
+            // FORMATAÇÃO DO TROCO SE EXISTIR E FOR DINHEIRO (CORREÇÃO AQUI TAMBÉM)
             let paymentInfoHtml = `<strong>Pagamento:</strong> ${order.payment}`;
-            if(order.change) {
+            if(order.change && order.payment === 'Dinheiro') {
                 const changeNum = parseFloat(order.change);
-                const changeFmt = !isNaN(changeNum) ? `R$ ${changeNum.toFixed(2).replace('.', ',')}` : order.change;
-                paymentInfoHtml += ` (Troco: ${changeFmt})`;
+                const changeFormatted = !isNaN(changeNum) ? `R$ ${changeNum.toFixed(2).replace('.', ',')}` : order.change;
+                paymentInfoHtml += ` (Troco: ${changeFormatted})`;
             }
 
             const card = document.createElement('div');
@@ -922,6 +932,7 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
+            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
 
             // Build items HTML
@@ -940,9 +951,9 @@
             const desc = order.discount || 0;
             const tot = order.total || 0;
             
-            // FORMATAR TROCO NO COMPROVANTE
+            // FORMATAR TROCO NO COMPROVANTE (SÓ SE FOR DINHEIRO)
             let paymentLine = order.payment;
-            if(order.change) {
+            if(order.change && order.payment === 'Dinheiro') {
                 const changeNum = parseFloat(order.change);
                 const changeFmt = !isNaN(changeNum) ? `R$ ${changeNum.toFixed(2).replace('.', ',')}` : order.change;
                 paymentLine += ` (Troco: ${changeFmt})`;
@@ -967,7 +978,7 @@
                 ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
                 ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
                 ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
-                <div class="rp-final">Status: ${tot.toFixed(2)}</div>
+                <div class="rp-final">Total: R$ ${tot.toFixed(2)}</div>
                 
                 <div class="rp-divider"></div>
                 <div class="rp-info"><strong>Pagamento:</strong> ${paymentLine}</div>
@@ -995,11 +1006,7 @@
         function populateAddItemSelect() {
             const select = document.getElementById('add-item-select');
             select.innerHTML = '<option value="">Selecione...</option>';
-            
-            // FILTRO DE DISPONIBILIDADE ADICIONADO AQUI
-            const activeItems = currentItems.filter(i => i.available !== false);
-
-            [...activeItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
+            [...currentItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
                 select.innerHTML += `<option value="${i.id}">${i.name} (R$ ${i.price.toFixed(2)})</option>`;
             });
         }
@@ -1067,8 +1074,6 @@
             }
 
             // Calculate Base Value (Subtotal + Delivery - Discount)
-            // Note: We need to get values from inputs or state.
-            // Using inputs is safer as they might be manually edited, but `editingOrderCart` is source of truth for subtotal.
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
@@ -1088,13 +1093,7 @@
                     surInput.value = (0).toFixed(2);
                 }
             } else {
-                // Optional: Clear surcharge if not card? 
-                // The prompt says "ao selecionar... a taxa será aplicada".
-                // It doesn't explicitly say to remove it if I switch back to PIX, 
-                // but usually that's desired. I'll set it to 0 if it was auto-calculated.
-                // For simplicity, let's set to 0.00 if user switches to non-card to avoid confusion.
-                // EXCEPT if the user manually typed something? 
-                // Hard to know. Let's reset to 0.00 for cleaner UX as per "logic to calculate... automatically".
+                // Reset to 0.00 for cleaner UX as per "logic to calculate... automatically".
                 surInput.value = (0).toFixed(2);
             }
             
@@ -1185,21 +1184,22 @@
             });
             renderEditOrderItems();
             document.getElementById('custom-item-name').value = '';
-            document.getElementById('custom-item-price').value = ''; 
+            document.getElementById('custom-item-price').value = '';
             document.getElementById('custom-item-qty').value = '1';
         }
 
         function saveOrderChanges() {
             const docId = document.getElementById('edit-order-doc-id').value;
-            
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
-            
-            const isPaid = document.getElementById('edit-is-paid').checked;
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const total = Math.max(0, sub + fee + sur - desc);
-            const changeVal = document.getElementById('edit-order-change').value;
+            
+            // LIMPEZA DO TROCO SE NÃO FOR DINHEIRO
+            const paymentMethod = document.getElementById('edit-order-payment').value;
+            const changeValInput = document.getElementById('edit-order-change').value;
+            const changeVal = (paymentMethod === 'Dinheiro') ? changeValInput : '';
 
             const data = {
                 customerName: document.getElementById('edit-order-name').value,
@@ -1207,10 +1207,9 @@
                 payment: document.getElementById('edit-order-payment').value,
                 address: document.getElementById('edit-order-address').value,
                 cart: editingOrderCart,
-                deliveryFee: fee, discount: desc, surcharge: sur, 
-                isPaid: isPaid, // Salva status de pagamento
-                total: total,
-                change: changeVal 
+                deliveryFee: fee, discount: desc, surcharge: sur, total: total,
+                change: changeVal,
+                isPaid: document.getElementById('edit-is-paid').checked
             };
             
             const p = docId ? db.collection(COL_ORDERS).doc(docId).update(data) : 
