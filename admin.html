@@ -320,12 +320,6 @@
                 <button class="fab-btn" onclick="openOrderEditModal(null)" title="Novo Pedido">
                     <i class="fas fa-plus"></i>
                 </button>
-
-                <div class="order-filters" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:5px; margin-bottom:15px;">
-                    <button class="btn" style="background:#fff; border:1px solid #ddd; color:#333; white-space:nowrap;" onclick="filterOrders('all', this)">Todos</button>
-                    <button class="btn" style="background:#fff; border:1px solid #ddd; color:#333; white-space:nowrap;" onclick="filterOrders('pending', this)">Pendentes</button>
-                    <button class="btn" style="background:#fff; border:1px solid #ddd; color:#333; white-space:nowrap;" onclick="filterOrders('active_delivery', this)">Entrega/Retirada</button>
-                </div>
                 
                 <div id="orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #888;">Aguardando...</p>
@@ -751,6 +745,8 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
+            
+            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             
             let itemsHtml = '';
@@ -913,7 +909,7 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // CORREÇÃO AQUI TAMBÉM: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
+            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
 
             // Build items HTML
@@ -951,7 +947,7 @@
                 ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
                 ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
                 ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
-                <div class="rp-final">Total: R$ ${tot.toFixed(2)}</div>
+                <div class="rp-final">Status: ${tot.toFixed(2)}</div>
                 
                 <div class="rp-divider"></div>
                 <div class="rp-info"><strong>Pagamento:</strong> ${order.payment}</div>
@@ -979,8 +975,7 @@
         function populateAddItemSelect() {
             const select = document.getElementById('add-item-select');
             select.innerHTML = '<option value="">Selecione...</option>';
-            
-            // FILTRO DE DISPONIBILIDADE ADICIONADO AQUI
+            // FILTRO DE DISPONIBILIDADE
             const activeItems = currentItems.filter(i => i.available !== false);
 
             [...activeItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
