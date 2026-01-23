@@ -320,8 +320,6 @@
                 <button class="fab-btn" onclick="openOrderEditModal(null)" title="Novo Pedido">
                     <i class="fas fa-plus"></i>
                 </button>
-
-                <!-- FILTROS REMOVIDOS CONFORME SOLICITADO -->
                 
                 <div id="orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #888;">Aguardando...</p>
@@ -448,7 +446,7 @@
                     <div style="flex:1;">
                         <label class="form-label">Cliente</label>
                         <!-- AUTOCOMPLETE VINCULADO AO DATALIST -->
-                        <input type="text" id="edit-order-name" class="form-input" placeholder="Nome" list="customer-suggestions" autocomplete="off">
+                        <input type="text" id="edit-order-name" class="form-input" placeholder="Nome" list="customer-suggestions" autocomplete="off" oninput="checkCustomerAddress(this.value)">
                         <datalist id="customer-suggestions"></datalist>
                     </div>
                     <div style="width: 110px;">
@@ -678,6 +676,20 @@
             });
         }
         
+        // --- AUTO PREENCHIMENTO ENDEREÇO ---
+        function checkCustomerAddress(name) {
+             if (!name) return;
+             // Procura o último pedido deste cliente que tenha endereço
+             // allOrders já está ordenado do mais recente para o mais antigo
+             const lastOrder = allOrders.find(o => 
+                o.customerName && o.customerName.toLowerCase() === name.toLowerCase() && o.address
+             );
+             
+             if (lastOrder) {
+                 document.getElementById('edit-order-address').value = lastOrder.address;
+             }
+        }
+        
         function filterOrders(filter, btn) {
             currentFilter = filter;
             if(btn) { // btn pode ser nulo se chamado programaticamente
@@ -767,6 +779,7 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
+            
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             const isFinalized = order.status === 'done' || order.status === 'cancelled';
             
@@ -944,6 +957,7 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
+            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
 
             // Build items HTML
@@ -1128,9 +1142,6 @@
             
             document.getElementById('edit-order-subtotal').innerText = `R$ ${sub.toFixed(2)}`;
             document.getElementById('edit-order-total').innerText = `R$ ${Math.max(0, sub + fee + sur - desc).toFixed(2)}`;
-            
-            // If fee or discount changes manually, we should also re-trigger surcharge calc if card selected?
-            // Yes, added onchange handlers in HTML to call autoCalculateSurcharge
         }
 
         // FUNCTION TO HANDLE PAYMENT CHANGE (INCLUDES TOGGLE AND AUTO-FEE)
