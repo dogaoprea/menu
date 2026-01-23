@@ -320,6 +320,8 @@
                 <button class="fab-btn" onclick="openOrderEditModal(null)" title="Novo Pedido">
                     <i class="fas fa-plus"></i>
                 </button>
+
+                <!-- FILTROS REMOVIDOS CONFORME SOLICITADO -->
                 
                 <div id="orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #888;">Aguardando...</p>
@@ -445,7 +447,9 @@
                 <div style="display:flex; gap:10px; margin-bottom:10px;">
                     <div style="flex:1;">
                         <label class="form-label">Cliente</label>
-                        <input type="text" id="edit-order-name" class="form-input" placeholder="Nome">
+                        <!-- AUTOCOMPLETE VINCULADO AO DATALIST -->
+                        <input type="text" id="edit-order-name" class="form-input" placeholder="Nome" list="customer-suggestions" autocomplete="off">
+                        <datalist id="customer-suggestions"></datalist>
                     </div>
                     <div style="width: 110px;">
                         <label class="form-label">Tipo</label>
@@ -653,6 +657,24 @@
                 snap.forEach(doc => allOrders.push({ _id: doc.id, ...doc.data() }));
                 renderOrders(); 
                 if(document.getElementById('tab-history').classList.contains('active')) renderHistoryList();
+                updateCustomerSuggestions(); // ATUALIZA SUGESTÕES
+            });
+        }
+        
+        // --- SUGESTÃO DE CLIENTES ---
+        function updateCustomerSuggestions() {
+            const namesSet = new Set();
+            allOrders.forEach(o => {
+                if(o.customerName) namesSet.add(o.customerName);
+            });
+            
+            const datalist = document.getElementById('customer-suggestions');
+            datalist.innerHTML = '';
+            
+            Array.from(namesSet).sort().forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                datalist.appendChild(opt);
             });
         }
         
@@ -674,16 +696,9 @@
                 const isFinished = status === 'done' || status === 'cancelled';
                 if (isFinished) return; 
 
-                let show = false;
-                if (currentFilter === 'all') show = true;
-                else if (currentFilter === 'pending' && status === 'pending') show = true;
-                else if (currentFilter === 'active_delivery' && (status === 'delivering' || status === 'ready')) show = true;
-                else if (currentFilter === 'confirmed' && status === 'confirmed') show = true;
-
-                if (show) {
-                    hasActive = true;
-                    activeContainer.appendChild(createOrderCard(order, false));
-                }
+                // Lógica simplificada: mostra tudo que não está finalizado
+                hasActive = true;
+                activeContainer.appendChild(createOrderCard(order, false));
             });
 
             if (!hasActive) activeContainer.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Nenhum pedido aqui.</p>';
@@ -752,11 +767,9 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
-            
-            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             const isFinalized = order.status === 'done' || order.status === 'cancelled';
-
+            
             let itemsHtml = '';
             if (order.cart) {
                 itemsHtml = order.cart.map(i => {
@@ -823,7 +836,7 @@
                 payToggleButton = `<button class="btn-pay-status ${payBtnClass}" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
             }
             
-            // FORMATAÇÃO DO TROCO SE EXISTIR E FOR DINHEIRO (CORREÇÃO AQUI TAMBÉM)
+            // FORMATAÇÃO DO TROCO SE EXISTIR E FOR DINHEIRO
             let paymentInfoHtml = `<strong>Pagamento:</strong> ${order.payment}`;
             if(order.change && order.payment === 'Dinheiro') {
                 const changeNum = parseFloat(order.change);
@@ -931,7 +944,6 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // CORREÇÃO AQUI TAMBÉM: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
 
             // Build items HTML
@@ -977,7 +989,7 @@
                 ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
                 ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
                 ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
-                <div class="rp-final">Status: ${tot.toFixed(2)}</div>
+                <div class="rp-final">Total: R$ ${tot.toFixed(2)}</div>
                 
                 <div class="rp-divider"></div>
                 <div class="rp-info"><strong>Pagamento:</strong> ${paymentLine}</div>
@@ -1088,8 +1100,7 @@
                         </div>
                     </div>`;
             });
-            // Recalculate total (and potentially surcharge if rate applies)
-            autoCalculateSurcharge(); 
+            calculateOrderTotal();
         }
         
         function updateItemObs(idx, val) { editingOrderCart[idx].obs = val; }
