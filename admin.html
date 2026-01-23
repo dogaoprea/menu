@@ -442,14 +442,19 @@
             <div class="modal-body-scroll">
                 <input type="hidden" id="edit-order-doc-id">
                 
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <div style="flex:1;">
+                <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width: 200px;">
                         <label class="form-label">Cliente</label>
                         <!-- AUTOCOMPLETE VINCULADO AO DATALIST -->
                         <input type="text" id="edit-order-name" class="form-input" placeholder="Nome" list="customer-suggestions" autocomplete="off" oninput="checkCustomerAddress(this.value)">
                         <datalist id="customer-suggestions"></datalist>
                     </div>
-                    <div style="width: 110px;">
+                    <!-- NOVO CAMPO WHATSAPP -->
+                    <div style="flex:1; min-width: 140px;">
+                        <label class="form-label">WhatsApp</label>
+                        <input type="tel" id="edit-order-phone" class="form-input" placeholder="5588...">
+                    </div>
+                    <div style="width: 100px;">
                         <label class="form-label">Tipo</label>
                         <select id="edit-order-type" class="form-select">
                             <option value="Entrega">Entrega</option>
@@ -676,17 +681,17 @@
             });
         }
         
-        // --- AUTO PREENCHIMENTO ENDEREÇO ---
+        // --- AUTO PREENCHIMENTO ENDEREÇO & WHATSAPP ---
         function checkCustomerAddress(name) {
              if (!name) return;
-             // Procura o último pedido deste cliente que tenha endereço
-             // allOrders já está ordenado do mais recente para o mais antigo
+             // Procura o último pedido deste cliente que tenha nome igual
              const lastOrder = allOrders.find(o => 
-                o.customerName && o.customerName.toLowerCase() === name.toLowerCase() && o.address
+                o.customerName && o.customerName.toLowerCase() === name.toLowerCase()
              );
              
              if (lastOrder) {
-                 document.getElementById('edit-order-address').value = lastOrder.address;
+                 if(lastOrder.address) document.getElementById('edit-order-address').value = lastOrder.address;
+                 if(lastOrder.userPhone) document.getElementById('edit-order-phone').value = lastOrder.userPhone;
              }
         }
         
@@ -779,7 +784,6 @@
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const dateStr = date.toLocaleDateString('pt-BR');
             const isNew = (new Date() - date) < 300000;
-            
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             const isFinalized = order.status === 'done' || order.status === 'cancelled';
             
@@ -957,7 +961,7 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // CORREÇÃO: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
+            // CORREÇÃO AQUI TAMBÉM: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
 
             // Build items HTML
@@ -1003,7 +1007,7 @@
                 ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
                 ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
                 ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
-                <div class="rp-final">Total: R$ ${tot.toFixed(2)}</div>
+                <div class="rp-final">Status: ${tot.toFixed(2)}</div>
                 
                 <div class="rp-divider"></div>
                 <div class="rp-info"><strong>Pagamento:</strong> ${paymentLine}</div>
@@ -1051,7 +1055,7 @@
                 });
             } else {
                 fillOrderModal(null, {
-                    customerName: '', type: 'Entrega', payment: 'PIX', address: '',
+                    customerName: '', userPhone: '', type: 'Entrega', payment: 'PIX', address: '',
                     deliveryFee: 0, discount: 0, surcharge: 0, isPaid: false, cart: []
                 });
             }
@@ -1060,6 +1064,7 @@
         function fillOrderModal(docId, order) {
             document.getElementById('edit-order-doc-id').value = docId || '';
             document.getElementById('edit-order-name').value = order.customerName;
+            document.getElementById('edit-order-phone').value = order.userPhone || '';
             document.getElementById('edit-order-type').value = order.type;
             document.getElementById('edit-order-payment').value = order.payment;
             document.getElementById('edit-order-address').value = order.address || '';
@@ -1131,7 +1136,6 @@
             if(confirm("Remover?")) { editingOrderCart.splice(idx, 1); renderEditOrderItems(); }
         }
 
-        // Updated calculateOrderTotal to just sum up. Logic moved to autoCalculateSurcharge.
         function calculateOrderTotal() {
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             
@@ -1143,53 +1147,6 @@
             document.getElementById('edit-order-subtotal').innerText = `R$ ${sub.toFixed(2)}`;
             document.getElementById('edit-order-total').innerText = `R$ ${Math.max(0, sub + fee + sur - desc).toFixed(2)}`;
         }
-
-        // FUNCTION TO HANDLE PAYMENT CHANGE (INCLUDES TOGGLE AND AUTO-FEE)
-        function handlePaymentChange() {
-            toggleChangeInput();
-            autoCalculateSurcharge();
-        }
-
-        // NEW: AUTO CALCULATE SURCHARGE FOR CARDS
-        function autoCalculateSurcharge() {
-            const paymentMethod = document.getElementById('edit-order-payment').value;
-            let rate = 0;
-
-            if (paymentMethod === 'Cartão de Crédito') {
-                rate = 0.0498;
-            } else if (paymentMethod === 'Cartão de Débito') {
-                rate = 0.0199;
-            }
-
-            // Calculate Base Value (Subtotal + Delivery - Discount)
-            // Note: We need to get values from inputs or state.
-            // Using inputs is safer as they might be manually edited, but `editingOrderCart` is source of truth for subtotal.
-            const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
-            const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
-            const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
-            
-            // Current Surcharge Input
-            const surInput = document.getElementById('edit-order-surcharge');
-
-            if (rate > 0) {
-                // Formula: Final = Original / (1 - Rate)
-                // Surcharge = Final - Original
-                const originalTotal = Math.max(0, sub + fee - desc);
-                if (originalTotal > 0) {
-                    const finalTotal = originalTotal / (1 - rate);
-                    const surchargeAmount = finalTotal - originalTotal;
-                    surInput.value = surchargeAmount.toFixed(2);
-                } else {
-                    surInput.value = (0).toFixed(2);
-                }
-            } else {
-                // Reset to 0.00 for cleaner UX as per "logic to calculate... automatically".
-                surInput.value = (0).toFixed(2);
-            }
-            
-            calculateOrderTotal();
-        }
-
 
         function addItemToOrder() {
             const sel = document.getElementById('add-item-select');
@@ -1234,6 +1191,7 @@
 
             const data = {
                 customerName: document.getElementById('edit-order-name').value,
+                userPhone: document.getElementById('edit-order-phone').value,
                 type: document.getElementById('edit-order-type').value,
                 payment: document.getElementById('edit-order-payment').value,
                 address: document.getElementById('edit-order-address').value,
