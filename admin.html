@@ -420,24 +420,25 @@
             <div class="modal-body-scroll">
                 <input type="hidden" id="edit-order-doc-id">
                 
-                <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width: 200px;">
+                <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:15px;">
+                    <div style="flex:1;">
                         <label class="form-label">Cliente</label>
                         <input type="text" id="edit-order-name" class="form-input" placeholder="Nome" list="customer-suggestions" autocomplete="off" oninput="checkCustomerAddress(this.value)">
                         <datalist id="customer-suggestions"></datalist>
                     </div>
-                    <div style="flex:1; min-width: 140px;">
-                        <label class="form-label">WhatsApp</label>
-                        <input type="tel" id="edit-order-phone" class="form-input" placeholder="5588...">
+                    
+                    <div style="text-align:center;">
+                        <label class="form-label" style="font-size:11px;">Tipo</label>
+                        <input type="hidden" id="edit-order-type" value="Entrega">
+                        <button type="button" id="btn-order-type" class="btn" style="width:50px; height:48px; font-size:20px; padding:0; display:flex; align-items:center; justify-content:center;" onclick="cycleOrderType()">
+                            <i class="fas fa-motorcycle"></i>
+                        </button>
                     </div>
-                    <div style="width: 100px;">
-                        <label class="form-label">Tipo</label>
-                        <select id="edit-order-type" class="form-select">
-                            <option value="Entrega">Entrega</option>
-                            <option value="Retirada">Retirada</option>
-                            <option value="Mesa">Mesa</option>
-                        </select>
-                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">WhatsApp</label>
+                    <input type="tel" id="edit-order-phone" class="form-input" placeholder="5588...">
                 </div>
 
                 <div class="form-group">
@@ -1067,7 +1068,10 @@
             document.getElementById('edit-order-doc-id').value = docId || '';
             document.getElementById('edit-order-name').value = order.customerName;
             document.getElementById('edit-order-phone').value = order.userPhone || '';
-            document.getElementById('edit-order-type').value = order.type;
+            
+            // TIPO
+            document.getElementById('edit-order-type').value = order.type || 'Entrega';
+            updateTypeBtnUI(); // Atualiza visual do botão
             
             // Pagamento e Valores
             document.getElementById('edit-order-payment').value = order.payment;
@@ -1086,6 +1090,39 @@
         }
 
         function closeOrderEditModal() { document.getElementById('order-edit-modal').classList.remove('open'); }
+        
+        // --- FUNÇÕES NOVO BOTÃO TIPO ---
+        function cycleOrderType() {
+            const types = ['Entrega', 'Retirada', 'Mesa'];
+            const current = document.getElementById('edit-order-type').value || 'Entrega';
+            let idx = types.indexOf(current);
+            if (idx === -1) idx = 0;
+            
+            const next = types[(idx + 1) % types.length];
+            document.getElementById('edit-order-type').value = next;
+            updateTypeBtnUI();
+        }
+
+        function updateTypeBtnUI() {
+            const val = document.getElementById('edit-order-type').value;
+            const btn = document.getElementById('btn-order-type');
+            
+            const icons = {
+                'Entrega': 'fa-motorcycle',
+                'Retirada': 'fa-shopping-bag',
+                'Mesa': 'fa-chair'
+            };
+            
+            const colors = {
+                'Entrega': '#ff9f1c', 
+                'Retirada': '#2196F3', 
+                'Mesa': '#4CAF50'
+            };
+
+            btn.innerHTML = `<i class="fas ${icons[val] || 'fa-question'}"></i>`;
+            btn.style.background = colors[val] || '#ccc';
+            btn.style.color = '#fff';
+        }
         
         // --- NOVOS MODAIS ---
         function openCustomItemModal() {
@@ -1219,10 +1256,13 @@
             const total = Math.max(0, sub + fee + sur - desc);
             const changeVal = document.getElementById('edit-order-change').value;
 
+            // LER O TIPO DO INPUT HIDDEN
+            const typeVal = document.getElementById('edit-order-type').value;
+
             const data = {
                 customerName: document.getElementById('edit-order-name').value,
                 userPhone: document.getElementById('edit-order-phone').value,
-                type: document.getElementById('edit-order-type').value,
+                type: typeVal,
                 payment: document.getElementById('edit-order-payment').value,
                 address: document.getElementById('edit-order-address').value,
                 cart: editingOrderCart,
