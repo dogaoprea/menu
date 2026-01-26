@@ -855,9 +855,9 @@
             
             let payToggleButton;
             if (isFinalized) {
-                payToggleButton = `<button class="btn-pay-status ${payBtnClass}" style="opacity:0.6; cursor:not-allowed; pointer-events:none;">${payBtnText}</button>`;
+                payToggleButton = `<button class="btn-pay-status ${payBtnClass}" style="opacity:0.6; cursor:not-allowed; pointer-events:none; margin:0;">${payBtnText}</button>`;
             } else {
-                payToggleButton = `<button class="btn-pay-status ${payBtnClass}" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
+                payToggleButton = `<button class="btn-pay-status ${payBtnClass}" style="margin:0;" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
             }
             
             // FORMATAÇÃO DO TROCO SE EXISTIR E FOR DINHEIRO
@@ -883,20 +883,21 @@
                 <div class="order-info">
                     <p><strong>Cliente:</strong> ${order.customerName} ${clientWaLink}</p>
                     <p><strong>Tipo:</strong> ${order.type} ${order.pickupTime ? `(${order.pickupTime})` : ''}</p>
-                    <p style="display:flex; align-items:center;">
-                        ${paymentInfoHtml} 
-                        ${payToggleButton}
-                    </p>
+                    <p>${paymentInfoHtml}</p>
                     ${order.address ? `<p><strong>Endereço:</strong> <span style="font-size:13px;color:#555;">${order.address}</span></p>` : ''}
                     ${order.mapsLink ? `<p><a href="${order.mapsLink}" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:600;"><i class="fas fa-map-marker-alt"></i> Ver no Mapa</a></p>` : ''}
                 </div>
                 <div class="order-items">${itemsHtml}</div>
                 ${!isHistory ? `<select class="status-select" onchange="updateOrderStatus('${order._id}', this.value, '${order.customerName}', '${order.userPhone||''}')">${statusOpts}</select>` : ''}
-                <div class="order-total">
-                    ${fee>0 ? `<small style="font-weight:400;color:#666;">Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
-                    ${surcharge>0 ? `<small style="font-weight:400;color:var(--info);">Acréscimo: + R$ ${surcharge.toFixed(2)}</small><br>` : ''}
-                    ${discount>0 ? `<small style="font-weight:400;color:var(--danger);">Desconto: - R$ ${discount.toFixed(2)}</small><br>` : ''}
-                    Total: R$ ${total.toFixed(2)}
+                
+                <div class="order-total" style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
+                    <div>${payToggleButton}</div>
+                    <div style="text-align:right;">
+                        ${fee>0 ? `<small style="font-weight:400;color:#666;">Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
+                        ${surcharge>0 ? `<small style="font-weight:400;color:var(--info);">Acréscimo: + R$ ${surcharge.toFixed(2)}</small><br>` : ''}
+                        ${discount>0 ? `<small style="font-weight:400;color:var(--danger);">Desconto: - R$ ${discount.toFixed(2)}</small><br>` : ''}
+                        Total: R$ ${total.toFixed(2)}
+                    </div>
                 </div>
             `;
             return card;
