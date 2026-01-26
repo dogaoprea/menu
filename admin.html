@@ -903,6 +903,7 @@
         }
         
         function getTextClipboard(order) {
+            // Values
             const fee = order.deliveryFee || 0;
             const surcharge = order.surcharge || 0;
             const discount = order.discount || 0;
@@ -910,18 +911,61 @@
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
             const paymentStatusText = isPaid ? '✅ PAGO' : '❌ A PAGAR';
             
-            return `*PEDIDO #${order.orderId || '???'}*\nCliente: ${order.customerName}\nTipo: ${order.type}\nPagamento: ${order.payment} (${paymentStatusText})\nEndereço: ${order.address || 'N/A'}\n----------------\n` +
-                (order.cart ? order.cart.map(i => {
+            // Date
+            const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
+            const dateStr = date.toLocaleDateString('pt-BR');
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Payment & Change Logic
+            let paymentInfo = `${order.payment} (${paymentStatusText})`;
+            if(order.payment === 'Dinheiro' && order.change) {
+                const amountTendered = parseFloat(order.change);
+                if(!isNaN(amountTendered)) {
+                    const changeNeeded = amountTendered - total;
+                    paymentInfo += `\n💵 Para: R$ ${amountTendered.toFixed(2)}`;
+                    if(changeNeeded > 0) {
+                        paymentInfo += ` (Troco: R$ ${changeNeeded.toFixed(2)})`;
+                    }
+                }
+            }
+
+            // Build Text
+            let t = `*PEDIDO #${order.orderId || '???'}*\n`;
+            t += `📅 ${dateStr} às ${timeStr}\n\n`;
+            
+            t += `👤 *Cliente:* ${order.customerName}\n`;
+            if(order.userPhone) t += `📱 *WhatsApp:* ${order.userPhone}\n`;
+            t += `🛍️ *Tipo:* ${order.type}\n`;
+            t += `📍 *Endereço:* ${order.address || 'Não informado'}\n`;
+            t += `💰 *Pagamento:* ${paymentInfo}\n`;
+            
+            t += `\n*ITENS DO PEDIDO:*\n--------------------------------\n`;
+            
+            if (order.cart) {
+                t += order.cart.map(i => {
                     const itemTotal = (i.price || 0) * i.qty;
-                    let l = `${i.qty}x ${i.name} - R$ ${itemTotal.toFixed(2)}`;
-                    if(i.selectedOption) l+= `\n   Opção: ${i.selectedOption}`;
+                    let l = `${i.qty}x ${i.name} (R$ ${itemTotal.toFixed(2)})`;
+                    if(i.selectedOption) l+= `\n   + ${i.selectedOption}`;
                     if(i.obs) l+= `\n   Obs: ${i.obs}`; 
                     return l;
-                }).join('\n\n') : '') +
-                `\n----------------\nTaxa: R$ ${fee.toFixed(2)}\n` +
-                (surcharge > 0 ? `Acréscimo: + R$ ${surcharge.toFixed(2)}\n` : '') +
-                (discount > 0 ? `Desconto: - R$ ${discount.toFixed(2)}\n` : '') +
-                `*TOTAL: R$ ${total.toFixed(2)}*`;
+                }).join('\n\n');
+            }
+            
+            t += `\n--------------------------------\n`;
+            
+            // Financial Summary
+            const sub = (order.cart||[]).reduce((a,i)=>a+(i.price*i.qty),0);
+            t += `Subtotal: R$ ${sub.toFixed(2)}\n`;
+            
+            if(fee > 0) t += `Taxa Entrega: R$ ${fee.toFixed(2)}\n`;
+            if(surcharge > 0) t += `Acréscimo: + R$ ${surcharge.toFixed(2)}\n`;
+            if(discount > 0) t += `Desconto: - R$ ${discount.toFixed(2)}\n`;
+            
+            t += `\n*TOTAL FINAL: R$ ${total.toFixed(2)}*`;
+            
+            if(order.mapsLink) t += `\n\n🗺️ Link Maps: ${order.mapsLink}`;
+
+            return t;
         }
         
         function updateOrderStatus(docId, newStatus, customerName, customerPhone) {
