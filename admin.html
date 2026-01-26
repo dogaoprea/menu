@@ -10,8 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         :root {
@@ -81,7 +79,6 @@
         .btn-share { background: #25D366; }
         .btn-delete-forever { background: #ff4444; }
         .btn-reopen { background: #FF9800; }
-        .btn-img { background: #9C27B0; }
         
         /* Botão de Status de Pagamento */
         .btn-pay-status { 
@@ -284,27 +281,6 @@
         .fin-card.fees { background: linear-gradient(135deg, #ff9f1c, #ffc371); }
         .fin-card.count { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
 
-        /* Estilos do Recibo para Impressão/Imagem */
-        #receipt-preview {
-            position: fixed; top: 0; left: -9999px; /* Oculto fora da tela */
-            width: 380px;
-            background: #fff;
-            color: #000;
-            font-family: 'Montserrat', sans-serif; /* FONTE ALTERADA PARA MONTSERRAT */
-            padding: 20px;
-            border: 1px solid #ccc;
-            z-index: 5000;
-        }
-        .rp-header { text-align: center; margin-bottom: 15px; border-bottom: 1px dashed #000; padding-bottom: 10px; }
-        .rp-title { font-weight: 800; font-size: 22px; margin-bottom: 5px; font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
-        .rp-info { font-size: 13px; margin-bottom: 3px; line-height: 1.4; }
-        .rp-divider { border-top: 1px dashed #000; margin: 12px 0; }
-        .rp-item { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-        .rp-sub { font-size: 12px; color: #444; margin-left: 10px; margin-bottom: 4px; }
-        .rp-total-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px; }
-        .rp-final { font-size: 18px; font-weight: 800; margin-top: 8px; text-align: right; border-top: 1px solid #000; padding-top: 5px; }
-        .rp-footer { text-align: center; font-size: 11px; margin-top: 20px; border-top: 1px dashed #000; padding-top: 10px; font-weight: 600; }
-
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 3000; font-weight: 600; }
         #toast.show { opacity: 1; bottom: 30px; }
     </style>
@@ -398,8 +374,6 @@
             </div>
         </div>
     </div>
-
-    <div id="receipt-preview"></div>
 
     <div id="item-modal" class="modal">
         <div class="modal-content">
@@ -878,10 +852,9 @@
                  <button class="btn-sm btn-delete-forever" onclick="deleteOrderForever('${order._id}')" title="Apagar"><i class="fas fa-trash"></i></button>` :
                 `<button class="btn-sm btn-copy" onclick="copyToClipboard(this, \`${clipboardText.replace(/`/g, '\\`')}\`)"><i class="far fa-copy"></i></button>
                  <a href="${waLink}" target="_blank" class="btn-sm btn-share"><i class="fab fa-whatsapp"></i></a>
-                 <button class="btn-sm btn-img" onclick="generateOrderImage('${order._id}')"><i class="fas fa-file-image"></i></button>
                  <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${order._id}')"><i class="fas fa-pencil-alt"></i></button>`;
 
-            // Botão de Toggle de Pagamento COM TEXTO E ICONE MELHORADO
+            // Botão de Toggle de Pagamento
             const payBtnClass = isPaid ? 'btn-pay-paid' : 'btn-pay-pending';
             const payBtnText = isPaid ? 
                 `<i class="fas fa-check-circle"></i> PAGO` : 
@@ -896,16 +869,14 @@
             
             // LÓGICA DE TROCO ATUALIZADA
             let paymentInfoHtml = `<strong>Pagamento:</strong> ${order.payment}`;
-            let changeValueHtml = ''; // HTML para a linha de "Troco: R$..." no total
+            let changeValueHtml = ''; 
 
             if(order.payment === 'Dinheiro' && order.change) {
                 const amountTendered = parseFloat(order.change);
                 if (!isNaN(amountTendered)) {
-                    // Formata o valor entregue (Para quanto)
                     const tenderedFmt = amountTendered.toFixed(2).replace('.', ',');
                     paymentInfoHtml += ` (Para: R$ ${tenderedFmt})`;
 
-                    // Calcula o troco a devolver
                     const changeNeeded = amountTendered - total;
                     if (changeNeeded > 0) {
                         const changeNeededFmt = changeNeeded.toFixed(2).replace('.', ',');
@@ -917,7 +888,6 @@
             const card = document.createElement('div');
             card.className = `order-card ${isNew ? 'new' : ''} status-${order.status || 'pending'}`;
             
-            // CONSTRÓI A LINHA DE STATUS + BOTÃO DE PAGAMENTO
             const statusAndPaymentRow = `
                 <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
                     ${!isHistory ? `<select class="status-select" style="margin-top:0; flex:1;" onchange="updateOrderStatus('${order._id}', this.value, '${order.customerName}', '${order.userPhone||''}')">${statusOpts}</select>` : ''}
@@ -950,7 +920,8 @@
                     ${fee>0 ? `<small style="font-weight:400;color:#666;">Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
                     ${surcharge>0 ? `<small style="font-weight:400;color:var(--info);">Acréscimo: + R$ ${surcharge.toFixed(2)}</small><br>` : ''}
                     ${discount>0 ? `<small style="font-weight:400;color:var(--danger);">Desconto: - R$ ${discount.toFixed(2)}</small><br>` : ''}
-                    ${changeValueHtml} Total: R$ ${total.toFixed(2)}
+                    ${changeValueHtml}
+                    Total: R$ ${total.toFixed(2)}
                 </div>
             `;
             return card;
@@ -992,7 +963,7 @@
             try {
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
-                textarea.style.position = 'fixed'; // Prevent scrolling to bottom
+                textarea.style.position = 'fixed'; 
                 textarea.style.left = '-9999px';
                 document.body.appendChild(textarea);
                 textarea.select();
@@ -1010,89 +981,6 @@
             } catch (err) {
                 console.error('Fallback: Oops, unable to copy', err);
             }
-        }
-        
-        function generateOrderImage(orderId) {
-            const order = allOrders.find(o => o._id === orderId);
-            if (!order) return alert("Pedido não encontrado");
-
-            const date = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date();
-            const dateStr = date.toLocaleDateString('pt-BR');
-            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
-
-            let itemsHtml = (order.cart || []).map(i => `
-                <div class="rp-item">
-                    <span>${i.qty}x ${i.name}</span>
-                    <span>R$ ${(i.price * i.qty).toFixed(2)}</span>
-                </div>
-                ${i.selectedOption ? `<div class="rp-sub">Opção: ${i.selectedOption}</div>` : ''}
-                ${i.obs ? `<div class="rp-sub">Obs: ${i.obs}</div>` : ''}
-            `).join('');
-
-            const sub = (order.cart||[]).reduce((a,i)=>a+(i.price*i.qty),0);
-            const fee = order.deliveryFee || 0;
-            const sur = order.surcharge || 0;
-            const desc = order.discount || 0;
-            const tot = order.total || 0;
-            
-            // LÓGICA DE TROCO NO COMPROVANTE (IMAGEM)
-            let paymentLine = order.payment;
-            let changeLineHtml = '';
-
-            if(order.payment === 'Dinheiro' && order.change) {
-                const amountTendered = parseFloat(order.change);
-                if (!isNaN(amountTendered)) {
-                    const tenderedFmt = amountTendered.toFixed(2).replace('.', ',');
-                    paymentLine += ` (Para: R$ ${tenderedFmt})`;
-
-                    const changeNeeded = amountTendered - tot;
-                    if (changeNeeded > 0) {
-                        const changeNeededFmt = changeNeeded.toFixed(2).replace('.', ',');
-                        changeLineHtml = `<div class="rp-total-row"><span>Troco:</span><span>R$ ${changeNeededFmt}</span></div>`;
-                    }
-                }
-            }
-
-            const html = `
-                <div class="rp-header">
-                    <div class="rp-title">DOGÃO PREÁ</div>
-                    <div class="rp-info">Pedido #${order.orderId}</div>
-                    <div class="rp-info">${dateStr} às ${timeStr}</div>
-                </div>
-                <div class="rp-info"><strong>Cliente:</strong> ${order.customerName}</div>
-                <div class="rp-info"><strong>Whatsapp:</strong> ${order.userPhone || 'N/A'}</div>
-                <div class="rp-info"><strong>Tipo:</strong> ${order.type}</div>
-                ${order.address ? `<div class="rp-info"><strong>End:</strong> ${order.address}</div>` : ''}
-                
-                <div class="rp-divider"></div>
-                ${itemsHtml}
-                <div class="rp-divider"></div>
-                
-                <div class="rp-total-row"><span>Subtotal:</span><span>R$ ${sub.toFixed(2)}</span></div>
-                ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
-                ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
-                ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
-                ${changeLineHtml}
-                <div class="rp-final">Status: ${tot.toFixed(2)}</div>
-                
-                <div class="rp-divider"></div>
-                <div class="rp-info"><strong>Pagamento:</strong> ${paymentLine}</div>
-                <div class="rp-info"><strong>Status:</strong> ${isPaid ? 'PAGO' : 'PENDENTE'}</div>
-                
-                <div class="rp-footer">Obrigado pela preferência!</div>
-            `;
-
-            const container = document.getElementById('receipt-preview');
-            container.innerHTML = html;
-
-            html2canvas(container).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `pedido-${order.orderId}.png`;
-                link.href = canvas.toDataURL();
-                link.click();
-            });
         }
         
         function deleteOrderForever(docId) {
@@ -1135,7 +1023,7 @@
             
             // TIPO
             document.getElementById('edit-order-type').value = order.type || 'Entrega';
-            updateTypeBtnUI(); // Atualiza visual do botão
+            updateTypeBtnUI(); 
             
             // Pagamento e Valores
             document.getElementById('edit-order-payment').value = order.payment;
@@ -1148,7 +1036,7 @@
             
             editingOrderCart = (order.cart || []).map(i => ({ ...i, _uuid: i._uuid || Math.random() }));
             renderEditOrderItems();
-            toggleChangeInput(); // Check visibility on load
+            toggleChangeInput(); 
             
             document.getElementById('order-edit-modal').classList.add('open');
         }
@@ -1213,11 +1101,11 @@
 
         function openPaymentModal() {
             document.getElementById('payment-modal').classList.add('open');
-            calculateOrderTotal(); // Atualiza display do modal
+            calculateOrderTotal(); 
         }
         function closePaymentModal() {
             document.getElementById('payment-modal').classList.remove('open');
-            calculateOrderTotal(); // Atualiza display principal
+            calculateOrderTotal(); 
         }
 
         function toggleChangeInput() {
