@@ -83,11 +83,11 @@
         .btn-reopen { background: #FF9800; }
         .btn-img { background: #9C27B0; }
         
-        /* Botão de Status de Pagamento - ESTILO ATUALIZADO */
+        /* Botão de Status de Pagamento */
         .btn-pay-status { 
             border: none; 
             padding: 0 16px; 
-            height: 48px; /* Altura exata para alinhar com inputs */
+            height: 48px; 
             border-radius: 8px; 
             font-size: 13px; 
             font-weight: 700; 
@@ -103,15 +103,13 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .btn-pay-status:active { transform: scale(0.96); }
-
-        /* Cores sólidas para melhor visual */
         .btn-pay-paid { background: #00c851; color: white; }
         .btn-pay-pending { background: #ff4444; color: white; }
 
         /* Status Select Ajustado */
         .status-select { 
             width: 100%; 
-            height: 48px; /* Mesma altura do botão */
+            height: 48px; 
             padding: 0 12px; 
             border-radius: 8px; 
             border: 1px solid #ddd; 
@@ -896,12 +894,24 @@
                 payToggleButton = `<button class="btn-pay-status ${payBtnClass}" style="margin:0;" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
             }
             
-            // FORMATAÇÃO DO TROCO SE EXISTIR E FOR DINHEIRO
+            // LÓGICA DE TROCO ATUALIZADA
             let paymentInfoHtml = `<strong>Pagamento:</strong> ${order.payment}`;
-            if(order.change && order.payment === 'Dinheiro') {
-                const changeNum = parseFloat(order.change);
-                const changeFormatted = !isNaN(changeNum) ? `R$ ${changeNum.toFixed(2).replace('.', ',')}` : order.change;
-                paymentInfoHtml += ` (Troco: ${changeFormatted})`;
+            let changeValueHtml = ''; // HTML para a linha de "Troco: R$..." no total
+
+            if(order.payment === 'Dinheiro' && order.change) {
+                const amountTendered = parseFloat(order.change);
+                if (!isNaN(amountTendered)) {
+                    // Formata o valor entregue (Para quanto)
+                    const tenderedFmt = amountTendered.toFixed(2).replace('.', ',');
+                    paymentInfoHtml += ` (Para: R$ ${tenderedFmt})`;
+
+                    // Calcula o troco a devolver
+                    const changeNeeded = amountTendered - total;
+                    if (changeNeeded > 0) {
+                        const changeNeededFmt = changeNeeded.toFixed(2).replace('.', ',');
+                        changeValueHtml = `<small style="font-weight:700;color:var(--success);">Troco: R$ ${changeNeededFmt}</small><br>`;
+                    }
+                }
             }
 
             const card = document.createElement('div');
@@ -940,7 +950,7 @@
                     ${fee>0 ? `<small style="font-weight:400;color:#666;">Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
                     ${surcharge>0 ? `<small style="font-weight:400;color:var(--info);">Acréscimo: + R$ ${surcharge.toFixed(2)}</small><br>` : ''}
                     ${discount>0 ? `<small style="font-weight:400;color:var(--danger);">Desconto: - R$ ${discount.toFixed(2)}</small><br>` : ''}
-                    Total: R$ ${total.toFixed(2)}
+                    ${changeValueHtml} Total: R$ ${total.toFixed(2)}
                 </div>
             `;
             return card;
@@ -1027,11 +1037,22 @@
             const desc = order.discount || 0;
             const tot = order.total || 0;
             
+            // LÓGICA DE TROCO NO COMPROVANTE (IMAGEM)
             let paymentLine = order.payment;
-            if(order.change && order.payment === 'Dinheiro') {
-                const changeNum = parseFloat(order.change);
-                const changeFmt = !isNaN(changeNum) ? `R$ ${changeNum.toFixed(2).replace('.', ',')}` : order.change;
-                paymentLine += ` (Troco: ${changeFmt})`;
+            let changeLineHtml = '';
+
+            if(order.payment === 'Dinheiro' && order.change) {
+                const amountTendered = parseFloat(order.change);
+                if (!isNaN(amountTendered)) {
+                    const tenderedFmt = amountTendered.toFixed(2).replace('.', ',');
+                    paymentLine += ` (Para: R$ ${tenderedFmt})`;
+
+                    const changeNeeded = amountTendered - tot;
+                    if (changeNeeded > 0) {
+                        const changeNeededFmt = changeNeeded.toFixed(2).replace('.', ',');
+                        changeLineHtml = `<div class="rp-total-row"><span>Troco:</span><span>R$ ${changeNeededFmt}</span></div>`;
+                    }
+                }
             }
 
             const html = `
@@ -1053,6 +1074,7 @@
                 ${fee > 0 ? `<div class="rp-total-row"><span>Taxa Entrega:</span><span>R$ ${fee.toFixed(2)}</span></div>` : ''}
                 ${sur > 0 ? `<div class="rp-total-row"><span>Acréscimo:</span><span>R$ ${sur.toFixed(2)}</span></div>` : ''}
                 ${desc > 0 ? `<div class="rp-total-row"><span>Desconto:</span><span>- R$ ${desc.toFixed(2)}</span></div>` : ''}
+                ${changeLineHtml}
                 <div class="rp-final">Status: ${tot.toFixed(2)}</div>
                 
                 <div class="rp-divider"></div>
