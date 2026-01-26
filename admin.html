@@ -7,12 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     
-    <!-- html2canvas para gerar imagens -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -145,6 +143,9 @@
         .modal.open { display: flex; }
         .modal-content { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
 
+        /* Sub-Modais (Z-index maior) */
+        .sub-modal { z-index: 1100; }
+
         /* --- MODAL DE PEDIDO "APP LIKE" (MOBILE FIRST) --- */
         #order-edit-modal.open { display: flex; align-items: flex-end; } /* Slide up on mobile default */
         
@@ -230,16 +231,6 @@
         .btn-qty { width: 36px; height: 36px; border: none; background: transparent; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         .qty-val { min-width: 30px; text-align: center; font-weight: 700; font-size: 15px; }
 
-        .custom-add-box {
-            background: #fff;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            margin-bottom: 15px;
-        }
-        .custom-row-1 { margin-bottom: 8px; }
-        .custom-row-2 { display: flex; gap: 8px; }
-
         .financial-block {
             background: #fff;
             padding: 15px;
@@ -289,7 +280,6 @@
 </head>
 <body>
 
-    <!-- Login -->
     <div id="login-overlay">
         <div class="login-box">
             <h2 style="font-family: 'Bebas Neue'; font-size: 32px; color: var(--primary);">Área Restrita</h2>
@@ -299,7 +289,6 @@
         </div>
     </div>
 
-    <!-- Conteúdo -->
     <div id="app-content" style="display: none;">
         <header class="admin-header">
             <h1>Dogão Admin</h1>
@@ -307,14 +296,12 @@
         </header>
 
         <div class="container">
-            <!-- Abas -->
             <div class="nav-tabs">
                 <button class="nav-tab active" onclick="switchTab('orders')"><i class="fas fa-receipt"></i> Pedidos</button>
                 <button class="nav-tab" onclick="switchTab('history')"><i class="fas fa-history"></i> Histórico</button>
                 <button class="nav-tab" onclick="switchTab('menu')"><i class="fas fa-hamburger"></i> Cardápio</button>
             </div>
 
-            <!-- ABA DE PEDIDOS (ATIVOS) -->
             <div id="tab-orders" class="tab-content active">
                 
                 <button class="fab-btn" onclick="openOrderEditModal(null)" title="Novo Pedido">
@@ -326,10 +313,8 @@
                 </div>
             </div>
 
-            <!-- ABA DE HISTÓRICO -->
             <div id="tab-history" class="tab-content">
                 <div class="card">
-                    <!-- NOVO FILTRO SIMPLIFICADO: DATA DO EXPEDIENTE -->
                     <div style="margin-bottom:15px;">
                         <label style="display:block; margin-bottom:5px; font-size:12px; font-weight:600; color:#555;">Data do Expediente</label>
                         <input type="date" id="filter-ref-date" class="form-input">
@@ -353,7 +338,6 @@
                 <div id="history-list-container"></div>
             </div>
 
-            <!-- ABA DE CARDÁPIO -->
             <div id="tab-menu" class="tab-content">
                 <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
                     <div><h3 style="margin:0;">Loja Aberta?</h3><div id="status-text" style="font-size:12px; color:#666;">Auto</div></div>
@@ -384,10 +368,8 @@
         </div>
     </div>
 
-    <!-- ESTRUTURA OCULTA DO RECIBO PARA IMAGEM -->
     <div id="receipt-preview"></div>
 
-    <!-- Modal Item Cardápio -->
     <div id="item-modal" class="modal">
         <div class="modal-content">
             <h2 id="modal-title" style="margin-top:0;">Item</h2>
@@ -417,7 +399,6 @@
         </div>
     </div>
 
-    <!-- Modal Categorias -->
     <div id="cat-modal" class="modal">
         <div class="modal-content">
             <h2 style="margin-top:0;">Categorias</h2>
@@ -429,27 +410,22 @@
         </div>
     </div>
 
-    <!-- NOVO MODAL DE PEDIDO "APP LIKE" -->
     <div id="order-edit-modal" class="modal">
         <div class="modal-content">
-            <!-- Header Fixo -->
             <div class="modal-header-fixed">
                 <h3 id="order-modal-title" style="margin:0; font-family:'Bebas Neue'; font-size:24px; color:var(--primary-dark);">Pedido</h3>
                 <button onclick="closeOrderEditModal()" style="background:none; border:none; font-size:24px; padding:5px;"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- Corpo com Rolagem -->
             <div class="modal-body-scroll">
                 <input type="hidden" id="edit-order-doc-id">
                 
                 <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
                     <div style="flex:1; min-width: 200px;">
                         <label class="form-label">Cliente</label>
-                        <!-- AUTOCOMPLETE VINCULADO AO DATALIST -->
                         <input type="text" id="edit-order-name" class="form-input" placeholder="Nome" list="customer-suggestions" autocomplete="off" oninput="checkCustomerAddress(this.value)">
                         <datalist id="customer-suggestions"></datalist>
                     </div>
-                    <!-- NOVO CAMPO WHATSAPP -->
                     <div style="flex:1; min-width: 140px;">
                         <label class="form-label">WhatsApp</label>
                         <input type="tel" id="edit-order-phone" class="form-input" placeholder="5588...">
@@ -469,38 +445,12 @@
                     <textarea id="edit-order-address" class="form-input" rows="2" placeholder="Endereço completo..."></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Pagamento</label>
-                    <select id="edit-order-payment" class="form-select" onchange="handlePaymentChange()">
-                        <option value="PIX">PIX</option>
-                        <option value="Cartão de Crédito">Cartão de Crédito</option>
-                        <option value="Cartão de Débito">Cartão de Débito</option>
-                        <option value="Dinheiro">Dinheiro</option>
-                    </select>
-                </div>
-                
-                <!-- INPUT DE TROCO -->
-                <div class="form-group" id="div-change-input" style="display:none;">
-                    <label class="form-label">Troco para quanto?</label>
-                    <!-- TIPO NUMBER PARA FORÇAR TECLADO NUMÉRICO -->
-                    <input type="number" id="edit-order-change" class="form-input" placeholder="0.00" step="0.50" onfocus="this.select()">
-                </div>
-                
-                <div style="margin-top:10px; background: #fffde7; padding: 8px; border-radius: 6px; border: 1px solid #ffe082;">
-                    <label style="display:flex; align-items:center; gap:8px; font-weight:700; color:#555; cursor:pointer;">
-                        <input type="checkbox" id="edit-is-paid" style="width:20px; height:20px;"> 
-                        <span>Pedido já está PAGO?</span>
-                    </label>
-                </div>
-
                 <hr style="border:0; border-top:1px dashed #ccc; margin: 20px 0;">
 
                 <h4 style="margin:0 0 10px 0; color:#333;">Itens do Pedido</h4>
                 
-                <!-- Lista de Itens -->
                 <div id="edit-order-items-list"></div>
 
-                <!-- Adicionar Item do Menu -->
                 <div style="background:#eef2f5; padding:10px; border-radius:8px; margin-bottom:10px;">
                     <label class="form-label">Adicionar do Cardápio</label>
                     <div style="display:flex; gap:5px;">
@@ -511,50 +461,110 @@
                     </div>
                 </div>
 
-                <!-- Adicionar Personalizado -->
-                <div class="custom-add-box">
-                    <label class="form-label" style="color: #666; font-size:12px;">Adicionar Item Avulso (Fora do Cardápio)</label>
-                    <div class="custom-row-1">
-                        <input type="text" id="custom-item-name" class="form-input" placeholder="Nome do Item (Ex: Taxa Extra)">
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                     <button class="btn" style="background:#607D8B; color:white; flex:1; font-size:13px;" onclick="openCustomItemModal()">
+                         <i class="fas fa-plus"></i> Item Avulso
+                     </button>
+                </div>
+                
+                <div style="margin-top:20px; padding-top:20px; border-top:1px dashed #ccc;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-weight:700; font-size:16px;">Total: <span id="main-order-total-display" style="color:var(--primary-dark);">R$ 0,00</span></span>
+                        <small id="main-payment-method-display" style="color:#666; font-weight:600;">-</small>
                     </div>
-                    <div class="custom-row-2">
-                        <input type="number" id="custom-item-price" class="form-input" placeholder="R$ 0.00" step="0.50" style="flex:1;" onfocus="this.select()">
-                        <input type="number" id="custom-item-qty" class="form-input" value="1" style="width:60px; text-align:center;" onfocus="this.select()">
-                        <button type="button" class="btn" style="background:#607D8B; color:#fff;" onclick="addCustomItemToOrder()"><i class="fas fa-check"></i></button>
-                    </div>
+                    
+                    <button class="btn" style="background:var(--primary); color:#000; width:100%; padding:15px; font-weight:800; display:flex; justify-content:center; gap:10px;" onclick="openPaymentModal()">
+                         <i class="fas fa-dollar-sign"></i> DEFINIR PAGAMENTO E VALORES
+                    </button>
                 </div>
 
-                <!-- Resumo Financeiro -->
-                <div class="financial-block">
-                    <div class="fin-row">
-                        <label>Subtotal:</label>
-                        <span id="edit-order-subtotal" style="font-weight:700;">R$ 0,00</span>
-                    </div>
-                    <div class="fin-row">
-                        <label><i class="fas fa-motorcycle"></i> Taxa Entrega</label>
-                        <input type="number" id="edit-order-fee" placeholder="0.00" step="0.50" onfocus="this.select()" onchange="calculateOrderTotal()">
-                    </div>
-                    <div class="fin-row">
-                        <label style="color:var(--info);"><i class="fas fa-plus-circle"></i> Acréscimo</label>
-                        <input type="number" id="edit-order-surcharge" placeholder="0.00" step="0.50" style="color:var(--info);" onfocus="this.select()" onchange="calculateOrderTotal()">
-                    </div>
-                    <div class="fin-row">
-                        <label style="color:var(--danger);"><i class="fas fa-minus-circle"></i> Desconto</label>
-                        <input type="number" id="edit-order-discount" placeholder="0.00" step="0.50" style="color:var(--danger);" onfocus="this.select()" onchange="calculateOrderTotal()">
-                    </div>
-                    <div class="fin-row" style="margin-top:15px; font-size:18px; border-top:1px solid #eee; padding-top:10px;">
-                        <label style="color:var(--primary-dark); font-weight:800;">TOTAL FINAL</label>
-                        <strong id="edit-order-total" style="color:var(--primary-dark);">R$ 0,00</strong>
-                    </div>
-                </div>
-                <div style="height:20px;"></div> <!-- Espaço extra fim scroll -->
-            </div>
+                <div style="height:20px;"></div> </div>
 
-            <!-- Footer Fixo -->
             <div class="modal-footer-fixed">
                 <button class="btn" style="background:#eee; color:#333; flex:1;" onclick="closeOrderEditModal()">Cancelar</button>
-                <button class="btn" style="background:var(--primary); color:#000; flex:2;" onclick="saveOrderChanges()">SALVAR PEDIDO</button>
+                <button class="btn" style="background:var(--success); color:#fff; flex:2;" onclick="saveOrderChanges()">SALVAR PEDIDO</button>
             </div>
+        </div>
+    </div>
+    
+    <div id="custom-item-modal" class="modal sub-modal">
+        <div class="modal-content" style="max-width:350px;">
+            <h3 style="margin-top:0; font-family:'Bebas Neue'; color:var(--primary-dark);">Novo Item Avulso</h3>
+            
+            <div class="form-group">
+                <label class="form-label">Nome do Item</label>
+                <input type="text" id="custom-item-name" class="form-input" placeholder="Ex: Taxa Extra / Bebida Extra">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Preço (R$)</label>
+                <input type="number" id="custom-item-price" class="form-input" placeholder="0.00" step="0.50" onfocus="this.select()">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Quantidade</label>
+                <input type="number" id="custom-item-qty" class="form-input" value="1" onfocus="this.select()">
+            </div>
+            
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn" style="background:#eee; flex:1;" onclick="closeCustomItemModal()">Cancelar</button>
+                <button class="btn" style="background:var(--primary); flex:1;" onclick="addCustomItemToOrder()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="payment-modal" class="modal sub-modal">
+        <div class="modal-content" style="max-width:400px;">
+            <h3 style="margin-top:0; font-family:'Bebas Neue'; color:var(--primary-dark);">Pagamento e Valores</h3>
+            
+            <div class="form-group">
+                <label class="form-label">Forma de Pagamento</label>
+                <select id="edit-order-payment" class="form-select" onchange="toggleChangeInput()">
+                    <option value="PIX">PIX</option>
+                    <option value="Cartão de Crédito">Cartão de Crédito</option>
+                    <option value="Cartão de Débito">Cartão de Débito</option>
+                    <option value="Dinheiro">Dinheiro</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="div-change-input" style="display:none;">
+                <label class="form-label">Troco para quanto?</label>
+                <input type="number" id="edit-order-change" class="form-input" placeholder="0.00" step="0.50" onfocus="this.select()">
+            </div>
+            
+            <div style="margin-bottom:20px; background: #fffde7; padding: 10px; border-radius: 6px; border: 1px solid #ffe082;">
+                <label style="display:flex; align-items:center; gap:8px; font-weight:700; color:#555; cursor:pointer;">
+                    <input type="checkbox" id="edit-is-paid" style="width:20px; height:20px;"> 
+                    <span>Pedido já está PAGO?</span>
+                </label>
+            </div>
+            
+            <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
+            
+            <div class="financial-block" style="border:none; padding:0; box-shadow:none;">
+                <div class="fin-row">
+                    <label>Subtotal (Itens):</label>
+                    <span id="edit-order-subtotal" style="font-weight:700;">R$ 0,00</span>
+                </div>
+                <div class="fin-row">
+                    <label><i class="fas fa-motorcycle"></i> Taxa Entrega</label>
+                    <input type="number" id="edit-order-fee" placeholder="0.00" step="0.50" onfocus="this.select()" onchange="calculateOrderTotal()">
+                </div>
+                <div class="fin-row">
+                    <label style="color:var(--info);"><i class="fas fa-plus-circle"></i> Acréscimo</label>
+                    <input type="number" id="edit-order-surcharge" placeholder="0.00" step="0.50" style="color:var(--info);" onfocus="this.select()" onchange="calculateOrderTotal()">
+                </div>
+                <div class="fin-row">
+                    <label style="color:var(--danger);"><i class="fas fa-minus-circle"></i> Desconto</label>
+                    <input type="number" id="edit-order-discount" placeholder="0.00" step="0.50" style="color:var(--danger);" onfocus="this.select()" onchange="calculateOrderTotal()">
+                </div>
+                <div class="fin-row" style="margin-top:15px; font-size:18px; border-top:1px solid #eee; padding-top:10px;">
+                    <label style="color:var(--primary-dark); font-weight:800;">TOTAL FINAL</label>
+                    <strong id="edit-order-total" style="color:var(--primary-dark);">R$ 0,00</strong>
+                </div>
+            </div>
+            
+            <button class="btn" style="background:var(--success); color:#fff; width:100%; margin-top:20px;" onclick="closePaymentModal()">OK, Confirmar</button>
         </div>
     </div>
 
@@ -697,9 +707,6 @@
         
         function filterOrders(filter, btn) {
             currentFilter = filter;
-            if(btn) { // btn pode ser nulo se chamado programaticamente
-               // lógica visual dos botões
-            }
             renderOrders();
         }
 
@@ -928,7 +935,6 @@
         }
         
         function copyToClipboard(btn, text) {
-            // Fallback for environments where navigator.clipboard is blocked
             try {
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
@@ -945,7 +951,6 @@
                     btn.innerHTML = '<i class="fas fa-check"></i>';
                     setTimeout(() => btn.innerHTML = og, 1500);
                 } else {
-                    console.error("Fallback: Copying text command was unsuccessful");
                     alert("Não foi possível copiar automaticamente. Selecione e copie manualmente.");
                 }
             } catch (err) {
@@ -961,10 +966,8 @@
             const dateStr = date.toLocaleDateString('pt-BR');
             const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // CORREÇÃO AQUI TAMBÉM: Se for "done" e isPaid não for false, considera como pago (retroativo visual)
             const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
 
-            // Build items HTML
             let itemsHtml = (order.cart || []).map(i => `
                 <div class="rp-item">
                     <span>${i.qty}x ${i.name}</span>
@@ -980,7 +983,6 @@
             const desc = order.discount || 0;
             const tot = order.total || 0;
             
-            // FORMATAR TROCO NO COMPROVANTE (SÓ SE FOR DINHEIRO)
             let paymentLine = order.payment;
             if(order.change && order.payment === 'Dinheiro') {
                 const changeNum = parseFloat(order.change);
@@ -1036,7 +1038,6 @@
             const select = document.getElementById('add-item-select');
             select.innerHTML = '<option value="">Selecione...</option>';
             
-            // FILTRO DE DISPONIBILIDADE ADICIONADO AQUI
             const activeItems = currentItems.filter(i => i.available !== false);
 
             [...activeItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
@@ -1066,26 +1067,56 @@
             document.getElementById('edit-order-name').value = order.customerName;
             document.getElementById('edit-order-phone').value = order.userPhone || '';
             document.getElementById('edit-order-type').value = order.type;
+            
+            // Pagamento e Valores
             document.getElementById('edit-order-payment').value = order.payment;
             document.getElementById('edit-order-address').value = order.address || '';
-            
-            // NOVO: Verifica se o valor é maior que 0. Se for, formata. Se não, string vazia.
             document.getElementById('edit-order-fee').value = (order.deliveryFee > 0) ? order.deliveryFee.toFixed(2) : '';
             document.getElementById('edit-order-discount').value = (order.discount > 0) ? order.discount.toFixed(2) : '';
             document.getElementById('edit-order-surcharge').value = (order.surcharge > 0) ? order.surcharge.toFixed(2) : '';
-            
             document.getElementById('edit-order-change').value = order.change || ''; 
-            
-            // Checkbox de Pago
             document.getElementById('edit-is-paid').checked = order.isPaid === true;
             
             editingOrderCart = (order.cart || []).map(i => ({ ...i, _uuid: i._uuid || Math.random() }));
             renderEditOrderItems();
             toggleChangeInput(); // Check visibility on load
+            
             document.getElementById('order-edit-modal').classList.add('open');
         }
 
         function closeOrderEditModal() { document.getElementById('order-edit-modal').classList.remove('open'); }
+        
+        // --- NOVOS MODAIS ---
+        function openCustomItemModal() {
+            document.getElementById('custom-item-name').value = '';
+            document.getElementById('custom-item-price').value = '';
+            document.getElementById('custom-item-qty').value = '1';
+            document.getElementById('custom-item-modal').classList.add('open');
+        }
+        function closeCustomItemModal() { document.getElementById('custom-item-modal').classList.remove('open'); }
+        
+        function addCustomItemToOrder() {
+            const n = document.getElementById('custom-item-name').value;
+            const p = parseFloat(document.getElementById('custom-item-price').value);
+            const q = parseInt(document.getElementById('custom-item-qty').value) || 1;
+            
+            if(!n || isNaN(p)) return alert("Preencha nome e preço.");
+            
+            editingOrderCart.push({
+                id: 'custom_'+Date.now(), name: n, price: p, qty: q, obs: 'Avulso', _uuid: Math.random()
+            });
+            renderEditOrderItems();
+            closeCustomItemModal();
+        }
+
+        function openPaymentModal() {
+            document.getElementById('payment-modal').classList.add('open');
+            calculateOrderTotal(); // Atualiza display do modal
+        }
+        function closePaymentModal() {
+            document.getElementById('payment-modal').classList.remove('open');
+            calculateOrderTotal(); // Atualiza display principal
+        }
 
         function toggleChangeInput() {
             const p = document.getElementById('edit-order-payment').value;
@@ -1125,12 +1156,12 @@
         function updateItemObs(idx, val) { editingOrderCart[idx].obs = val; }
         function updateItemPrice(idx, val) { 
             const p = parseFloat(val); 
-            if(!isNaN(p) && p>=0) { editingOrderCart[idx].price = p; autoCalculateSurcharge(); }
+            if(!isNaN(p) && p>=0) { editingOrderCart[idx].price = p; calculateOrderTotal(); }
         }
         function updateOrderQty(idx, chg) {
             editingOrderCart[idx].qty += chg;
             if(editingOrderCart[idx].qty <= 0) editingOrderCart.splice(idx, 1);
-            renderEditOrderItems(); // This calls autoCalculateSurcharge internally
+            renderEditOrderItems();
         }
         function removeOrderItem(idx) {
             if(confirm("Remover?")) { editingOrderCart.splice(idx, 1); renderEditOrderItems(); }
@@ -1139,13 +1170,27 @@
         function calculateOrderTotal() {
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             
-            // NOVO: parseFloat pode retornar NaN para string vazia, então usamos || 0
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
             
+            const total = Math.max(0, sub + fee + sur - desc);
+            const totalFmt = `R$ ${total.toFixed(2)}`;
+            
+            // Atualiza Subtotal
             document.getElementById('edit-order-subtotal').innerText = `R$ ${sub.toFixed(2)}`;
-            document.getElementById('edit-order-total').innerText = `R$ ${Math.max(0, sub + fee + sur - desc).toFixed(2)}`;
+            
+            // Atualiza Total no Modal de Pagamento
+            document.getElementById('edit-order-total').innerText = totalFmt;
+            
+            // Atualiza Total na Tela Principal
+            const mainDisplay = document.getElementById('main-order-total-display');
+            if(mainDisplay) mainDisplay.innerText = totalFmt;
+            
+            // Atualiza Texto do Método de Pagamento na Tela Principal
+            const method = document.getElementById('edit-order-payment').value;
+            const methodDisplay = document.getElementById('main-payment-method-display');
+            if(methodDisplay) methodDisplay.innerText = method;
         }
 
         function addItemToOrder() {
@@ -1159,22 +1204,6 @@
                 renderEditOrderItems();
                 sel.value = "";
             }
-        }
-
-        function addCustomItemToOrder() {
-            const n = document.getElementById('custom-item-name').value;
-            const p = parseFloat(document.getElementById('custom-item-price').value);
-            const q = parseInt(document.getElementById('custom-item-qty').value) || 1;
-            
-            if(!n || isNaN(p)) return alert("Preencha nome e preço.");
-            
-            editingOrderCart.push({
-                id: 'custom_'+Date.now(), name: n, price: p, qty: q, obs: 'Personalizado', _uuid: Math.random()
-            });
-            renderEditOrderItems();
-            document.getElementById('custom-item-name').value = '';
-            document.getElementById('custom-item-price').value = ''; 
-            document.getElementById('custom-item-qty').value = '1';
         }
 
         function saveOrderChanges() {
