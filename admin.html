@@ -457,17 +457,11 @@
                 
                 <div id="edit-order-items-list"></div>
 
-                <div style="background:#eef2f5; padding:10px; border-radius:8px; margin-bottom:10px;">
-                    <label class="form-label">Adicionar do Cardápio</label>
-                    <div style="display:flex; gap:5px;">
-                        <select id="add-item-select" class="form-select" style="flex:1;">
-                            <option value="">Selecione...</option>
-                        </select>
-                        <button type="button" class="btn" style="background:var(--primary); color:#000;" onclick="addItemToOrder()"><i class="fas fa-plus"></i></button>
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-top:15px;">
+                <div style="display:flex; gap:10px; margin-top:15px; margin-bottom:15px;">
+                     <button class="btn" style="background:var(--primary); color:#000; flex:1; font-size:13px;" onclick="openMenuSelectionModal()">
+                         <i class="fas fa-hamburger"></i> Cardápio
+                     </button>
+                     
                      <button class="btn" style="background:#607D8B; color:white; flex:1; font-size:13px;" onclick="openCustomItemModal()">
                          <i class="fas fa-plus"></i> Item Avulso
                      </button>
@@ -490,6 +484,17 @@
                 <button class="btn" style="background:#eee; color:#333; flex:1;" onclick="closeOrderEditModal()">Cancelar</button>
                 <button class="btn" style="background:var(--success); color:#fff; flex:2;" onclick="saveOrderChanges()">SALVAR PEDIDO</button>
             </div>
+        </div>
+    </div>
+    
+    <div id="menu-selection-modal" class="modal sub-modal">
+        <div class="modal-content" style="display:flex; flex-direction:column; height:85vh; max-height:800px; padding:0;">
+            <div class="modal-header-fixed">
+                <h3 style="margin:0; font-family:'Bebas Neue'; color:var(--primary-dark);">Selecionar Item</h3>
+                <button onclick="closeMenuSelectionModal()" style="border:none; background:none; font-size:24px;">&times;</button>
+            </div>
+            <div class="modal-body-scroll" id="menu-selection-list">
+                </div>
         </div>
     </div>
     
@@ -668,7 +673,6 @@
                 currentItems = [];
                 snap.forEach(doc => currentItems.push({id: doc.id, ...doc.data()}));
                 renderList();
-                populateAddItemSelect(); 
             });
 
             db.collection(COL_ORDERS).orderBy('timestamp', 'desc').limit(300).onSnapshot(snap => {
@@ -700,11 +704,9 @@
         // --- AUTO PREENCHIMENTO ENDEREÇO & WHATSAPP ---
         function checkCustomerAddress(name) {
              if (!name) return;
-             // Procura o último pedido deste cliente que tenha nome igual
              const lastOrder = allOrders.find(o => 
                 o.customerName && o.customerName.toLowerCase() === name.toLowerCase()
              );
-             
              if (lastOrder) {
                  if(lastOrder.address) document.getElementById('edit-order-address').value = lastOrder.address;
                  if(lastOrder.userPhone) document.getElementById('edit-order-phone').value = lastOrder.userPhone;
@@ -726,7 +728,6 @@
                 const isFinished = status === 'done' || status === 'cancelled';
                 if (isFinished) return; 
 
-                // Lógica simplificada: mostra tudo que não está finalizado
                 hasActive = true;
                 activeContainer.appendChild(createOrderCard(order, false));
             });
@@ -759,12 +760,9 @@
             let filteredOrders = allOrders.filter(order => order.status === 'done' || order.status === 'cancelled');
 
             if (historyRefDate) {
-                // Início: 18h do dia selecionado
                 const start = new Date(historyRefDate + 'T18:00:00');
-                
-                // Fim: 04h do dia seguinte
                 const end = new Date(historyRefDate + 'T04:00:00');
-                end.setDate(end.getDate() + 1); // Adiciona 1 dia
+                end.setDate(end.getDate() + 1);
 
                 filteredOrders = filteredOrders.filter(order => {
                     const d = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date(0);
@@ -816,58 +814,6 @@
             const surcharge = order.surcharge || 0;
             const total = order.total || 0;
 
-            const paymentStatusText = isPaid ? '✅ PAGO' : '❌ A PAGAR';
-
-            const clipboardText = `*PEDIDO #${order.orderId || '???'}*\nCliente: ${order.customerName}\nTipo: ${order.type}\nPagamento: ${order.payment} (${paymentStatusText})\nEndereço: ${order.address || 'N/A'}\n----------------\n` +
-                (order.cart ? order.cart.map(i => {
-                    const itemTotal = (i.price || 0) * i.qty;
-                    let l = `${i.qty}x ${i.name} - R$ ${itemTotal.toFixed(2)}`;
-                    
-                    if(i.selectedOption) l+= `\n   Opção: ${i.selectedOption}`;
-                    if(i.obs) l+= `\n   Obs: ${i.obs}`; 
-                    return l;
-                }).join('\n\n') : '') +
-                `\n----------------\nTaxa: R$ ${fee.toFixed(2)}\n` +
-                (surcharge > 0 ? `Acréscimo: + R$ ${surcharge.toFixed(2)}\n` : '') +
-                (discount > 0 ? `Desconto: - R$ ${discount.toFixed(2)}\n` : '') +
-                `*TOTAL: R$ ${total.toFixed(2)}*`;
-
-            const waLink = `https://wa.me/?text=${encodeURIComponent(clipboardText)}`;
-            
-            // Link WhatsApp Cliente
-            const clientWaLink = order.userPhone ? 
-                `<a href="https://wa.me/55${order.userPhone}" target="_blank" style="margin-left:5px; color:#25D366; text-decoration:none;"><i class="fab fa-whatsapp"></i></a>` : '';
-
-            let statusOpts = `
-                <option value="pending" ${order.status==='pending'?'selected':''}>Pendente</option>
-                <option value="confirmed" ${order.status==='confirmed'?'selected':''}>Confirmado</option>
-                <option value="delivering" ${order.status==='delivering'?'selected':''}>Saiu p/ Entrega</option>
-                <option value="ready" ${order.status==='ready'?'selected':''}>Pronto p/ Retirada</option>
-                <option value="done" ${order.status==='done'?'selected':''}>Concluído</option>
-                <option value="cancelled" ${order.status==='cancelled'?'selected':''}>Cancelado</option>
-            `;
-            
-            const actions = isHistory ? 
-                `<button class="btn-sm btn-reopen" style="background:#FF9800;margin-right:5px;" onclick="reopenOrder('${order._id}')" title="Reabrir Pedido"><i class="fas fa-undo"></i></button>
-                 <button class="btn-sm btn-delete-forever" onclick="deleteOrderForever('${order._id}')" title="Apagar"><i class="fas fa-trash"></i></button>` :
-                `<button class="btn-sm btn-copy" onclick="copyToClipboard(this, \`${clipboardText.replace(/`/g, '\\`')}\`)"><i class="far fa-copy"></i></button>
-                 <a href="${waLink}" target="_blank" class="btn-sm btn-share"><i class="fab fa-whatsapp"></i></a>
-                 <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${order._id}')"><i class="fas fa-pencil-alt"></i></button>`;
-
-            // Botão de Toggle de Pagamento
-            const payBtnClass = isPaid ? 'btn-pay-paid' : 'btn-pay-pending';
-            const payBtnText = isPaid ? 
-                `<i class="fas fa-check-circle"></i> PAGO` : 
-                `<i class="fas fa-clock"></i> PENDENTE`;
-            
-            let payToggleButton;
-            if (isFinalized) {
-                payToggleButton = `<button class="btn-pay-status ${payBtnClass}" style="opacity:0.6; cursor:not-allowed; pointer-events:none; margin:0;">${payBtnText}</button>`;
-            } else {
-                payToggleButton = `<button class="btn-pay-status ${payBtnClass}" style="margin:0;" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
-            }
-            
-            // LÓGICA DE TROCO ATUALIZADA
             let paymentInfoHtml = `<strong>Pagamento:</strong> ${order.payment}`;
             let changeValueHtml = ''; 
 
@@ -883,6 +829,35 @@
                         changeValueHtml = `<small style="font-weight:700;color:var(--success);">Troco: R$ ${changeNeededFmt}</small><br>`;
                     }
                 }
+            }
+
+            const clientWaLink = order.userPhone ? 
+                `<a href="https://wa.me/55${order.userPhone}" target="_blank" style="margin-left:5px; color:#25D366; text-decoration:none;"><i class="fab fa-whatsapp"></i></a>` : '';
+
+            let statusOpts = `
+                <option value="pending" ${order.status==='pending'?'selected':''}>Pendente</option>
+                <option value="confirmed" ${order.status==='confirmed'?'selected':''}>Confirmado</option>
+                <option value="delivering" ${order.status==='delivering'?'selected':''}>Saiu p/ Entrega</option>
+                <option value="ready" ${order.status==='ready'?'selected':''}>Pronto p/ Retirada</option>
+                <option value="done" ${order.status==='done'?'selected':''}>Concluído</option>
+                <option value="cancelled" ${order.status==='cancelled'?'selected':''}>Cancelado</option>
+            `;
+            
+            const actions = isHistory ? 
+                `<button class="btn-sm btn-reopen" style="background:#FF9800;margin-right:5px;" onclick="reopenOrder('${order._id}')" title="Reabrir Pedido"><i class="fas fa-undo"></i></button>
+                 <button class="btn-sm btn-delete-forever" onclick="deleteOrderForever('${order._id}')" title="Apagar"><i class="fas fa-trash"></i></button>` :
+                `<button class="btn-sm btn-copy" onclick="copyToClipboard(this, \`${getTextClipboard(order)}\`)"><i class="far fa-copy"></i></button>
+                 <a href="https://wa.me/?text=${encodeURIComponent(getTextClipboard(order))}" target="_blank" class="btn-sm btn-share"><i class="fab fa-whatsapp"></i></a>
+                 <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${order._id}')"><i class="fas fa-pencil-alt"></i></button>`;
+
+            const payBtnClass = isPaid ? 'btn-pay-paid' : 'btn-pay-pending';
+            const payBtnText = isPaid ? `<i class="fas fa-check-circle"></i> PAGO` : `<i class="fas fa-clock"></i> PENDENTE`;
+            
+            let payToggleButton;
+            if (isFinalized) {
+                payToggleButton = `<button class="btn-pay-status ${payBtnClass}" style="opacity:0.6; cursor:not-allowed; pointer-events:none; margin:0;">${payBtnText}</button>`;
+            } else {
+                payToggleButton = `<button class="btn-pay-status ${payBtnClass}" style="margin:0;" onclick="toggleOrderPaid('${order._id}', ${isPaid})">${payBtnText}</button>`;
             }
 
             const card = document.createElement('div');
@@ -927,6 +902,28 @@
             return card;
         }
         
+        function getTextClipboard(order) {
+            const fee = order.deliveryFee || 0;
+            const surcharge = order.surcharge || 0;
+            const discount = order.discount || 0;
+            const total = order.total || 0;
+            const isPaid = order.isPaid === true || (order.status === 'done' && order.isPaid !== false);
+            const paymentStatusText = isPaid ? '✅ PAGO' : '❌ A PAGAR';
+            
+            return `*PEDIDO #${order.orderId || '???'}*\nCliente: ${order.customerName}\nTipo: ${order.type}\nPagamento: ${order.payment} (${paymentStatusText})\nEndereço: ${order.address || 'N/A'}\n----------------\n` +
+                (order.cart ? order.cart.map(i => {
+                    const itemTotal = (i.price || 0) * i.qty;
+                    let l = `${i.qty}x ${i.name} - R$ ${itemTotal.toFixed(2)}`;
+                    if(i.selectedOption) l+= `\n   Opção: ${i.selectedOption}`;
+                    if(i.obs) l+= `\n   Obs: ${i.obs}`; 
+                    return l;
+                }).join('\n\n') : '') +
+                `\n----------------\nTaxa: R$ ${fee.toFixed(2)}\n` +
+                (surcharge > 0 ? `Acréscimo: + R$ ${surcharge.toFixed(2)}\n` : '') +
+                (discount > 0 ? `Desconto: - R$ ${discount.toFixed(2)}\n` : '') +
+                `*TOTAL: R$ ${total.toFixed(2)}*`;
+        }
+        
         function updateOrderStatus(docId, newStatus, customerName, customerPhone) {
             const updateData = { status: newStatus };
             if (newStatus === 'done') {
@@ -943,7 +940,6 @@
             });
         }
         
-        // Função para alternar pagamento
         function toggleOrderPaid(docId, currentStatus) {
             const newStatus = !currentStatus;
             db.collection(COL_ORDERS).doc(docId).update({ isPaid: newStatus })
@@ -962,24 +958,22 @@
         function copyToClipboard(btn, text) {
             try {
                 const textarea = document.createElement('textarea');
-                textarea.value = text;
+                textarea.value = text.replace(/`/g, '\\`');
                 textarea.style.position = 'fixed'; 
                 textarea.style.left = '-9999px';
                 document.body.appendChild(textarea);
                 textarea.select();
-                
                 const successful = document.execCommand('copy');
                 document.body.removeChild(textarea);
-                
                 if (successful) {
                     const og = btn.innerHTML; 
                     btn.innerHTML = '<i class="fas fa-check"></i>';
                     setTimeout(() => btn.innerHTML = og, 1500);
                 } else {
-                    alert("Não foi possível copiar automaticamente. Selecione e copie manualmente.");
+                    alert("Erro ao copiar.");
                 }
             } catch (err) {
-                console.error('Fallback: Oops, unable to copy', err);
+                console.error('Fallback copy error', err);
             }
         }
         
@@ -987,22 +981,9 @@
              if(confirm("Apagar permanentemente?")) db.collection(COL_ORDERS).doc(docId).delete();
         }
 
-        // --- LÓGICA DO MODAL DE PEDIDO "APP LIKE" ---
-        function populateAddItemSelect() {
-            const select = document.getElementById('add-item-select');
-            select.innerHTML = '<option value="">Selecione...</option>';
-            
-            const activeItems = currentItems.filter(i => i.available !== false);
-
-            [...activeItems].sort((a,b)=>a.name.localeCompare(b.name)).forEach(i => {
-                select.innerHTML += `<option value="${i.id}">${i.name} (R$ ${i.price.toFixed(2)})</option>`;
-            });
-        }
-
         function openOrderEditModal(docId) {
             const isEdit = !!docId;
             document.getElementById('order-modal-title').innerText = isEdit ? "Editar Pedido" : "Novo Pedido";
-            
             if (isEdit) {
                 db.collection(COL_ORDERS).doc(docId).get().then(doc => {
                     if (!doc.exists) return alert("Erro!");
@@ -1020,12 +1001,9 @@
             document.getElementById('edit-order-doc-id').value = docId || '';
             document.getElementById('edit-order-name').value = order.customerName;
             document.getElementById('edit-order-phone').value = order.userPhone || '';
-            
-            // TIPO
             document.getElementById('edit-order-type').value = order.type || 'Entrega';
             updateTypeBtnUI(); 
             
-            // Pagamento e Valores
             document.getElementById('edit-order-payment').value = order.payment;
             document.getElementById('edit-order-address').value = order.address || '';
             document.getElementById('edit-order-fee').value = (order.deliveryFee > 0) ? order.deliveryFee.toFixed(2) : '';
@@ -1037,19 +1015,16 @@
             editingOrderCart = (order.cart || []).map(i => ({ ...i, _uuid: i._uuid || Math.random() }));
             renderEditOrderItems();
             toggleChangeInput(); 
-            
             document.getElementById('order-edit-modal').classList.add('open');
         }
 
         function closeOrderEditModal() { document.getElementById('order-edit-modal').classList.remove('open'); }
         
-        // --- FUNÇÕES NOVO BOTÃO TIPO ---
         function cycleOrderType() {
             const types = ['Entrega', 'Retirada', 'Mesa'];
             const current = document.getElementById('edit-order-type').value || 'Entrega';
             let idx = types.indexOf(current);
             if (idx === -1) idx = 0;
-            
             const next = types[(idx + 1) % types.length];
             document.getElementById('edit-order-type').value = next;
             updateTypeBtnUI();
@@ -1058,25 +1033,53 @@
         function updateTypeBtnUI() {
             const val = document.getElementById('edit-order-type').value;
             const btn = document.getElementById('btn-order-type');
-            
-            const icons = {
-                'Entrega': 'fa-motorcycle',
-                'Retirada': 'fa-shopping-bag',
-                'Mesa': 'fa-chair'
-            };
-            
-            const colors = {
-                'Entrega': '#ff9f1c', 
-                'Retirada': '#2196F3', 
-                'Mesa': '#4CAF50'
-            };
-
+            const icons = { 'Entrega': 'fa-motorcycle', 'Retirada': 'fa-shopping-bag', 'Mesa': 'fa-chair' };
+            const colors = { 'Entrega': '#ff9f1c', 'Retirada': '#2196F3', 'Mesa': '#4CAF50' };
             btn.innerHTML = `<i class="fas ${icons[val] || 'fa-question'}"></i>`;
             btn.style.background = colors[val] || '#ccc';
             btn.style.color = '#fff';
         }
         
-        // --- NOVOS MODAIS ---
+        // --- NOVA SELEÇÃO DE CARDÁPIO ---
+        function openMenuSelectionModal() {
+            const container = document.getElementById('menu-selection-list');
+            container.innerHTML = '';
+            
+            const activeItems = currentItems.filter(i => i.available !== false);
+
+            categoriesConfig.forEach(cat => {
+                const items = activeItems.filter(i => i.category === cat.id);
+                if (items.length) {
+                    items.sort((a,b) => a.name.localeCompare(b.name));
+                    container.innerHTML += `<div style="background:#f0f0f0; padding:8px 15px; font-weight:800; font-family:'Bebas Neue'; font-size:18px; color:#555; position:sticky; top:0;">${cat.label}</div>`;
+                    
+                    items.forEach(i => {
+                        container.innerHTML += `
+                            <div onclick="selectMenuItem('${i.id}')" style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer; background:white;">
+                                <span style="font-weight:600; font-size:15px;">${i.name}</span>
+                                <span style="font-weight:700; color:var(--primary-dark);">R$ ${i.price.toFixed(2)}</span>
+                            </div>
+                        `;
+                    });
+                }
+            });
+            document.getElementById('menu-selection-modal').classList.add('open');
+        }
+
+        function closeMenuSelectionModal() { document.getElementById('menu-selection-modal').classList.remove('open'); }
+
+        function selectMenuItem(id) {
+            const item = currentItems.find(i => i.id === id);
+            if(item) {
+                editingOrderCart.push({
+                    id: item.id, name: item.name, price: item.price, qty: 1, obs: '', _uuid: Math.random()
+                });
+                renderEditOrderItems();
+                showToast(`+1 ${item.name}`);
+            }
+        }
+
+        // --- CUSTOM ITEM & PAGAMENTO ---
         function openCustomItemModal() {
             document.getElementById('custom-item-name').value = '';
             document.getElementById('custom-item-price').value = '';
@@ -1167,48 +1170,26 @@
             const total = Math.max(0, sub + fee + sur - desc);
             const totalFmt = `R$ ${total.toFixed(2)}`;
             
-            // Atualiza Subtotal
             document.getElementById('edit-order-subtotal').innerText = `R$ ${sub.toFixed(2)}`;
-            
-            // Atualiza Total no Modal de Pagamento
             document.getElementById('edit-order-total').innerText = totalFmt;
             
-            // Atualiza Total na Tela Principal
             const mainDisplay = document.getElementById('main-order-total-display');
             if(mainDisplay) mainDisplay.innerText = totalFmt;
             
-            // Atualiza Texto do Método de Pagamento na Tela Principal
             const method = document.getElementById('edit-order-payment').value;
             const methodDisplay = document.getElementById('main-payment-method-display');
             if(methodDisplay) methodDisplay.innerText = method;
         }
 
-        function addItemToOrder() {
-            const sel = document.getElementById('add-item-select');
-            if(!sel.value) return;
-            const item = currentItems.find(i => i.id === sel.value);
-            if(item) {
-                editingOrderCart.push({
-                    id: item.id, name: item.name, price: item.price, qty: 1, obs: '', _uuid: Math.random()
-                });
-                renderEditOrderItems();
-                sel.value = "";
-            }
-        }
-
         function saveOrderChanges() {
             const docId = document.getElementById('edit-order-doc-id').value;
-            
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
-            
             const isPaid = document.getElementById('edit-is-paid').checked;
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             const total = Math.max(0, sub + fee + sur - desc);
             const changeVal = document.getElementById('edit-order-change').value;
-
-            // LER O TIPO DO INPUT HIDDEN
             const typeVal = document.getElementById('edit-order-type').value;
 
             const data = {
@@ -1219,9 +1200,9 @@
                 address: document.getElementById('edit-order-address').value,
                 cart: editingOrderCart,
                 deliveryFee: fee, discount: desc, surcharge: sur, 
-                isPaid: isPaid, // Salva status de pagamento
+                isPaid: isPaid,
                 total: total,
-                change: changeVal // Save change to DB
+                change: changeVal
             };
             
             const p = docId ? db.collection(COL_ORDERS).doc(docId).update(data) : 
@@ -1239,7 +1220,6 @@
             document.getElementById('status-text').innerText = d.manualOverride ? (d.isOpen ? 'Manual: Aberto' : 'Manual: Fechado') : 'Automático';
         }
 
-        // --- ITENS E CATEGORIAS (SIMPLIFICADO PARA O CONTEXTO) ---
         function renderList() {
             const list = document.getElementById('items-list');
             list.innerHTML = '';
@@ -1268,7 +1248,6 @@
             });
         }
 
-        // --- CRUD Item Simples ---
         function openModal(id) {
             const t = document.getElementById('item-modal');
             const i = id ? currentItems.find(x=>x.id===id) : {name:'',price:'',category:'sanduiches',desc:'',options:[],available:true};
@@ -1277,11 +1256,8 @@
             document.getElementById('edit-price').value = i.price;
             document.getElementById('edit-desc').value = i.desc;
             document.getElementById('edit-available').checked = i.available !== false;
-            
-            // Render Options
             currentItemOptions = i.options || [];
             renderItemOptions();
-            
             updateCategorySelect();
             document.getElementById('edit-category').value = i.category;
             t.classList.add('open');
@@ -1318,7 +1294,6 @@
         }
         function deleteItem(id) { if(confirm("Excluir?")) db.collection(COL_ITEMS).doc(id).delete(); }
 
-        // --- Categorias e Outros ---
         function openCategoryModal() {
             const c = document.getElementById('cat-list-container'); c.innerHTML='';
             categoriesConfig.forEach((cat, idx) => {
