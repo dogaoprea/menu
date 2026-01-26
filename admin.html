@@ -83,10 +83,45 @@
         .btn-reopen { background: #FF9800; }
         .btn-img { background: #9C27B0; }
         
-        /* Botão de Status de Pagamento */
-        .btn-pay-status { border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 5px; text-transform: uppercase; }
-        .btn-pay-paid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .btn-pay-pending { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        /* Botão de Status de Pagamento - ESTILO ATUALIZADO */
+        .btn-pay-status { 
+            border: none; 
+            padding: 0 16px; 
+            height: 48px; /* Altura exata para alinhar com inputs */
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            margin-left: 0; 
+            text-transform: uppercase; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 8px;
+            white-space: nowrap; 
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .btn-pay-status:active { transform: scale(0.96); }
+
+        /* Cores sólidas para melhor visual */
+        .btn-pay-paid { background: #00c851; color: white; }
+        .btn-pay-pending { background: #ff4444; color: white; }
+
+        /* Status Select Ajustado */
+        .status-select { 
+            width: 100%; 
+            height: 48px; /* Mesma altura do botão */
+            padding: 0 12px; 
+            border-radius: 8px; 
+            border: 1px solid #ddd; 
+            font-weight: 700; 
+            font-size: 14px; 
+            background-color: #f8f9fa; 
+            cursor: pointer;
+            outline: none;
+        }
+        .status-select:focus { border-color: var(--primary); }
 
         /* Botão Flutuante (FAB) */
         .fab-btn {
@@ -110,8 +145,6 @@
         }
         .fab-btn:hover { transform: scale(1.1) rotate(90deg); background-color: var(--primary-dark); }
         .fab-btn:active { transform: scale(0.95); }
-
-        .status-select { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; font-weight: 700; font-size: 14px; background-color: #f8f9fa; }
 
         /* Switch & Toolbar */
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
@@ -850,9 +883,11 @@
                  <button class="btn-sm btn-img" onclick="generateOrderImage('${order._id}')"><i class="fas fa-file-image"></i></button>
                  <button class="btn-sm btn-edit-order" onclick="openOrderEditModal('${order._id}')"><i class="fas fa-pencil-alt"></i></button>`;
 
-            // Botão de Toggle de Pagamento
+            // Botão de Toggle de Pagamento COM TEXTO E ICONE MELHORADO
             const payBtnClass = isPaid ? 'btn-pay-paid' : 'btn-pay-pending';
-            const payBtnText = isPaid ? '💲 PAGO' : '❌ A PAGAR';
+            const payBtnText = isPaid ? 
+                `<i class="fas fa-check-circle"></i> PAGO` : 
+                `<i class="fas fa-clock"></i> PENDENTE`;
             
             let payToggleButton;
             if (isFinalized) {
@@ -871,6 +906,15 @@
 
             const card = document.createElement('div');
             card.className = `order-card ${isNew ? 'new' : ''} status-${order.status || 'pending'}`;
+            
+            // CONSTRÓI A LINHA DE STATUS + BOTÃO DE PAGAMENTO
+            const statusAndPaymentRow = `
+                <div style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+                    ${!isHistory ? `<select class="status-select" style="margin-top:0; flex:1;" onchange="updateOrderStatus('${order._id}', this.value, '${order.customerName}', '${order.userPhone||''}')">${statusOpts}</select>` : ''}
+                    <div style="flex-shrink:0;">${payToggleButton}</div>
+                </div>
+            `;
+
             card.innerHTML = `
                 <div class="order-header">
                     <div>
@@ -889,16 +933,14 @@
                     ${order.mapsLink ? `<p><a href="${order.mapsLink}" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:600;"><i class="fas fa-map-marker-alt"></i> Ver no Mapa</a></p>` : ''}
                 </div>
                 <div class="order-items">${itemsHtml}</div>
-                ${!isHistory ? `<select class="status-select" onchange="updateOrderStatus('${order._id}', this.value, '${order.customerName}', '${order.userPhone||''}')">${statusOpts}</select>` : ''}
                 
-                <div class="order-total" style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
-                    <div>${payToggleButton}</div>
-                    <div style="text-align:right;">
-                        ${fee>0 ? `<small style="font-weight:400;color:#666;">Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
-                        ${surcharge>0 ? `<small style="font-weight:400;color:var(--info);">Acréscimo: + R$ ${surcharge.toFixed(2)}</small><br>` : ''}
-                        ${discount>0 ? `<small style="font-weight:400;color:var(--danger);">Desconto: - R$ ${discount.toFixed(2)}</small><br>` : ''}
-                        Total: R$ ${total.toFixed(2)}
-                    </div>
+                ${statusAndPaymentRow}
+                
+                <div class="order-total" style="margin-top:10px;">
+                    ${fee>0 ? `<small style="font-weight:400;color:#666;">Taxa: R$ ${fee.toFixed(2)}</small><br>` : ''}
+                    ${surcharge>0 ? `<small style="font-weight:400;color:var(--info);">Acréscimo: + R$ ${surcharge.toFixed(2)}</small><br>` : ''}
+                    ${discount>0 ? `<small style="font-weight:400;color:var(--danger);">Desconto: - R$ ${discount.toFixed(2)}</small><br>` : ''}
+                    Total: R$ ${total.toFixed(2)}
                 </div>
             `;
             return card;
