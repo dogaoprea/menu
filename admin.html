@@ -80,7 +80,7 @@
         .btn-delete-forever { background: #ff4444; }
         .btn-reopen { background: #FF9800; }
         
-        /* Botão de Status de Pagamento */
+        /* Botão de Status de Pagamento - ALTURA REDUZIDA */
         .btn-pay-status { 
             border: none; 
             padding: 0 12px; 
@@ -103,7 +103,7 @@
         .btn-pay-paid { background: #00c851; color: white; }
         .btn-pay-pending { background: #ff4444; color: white; }
 
-        /* Status Select Ajustado */
+        /* Status Select Ajustado - ALTURA REDUZIDA */
         .status-select { 
             width: 100%; 
             height: 36px; 
@@ -711,12 +711,25 @@
         // --- AUTO PREENCHIMENTO ENDEREÇO & WHATSAPP ---
         function checkCustomerAddress(name) {
              if (!name) return;
+             // Find the specific order in the already loaded 'allOrders' array
              const lastOrder = allOrders.find(o => 
                 o.customerName && o.customerName.toLowerCase() === name.toLowerCase()
              );
+             
              if (lastOrder) {
+                 // 1. Auto-fill Address
                  if(lastOrder.address) document.getElementById('edit-order-address').value = lastOrder.address;
+                 
+                 // 2. Auto-fill Phone
                  if(lastOrder.userPhone) document.getElementById('edit-order-phone').value = lastOrder.userPhone;
+                 
+                 // 3. Auto-fill Delivery Fee (The new requirement)
+                 if(lastOrder.deliveryFee) {
+                     document.getElementById('edit-order-fee').value = lastOrder.deliveryFee.toFixed(2);
+                     // Important: Recalculate totals immediately so the UI reflects the change
+                     calculateOrderTotal();
+                     showToast("Dados do cliente encontrados!");
+                 }
              }
         }
         
@@ -1278,8 +1291,11 @@
             const open = d.isOpen;
             document.getElementById('manual-override').checked = manual;
             document.getElementById('store-toggle').checked = open;
+            
+            // CONTROLE VISUAL DA INTERDEPENDÊNCIA
             const controls = document.getElementById('manual-controls');
             controls.style.display = manual ? 'block' : 'none';
+            
             const textEl = document.getElementById('status-text');
             if (manual) {
                 textEl.innerText = open ? 'Aberto (Manual)' : 'Fechado (Manual)';
