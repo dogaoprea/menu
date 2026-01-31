@@ -80,11 +80,11 @@
         .btn-delete-forever { background: #ff4444; }
         .btn-reopen { background: #FF9800; }
         
-        /* Botão de Status de Pagamento - ALTURA REDUZIDA */
+        /* Botão de Status de Pagamento */
         .btn-pay-status { 
             border: none; 
             padding: 0 12px; 
-            height: 36px; /* Reduzido para 36px */
+            height: 36px; 
             border-radius: 6px; 
             font-size: 11px; 
             font-weight: 700; 
@@ -103,10 +103,10 @@
         .btn-pay-paid { background: #00c851; color: white; }
         .btn-pay-pending { background: #ff4444; color: white; }
 
-        /* Status Select Ajustado - ALTURA REDUZIDA */
+        /* Status Select Ajustado */
         .status-select { 
             width: 100%; 
-            height: 36px; /* Reduzido para 36px */
+            height: 36px; 
             padding: 0 8px; 
             border-radius: 6px; 
             border: 1px solid #ddd; 
@@ -150,9 +150,7 @@
         input:checked + .slider:before { transform: translateX(22px); }
 
         .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .sort-select { padding: 10px; border-radius: 8px; border: 1px solid var(--border); flex: 1; background: white; font-weight: 600; }
-        .btn-cats { background: #333; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-
+        
         /* Admin Items List */
         .category-header { font-family: 'Bebas Neue'; font-size: 22px; margin: 25px 0 10px; color: #444; border-bottom: 2px solid var(--primary); display: inline-block; padding-right: 20px; }
         .admin-item { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -346,31 +344,42 @@
             </div>
 
             <div id="tab-menu" class="tab-content">
-                <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div><h3 style="margin:0;">Loja Aberta?</h3><div id="status-text" style="font-size:12px; color:#666;">Auto</div></div>
-                    <label class="switch"><input type="checkbox" id="store-toggle" onchange="toggleStoreStatus()"><span class="slider"></span></label>
-                </div>
-                
-                <div class="card" style="padding:15px; margin-bottom:15px;">
-                    <label style="display:flex; align-items:center; gap:10px;"><input type="checkbox" id="manual-override" onchange="toggleManualOverride()"> <strong>Modo Manual</strong></label>
+                <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <div>
+                            <h3 style="margin:0; font-size: 18px;">Modo Manual</h3>
+                            <div id="status-text" style="font-size:12px; color:#666; margin-top: 4px;">Automático</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="manual-override" onchange="toggleManualOverride()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div id="manual-controls" style="display: none; background: #f9f9f9; padding: 15px; border-radius: 8px; margin-top: 15px; border: 1px solid #eee;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600; color: #333;">Loja Aberta?</span>
+                            <label class="switch">
+                                <input type="checkbox" id="store-toggle" onchange="toggleStoreStatus()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <small style="display:block; margin-top:8px; color:#888; font-size:11px;">
+                            <i class="fas fa-info-circle"></i> O modo manual ignora o horário de funcionamento padrão.
+                        </small>
+                    </div>
                 </div>
 
-                <button class="btn btn-add" onclick="openModal()"><i class="fas fa-plus-circle"></i> NOVO ITEM</button>
-
-                <div class="toolbar">
-                    <button class="btn-cats" onclick="openCategoryModal()">Categorias</button>
-                    <select id="sort-select" class="sort-select" onchange="renderList()">
-                        <option value="name_asc">Nome (A-Z)</option>
-                        <option value="price_asc">Preço (Menor)</option>
-                    </select>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button class="btn" style="background:var(--primary); color:#000; flex:1; justify-content:center; padding: 12px;" onclick="openModal()">
+                        <i class="fas fa-plus-circle"></i> NOVO ITEM
+                    </button>
+                    <button class="btn" style="background:#333; color:white; flex:1; justify-content:center; padding: 12px;" onclick="openCategoryModal()">
+                        <i class="fas fa-list"></i> Categorias
+                    </button>
                 </div>
 
                 <div id="items-list"></div>
-                
-                <div style="margin-top:40px; text-align:center;">
-                    <button class="btn" style="background:#ddd; color:#333;" onclick="restoreDefaultData()">Restaurar Padrão</button>
-                    <p id="restore-status" style="font-size:12px; color:green; margin-top:5px;"></p>
-                </div>
             </div>
         </div>
     </div>
@@ -658,8 +667,6 @@
             db.collection(COL_SETTINGS).doc('store').onSnapshot(doc => {
                 if(doc.exists) {
                     const d = doc.data();
-                    document.getElementById('store-toggle').checked = d.isOpen;
-                    document.getElementById('manual-override').checked = d.manualOverride;
                     updateStatusText(d);
                 }
             });
@@ -1267,18 +1274,30 @@
         }
 
         function updateStatusText(d) {
-            document.getElementById('status-text').innerText = d.manualOverride ? (d.isOpen ? 'Manual: Aberto' : 'Manual: Fechado') : 'Automático';
+            const manual = d.manualOverride;
+            const open = d.isOpen;
+            document.getElementById('manual-override').checked = manual;
+            document.getElementById('store-toggle').checked = open;
+            const controls = document.getElementById('manual-controls');
+            controls.style.display = manual ? 'block' : 'none';
+            const textEl = document.getElementById('status-text');
+            if (manual) {
+                textEl.innerText = open ? 'Aberto (Manual)' : 'Fechado (Manual)';
+                textEl.style.color = open ? 'var(--success)' : 'var(--danger)';
+            } else {
+                textEl.innerText = 'Automático (Horário)';
+                textEl.style.color = '#666';
+            }
         }
 
         function renderList() {
             const list = document.getElementById('items-list');
             list.innerHTML = '';
-            const sort = document.getElementById('sort-select').value;
             
             categoriesConfig.forEach(cat => {
                 let items = currentItems.filter(i => i.category === cat.id);
                 if(items.length) {
-                    items.sort((a,b) => sort === 'name_asc' ? a.name.localeCompare(b.name) : a.price - b.price);
+                    items.sort((a,b) => a.name.localeCompare(b.name));
                     list.innerHTML += `<div class="category-header">${cat.label}</div>`;
                     items.forEach(i => {
                         list.innerHTML += `
@@ -1374,13 +1393,6 @@
         function toggleStoreStatus() { db.collection(COL_SETTINGS).doc('store').set({isOpen:document.getElementById('store-toggle').checked},{merge:true}); }
         function toggleManualOverride() { db.collection(COL_SETTINGS).doc('store').set({manualOverride:document.getElementById('manual-override').checked},{merge:true}); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
-        function restoreDefaultData() {
-            if(!confirm("Restaurar?")) return;
-            const items = [{name:"X-Tudo",price:18,category:"especiais"},{name:"Dogão",price:12,category:"hotdogs"}];
-            db.collection(COL_SETTINGS).doc('categories').set({list:defaultCategories});
-            items.forEach(i => db.collection(COL_ITEMS).add(i));
-            alert("Restaurado básico.");
-        }
     </script>
 </body>
 </html>
