@@ -80,7 +80,7 @@
         .btn-delete-forever { background: #ff4444; }
         .btn-reopen { background: #FF9800; }
         
-        /* Botão de Status de Pagamento - ALTURA REDUZIDA */
+        /* Botão de Status de Pagamento */
         .btn-pay-status { 
             border: none; 
             padding: 0 12px; 
@@ -103,7 +103,7 @@
         .btn-pay-paid { background: #00c851; color: white; }
         .btn-pay-pending { background: #ff4444; color: white; }
 
-        /* Status Select Ajustado - ALTURA REDUZIDA */
+        /* Status Select Ajustado */
         .status-select { 
             width: 100%; 
             height: 36px; 
@@ -173,7 +173,7 @@
         .sub-modal { z-index: 1100; }
 
         /* --- MODAL DE PEDIDO "APP LIKE" (MOBILE FIRST) --- */
-        #order-edit-modal.open { display: flex; align-items: flex-end; } /* Slide up on mobile default */
+        #order-edit-modal.open { display: flex; align-items: flex-end; } 
         
         @media (min-width: 769px) {
             #order-edit-modal.open { align-items: center; }
@@ -232,7 +232,7 @@
         .form-input, .form-select, textarea { 
             width: 100%; padding: 12px; 
             border: 1px solid #ddd; border-radius: 8px; 
-            font-size: 16px; /* Evita zoom no iOS */
+            font-size: 16px; 
             display: block; background: #fff; 
         }
         .form-input:focus { border-color: var(--primary); outline: none; }
@@ -539,7 +539,7 @@
             
             <div class="form-group">
                 <label class="form-label">Forma de Pagamento</label>
-                <select id="edit-order-payment" class="form-select" onchange="toggleChangeInput()">
+                <select id="edit-order-payment" class="form-select" onchange="toggleChangeInput(); calculateOrderTotal();">
                     <option value="PIX">PIX</option>
                     <option value="Cartão de Crédito">Cartão de Crédito</option>
                     <option value="Cartão de Débito">Cartão de Débito</option>
@@ -550,6 +550,19 @@
             <div class="form-group" id="div-change-input" style="display:none;">
                 <label class="form-label">Troco para quanto?</label>
                 <input type="number" id="edit-order-change" class="form-input" placeholder="0.00" step="0.50" onfocus="this.select()">
+            </div>
+
+            <div style="margin-bottom: 15px; padding: 12px; background: #e3f2fd; border-radius: 8px; border: 1px solid #bbdefb; display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <label style="font-size: 14px; font-weight: 700; color: #1565c0; display: block;">
+                        <i class="fas fa-calculator"></i> Repassar Taxa?
+                    </label>
+                    <small style="font-size: 10px; color: #555;">Calcula acréscimo automático</small>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="auto-fee-toggle" onchange="calculateOrderTotal()">
+                    <span class="slider"></span>
+                </label>
             </div>
             
             <div style="margin-bottom:20px; background: #fffde7; padding: 10px; border-radius: 6px; border: 1px solid #ffe082;">
@@ -711,22 +724,15 @@
         // --- AUTO PREENCHIMENTO ENDEREÇO & WHATSAPP ---
         function checkCustomerAddress(name) {
              if (!name) return;
-             // Find the specific order in the already loaded 'allOrders' array
              const lastOrder = allOrders.find(o => 
                 o.customerName && o.customerName.toLowerCase() === name.toLowerCase()
              );
              
              if (lastOrder) {
-                 // 1. Auto-fill Address
                  if(lastOrder.address) document.getElementById('edit-order-address').value = lastOrder.address;
-                 
-                 // 2. Auto-fill Phone
                  if(lastOrder.userPhone) document.getElementById('edit-order-phone').value = lastOrder.userPhone;
-                 
-                 // 3. Auto-fill Delivery Fee (The new requirement)
                  if(lastOrder.deliveryFee) {
                      document.getElementById('edit-order-fee').value = lastOrder.deliveryFee.toFixed(2);
-                     // Important: Recalculate totals immediately so the UI reflects the change
                      calculateOrderTotal();
                      showToast("Dados do cliente encontrados!");
                  }
@@ -949,7 +955,7 @@
                 }
             }
 
-            // CLEAN PHONE LOGIC (Removes 55 prefix if present)
+            // CLEAN PHONE LOGIC
             let cleanPhone = order.userPhone || '';
             if(cleanPhone.startsWith('55') && cleanPhone.length > 10) {
                 cleanPhone = cleanPhone.substring(2);
@@ -960,7 +966,7 @@
             t += `📅 ${dateStr} às ${timeStr}\n\n`;
             
             t += `👤 *Cliente:* ${order.customerName}\n`;
-            if(cleanPhone) t += `📱 *WhatsApp:* ${cleanPhone}\n`; // Uses cleaned phone
+            if(cleanPhone) t += `📱 *WhatsApp:* ${cleanPhone}\n`;
             t += `🛍️ *Tipo:* ${order.type}\n`;
             t += `📍 *Endereço:* ${order.address || 'Não informado'}\n`;
             t += `💰 *Pagamento:* ${paymentInfo}\n`;
@@ -1054,6 +1060,9 @@
         function openOrderEditModal(docId) {
             const isEdit = !!docId;
             document.getElementById('order-modal-title').innerText = isEdit ? "Editar Pedido" : "Novo Pedido";
+            // Reset Auto Toggle to OFF for safety
+            document.getElementById('auto-fee-toggle').checked = false;
+
             if (isEdit) {
                 db.collection(COL_ORDERS).doc(docId).get().then(doc => {
                     if (!doc.exists) return alert("Erro!");
@@ -1230,9 +1239,40 @@
             if(confirm("Remover?")) { editingOrderCart.splice(idx, 1); renderEditOrderItems(); }
         }
 
+        // --- UPDATED CALCULATE FUNCTION WITH AUTO FEE ---
         function calculateOrderTotal() {
+            // 1. Calculate Base Subtotal
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
             
+            // 2. Logic to Automate Machine Fee
+            const isAutoOn = document.getElementById('auto-fee-toggle').checked;
+            
+            if (isAutoOn) {
+                const method = document.getElementById('edit-order-payment').value;
+                const feeVal = parseFloat(document.getElementById('edit-order-fee').value) || 0;
+                const descVal = parseFloat(document.getElementById('edit-order-discount').value) || 0;
+                
+                // Base to receive (Liquido)
+                const baseValue = sub + feeVal - descVal;
+
+                // Rates
+                let rate = 0;
+                if (method === 'Cartão de Crédito') rate = 0.0498; // 4.98%
+                else if (method === 'Cartão de Débito') rate = 0.0199; // 1.99%
+
+                if (rate > 0 && baseValue > 0) {
+                    // Reverse Markup Formula: Final = Base / (1 - Rate)
+                    const finalValue = baseValue / (1 - rate);
+                    const necessarySurcharge = finalValue - baseValue;
+                    
+                    document.getElementById('edit-order-surcharge').value = necessarySurcharge.toFixed(2);
+                } else {
+                    // Reset surcharge if not card or if base is zero/negative
+                    document.getElementById('edit-order-surcharge').value = '';
+                }
+            }
+
+            // 3. Final Total Calculation (Standard reading of inputs)
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
@@ -1292,7 +1332,6 @@
             document.getElementById('manual-override').checked = manual;
             document.getElementById('store-toggle').checked = open;
             
-            // CONTROLE VISUAL DA INTERDEPENDÊNCIA
             const controls = document.getElementById('manual-controls');
             controls.style.display = manual ? 'block' : 'none';
             
