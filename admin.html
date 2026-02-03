@@ -961,13 +961,25 @@
                 cleanPhone = cleanPhone.substring(2);
             }
 
+            // DEFINIÇÃO DOS EMOJIS POR TIPO
+            const typeEmojis = {
+                'Entrega': '🛵',
+                'Mesa': '🍽️',
+                'Retirada': '📦'
+            };
+            // Se o tipo não for um dos 3, usa uma sacola (🛍️) como padrão
+            const typeIcon = typeEmojis[order.type] || '🛍️';
+
             // Build Text
             let t = `*PEDIDO #${order.orderId || '???'}*\n`;
             t += `📅 ${dateStr} às ${timeStr}\n\n`;
             
             t += `👤 *Cliente:* ${order.customerName}\n`;
             if(cleanPhone) t += `📱 *WhatsApp:* ${cleanPhone}\n`;
-            t += `🛍️ *Tipo:* ${order.type}\n`;
+            
+            // APLICAÇÃO DO EMOJI AQUI
+            t += `${typeIcon} *Tipo:* ${order.type}\n`;
+            
             t += `📍 *Endereço:* ${order.address || 'Não informado'}\n`;
             t += `💰 *Pagamento:* ${paymentInfo}\n`;
             
