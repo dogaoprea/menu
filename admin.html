@@ -247,7 +247,7 @@
             overflow: hidden; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.02);
         }
-        .edit-item-header { padding: 10px 15px; background: #fcfcfc; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: #333; }
+        .edit-item-header { padding: 10px 15px; background: #fcfcfc; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: flex-start; font-weight: 700; color: #333; }
         .edit-item-body { padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         
         .price-edit-group { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #555; }
@@ -313,6 +313,17 @@
                     <i class="fas fa-plus"></i>
                 </button>
                 
+                <div class="financial-summary" style="margin-bottom: 15px;">
+                    <div class="fin-card revenue" style="flex: 2; background: linear-gradient(135deg, #ff9f1c, #f44336);">
+                        <span>Total em Aberto</span>
+                        <strong id="active-orders-total">R$ 0,00</strong>
+                    </div>
+                    <div class="fin-card count" style="flex: 1;">
+                        <span>Qtd.</span>
+                        <strong id="active-orders-count">0</strong>
+                    </div>
+                </div>
+
                 <div id="orders-list">
                     <p style="text-align: center; margin-top: 40px; color: #888;">Aguardando...</p>
                 </div>
@@ -507,6 +518,20 @@
         </div>
     </div>
     
+    <div id="options-selection-modal" class="modal sub-modal" style="z-index: 1300;">
+        <div class="modal-content" style="max-width: 350px;">
+            <h3 id="opt-modal-title" style="margin-top:0; font-family:'Bebas Neue'; color:var(--primary-dark);">Opções</h3>
+            
+            <div id="options-list-checkboxes" style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+                </div>
+    
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn" style="background:#eee; flex:1;" onclick="closeOptionsModal()">Cancelar</button>
+                <button class="btn" style="background:var(--success); color:white; flex:1;" onclick="confirmItemOptions()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
     <div id="custom-item-modal" class="modal sub-modal">
         <div class="modal-content" style="max-width:350px;">
             <h3 style="margin-top:0; font-family:'Bebas Neue'; color:var(--primary-dark);">Novo Item Avulso</h3>
@@ -636,6 +661,7 @@
         
         let currentItems = [];
         let editingOrderCart = [];
+        let tempSelectedItem = null; // Variável para controlar item no modal de opções
         
         let allOrders = []; 
         let currentFilter = 'all'; 
@@ -700,7 +726,7 @@
                 snap.forEach(doc => allOrders.push({ _id: doc.id, ...doc.data() }));
                 renderOrders(); 
                 if(document.getElementById('tab-history').classList.contains('active')) renderHistoryList();
-                updateCustomerSuggestions(); // ATUALIZA SUGESTÕES
+                updateCustomerSuggestions(); 
             });
         }
         
@@ -744,19 +770,36 @@
             renderOrders();
         }
 
+        // --- RENDERIZA PEDIDOS COM RESUMO FINANCEIRO ---
         function renderOrders() {
             const activeContainer = document.getElementById('orders-list');
             activeContainer.innerHTML = '';
             let hasActive = false;
+            
+            // Variáveis para contagem
+            let activeTotal = 0;
+            let activeCount = 0;
 
             allOrders.forEach(order => {
                 const status = order.status || 'pending';
                 const isFinished = status === 'done' || status === 'cancelled';
+                
                 if (isFinished) return; 
+
+                // Soma valores para o resumo
+                activeTotal += (order.total || 0);
+                activeCount++;
 
                 hasActive = true;
                 activeContainer.appendChild(createOrderCard(order, false));
             });
+
+            // Atualiza os elementos visuais do resumo
+            const totalEl = document.getElementById('active-orders-total');
+            const countEl = document.getElementById('active-orders-count');
+            
+            if(totalEl) totalEl.innerText = `R$ ${activeTotal.toFixed(2)}`;
+            if(countEl) countEl.innerText = activeCount;
 
             if (!hasActive) activeContainer.innerHTML = '<p style="text-align: center; margin-top: 40px; color: #888;">Nenhum pedido aqui.</p>';
         }
@@ -967,7 +1010,6 @@
                 'Mesa': '🍽️',
                 'Retirada': '📦'
             };
-            // Se o tipo não for um dos 3, usa uma sacola (🛍️) como padrão
             const typeIcon = typeEmojis[order.type] || '🛍️';
 
             // Build Text
@@ -977,7 +1019,6 @@
             t += `👤 *Cliente:* ${order.customerName}\n`;
             if(cleanPhone) t += `📱 *WhatsApp:* ${cleanPhone}\n`;
             
-            // APLICAÇÃO DO EMOJI AQUI
             t += `${typeIcon} *Tipo:* ${order.type}\n`;
             
             t += `📍 *Endereço:* ${order.address || 'Não informado'}\n`;
@@ -1131,7 +1172,7 @@
             btn.style.color = '#fff';
         }
         
-        // --- NOVA SELEÇÃO DE CARDÁPIO ---
+        // --- SELEÇÃO DE CARDÁPIO (ATUALIZADA COM OPÇÕES) ---
         function openMenuSelectionModal() {
             const container = document.getElementById('menu-selection-list');
             container.innerHTML = '';
@@ -1161,13 +1202,61 @@
 
         function selectMenuItem(id) {
             const item = currentItems.find(i => i.id === id);
-            if(item) {
-                editingOrderCart.push({
-                    id: item.id, name: item.name, price: item.price, qty: 1, obs: '', _uuid: Math.random()
-                });
-                renderEditOrderItems();
-                showToast(`+1 ${item.name}`);
+            if (!item) return;
+
+            // Verifica se tem opções configuradas
+            if (item.options && item.options.length > 0) {
+                tempSelectedItem = item; 
+                openOptionsModal(item);
+            } else {
+                addItemToCartFinal(item, ''); 
             }
+        }
+
+        // --- FUNÇÕES NOVAS DE OPÇÕES ---
+        function openOptionsModal(item) {
+            document.getElementById('opt-modal-title').innerText = item.name;
+            const container = document.getElementById('options-list-checkboxes');
+            container.innerHTML = '';
+
+            item.options.forEach((opt, idx) => {
+                container.innerHTML += `
+                    <label style="display:flex; align-items:center; padding:10px; border-bottom:1px solid #eee; cursor:pointer;">
+                        <input type="checkbox" class="option-checkbox" value="${opt}" style="width:18px; height:18px; margin-right:10px;">
+                        <span style="font-weight:500;">${opt}</span>
+                    </label>
+                `;
+            });
+
+            document.getElementById('options-selection-modal').classList.add('open');
+        }
+
+        function closeOptionsModal() {
+            document.getElementById('options-selection-modal').classList.remove('open');
+            tempSelectedItem = null;
+        }
+
+        function confirmItemOptions() {
+            if (!tempSelectedItem) return;
+            const checked = document.querySelectorAll('.option-checkbox:checked');
+            const selectedValues = Array.from(checked).map(cb => cb.value);
+            const optionsString = selectedValues.join(' + ');
+            addItemToCartFinal(tempSelectedItem, optionsString);
+            closeOptionsModal();
+        }
+
+        function addItemToCartFinal(item, optionsText) {
+            editingOrderCart.push({
+                id: item.id, 
+                name: item.name, 
+                price: item.price, 
+                qty: 1, 
+                obs: '', 
+                selectedOption: optionsText, 
+                _uuid: Math.random()
+            });
+            renderEditOrderItems();
+            showToast(`+1 ${item.name}`);
         }
 
         // --- CUSTOM ITEM & PAGAMENTO ---
@@ -1213,10 +1302,19 @@
             list.innerHTML = '';
             
             editingOrderCart.forEach((item, index) => {
+                // Exibição visual das opções
+                const optionsDisplay = item.selectedOption ? 
+                    `<div style="font-size:11px; color:var(--primary-dark); font-weight:700; background:#fff3cd; padding:2px 5px; border-radius:4px; display:inline-block; margin-top:4px;">
+                        <i class="fas fa-check"></i> ${item.selectedOption}
+                    </div>` : '';
+
                 list.innerHTML += `
                     <div class="edit-order-item">
                         <div class="edit-item-header">
-                            <span>${item.name}</span>
+                            <div>
+                                <span style="display:block;">${item.name}</span>
+                                ${optionsDisplay} 
+                            </div>
                             <button style="color:var(--danger);background:none;border:none;" onclick="removeOrderItem(${index})"><i class="fas fa-trash"></i></button>
                         </div>
                         <div class="edit-item-body">
@@ -1230,7 +1328,7 @@
                             </div>
                         </div>
                         <div style="padding:0 15px 15px;">
-                            <input type="text" class="form-input" style="font-size:12px;padding:8px;" placeholder="Obs (Ex: Sem cebola)" value="${item.obs || ''}" onchange="updateItemObs(${index}, this.value)">
+                            <input type="text" class="form-input" style="font-size:12px;padding:8px;" placeholder="Obs adicional" value="${item.obs || ''}" onchange="updateItemObs(${index}, this.value)">
                         </div>
                     </div>`;
             });
@@ -1251,12 +1349,9 @@
             if(confirm("Remover?")) { editingOrderCart.splice(idx, 1); renderEditOrderItems(); }
         }
 
-        // --- UPDATED CALCULATE FUNCTION WITH AUTO FEE ---
+        // --- CALCULATE FUNCTION WITH AUTO FEE ---
         function calculateOrderTotal() {
-            // 1. Calculate Base Subtotal
             const sub = editingOrderCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
-            
-            // 2. Logic to Automate Machine Fee
             const isAutoOn = document.getElementById('auto-fee-toggle').checked;
             
             if (isAutoOn) {
@@ -1264,27 +1359,21 @@
                 const feeVal = parseFloat(document.getElementById('edit-order-fee').value) || 0;
                 const descVal = parseFloat(document.getElementById('edit-order-discount').value) || 0;
                 
-                // Base to receive (Liquido)
                 const baseValue = sub + feeVal - descVal;
 
-                // Rates
                 let rate = 0;
-                if (method === 'Cartão de Crédito') rate = 0.0498; // 4.98%
-                else if (method === 'Cartão de Débito') rate = 0.0199; // 1.99%
+                if (method === 'Cartão de Crédito') rate = 0.0498; 
+                else if (method === 'Cartão de Débito') rate = 0.0199; 
 
                 if (rate > 0 && baseValue > 0) {
-                    // Reverse Markup Formula: Final = Base / (1 - Rate)
                     const finalValue = baseValue / (1 - rate);
                     const necessarySurcharge = finalValue - baseValue;
-                    
                     document.getElementById('edit-order-surcharge').value = necessarySurcharge.toFixed(2);
                 } else {
-                    // Reset surcharge if not card or if base is zero/negative
                     document.getElementById('edit-order-surcharge').value = '';
                 }
             }
 
-            // 3. Final Total Calculation (Standard reading of inputs)
             const fee = parseFloat(document.getElementById('edit-order-fee').value) || 0;
             const desc = parseFloat(document.getElementById('edit-order-discount').value) || 0;
             const sur = parseFloat(document.getElementById('edit-order-surcharge').value) || 0;
