@@ -419,53 +419,40 @@
             </div>
 
             <div id="tab-settings" class="tab-content">
-                <!-- Seção de Taxas -->
-                <div class="card">
-                    <h3 style="margin-top:0; color:var(--primary-dark);"><i class="fas fa-percent"></i> Taxas da Maquininha</h3>
-                    <p style="font-size:13px; color:#666; margin-bottom:20px;">Defina a porcentagem que será acrescida ao repassar a taxa para o cliente.</p>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Taxa Cartão de Crédito (%)</label>
-                        <div style="position:relative;">
-                            <input type="number" id="fee-credit" class="form-input" placeholder="Ex: 4.98" step="0.01">
-                            <i class="fas fa-percentage" style="position:absolute; right:15px; top:12px; color:#999;"></i>
+                
+                <!-- Menu Item: Taxas -->
+                <div class="card" onclick="openSettingsFeesModal()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding: 20px; transition: transform 0.2s;">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <div style="background:#fff3e0; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary); font-size: 20px;">
+                            <i class="fas fa-percent"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin:0; font-size:16px; color:#333;">Taxas de Pagamento</h3>
+                            <small style="color:#888;">Configurar % da maquininha</small>
                         </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Taxa Cartão de Débito (%)</label>
-                        <div style="position:relative;">
-                            <input type="number" id="fee-debit" class="form-input" placeholder="Ex: 1.99" step="0.01">
-                            <i class="fas fa-percentage" style="position:absolute; right:15px; top:12px; color:#999;"></i>
+                    <i class="fas fa-chevron-right" style="color:#ddd;"></i>
+                </div>
+
+                <!-- Menu Item: Mensagens -->
+                <div class="card" onclick="openSettingsMessagesModal()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding: 20px; transition: transform 0.2s;">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <div style="background:#e8f5e9; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#25D366; font-size: 20px;">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin:0; font-size:16px; color:#333;">Mensagens Automáticas</h3>
+                            <small style="color:#888;">Textos de status do pedido</small>
                         </div>
                     </div>
-
-                    <button class="btn" style="background:var(--primary); width:100%; color:#000; padding:15px;" onclick="savePaymentFees()">Salvar Taxas</button>
+                    <i class="fas fa-chevron-right" style="color:#ddd;"></i>
                 </div>
 
-                <!-- Seção de Mensagens -->
-                <div class="card">
-                    <h3 style="margin-top:0; color:var(--primary-dark);"><i class="fab fa-whatsapp"></i> Mensagens de Status</h3>
-                    <p style="font-size:13px; color:#666; margin-bottom:20px;">Personalize o texto enviado no WhatsApp do cliente ao mudar o status.</p>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Saiu para Entrega (Delivery)</label>
-                        <textarea id="msg-delivering" class="form-input" rows="3" placeholder="Olá {nome}! Seu pedido saiu para entrega."></textarea>
-                        <small style="color:#999; font-size:11px;">Use <b>{nome}</b> para o nome do cliente.</small>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Pronto para Retirada (Balcão)</label>
-                        <textarea id="msg-ready" class="form-input" rows="3" placeholder="Olá {nome}! Seu pedido está pronto."></textarea>
-                        <small style="color:#999; font-size:11px;">Use <b>{nome}</b> para o nome do cliente.</small>
-                    </div>
-
-                    <button class="btn" style="background:#25D366; color:white; width:100%; padding:15px;" onclick="saveMessageTemplates()">Salvar Mensagens</button>
-                </div>
             </div>
         </div>
     </div>
 
+    <!-- ... MODAIS EXISTENTES (Item, Categoria, Pedido, etc) ... -->
     <div id="item-modal" class="modal">
         <div class="modal-content">
             <h2 id="modal-title" style="margin-top:0;">Item</h2>
@@ -695,6 +682,62 @@
             </div>
             
             <button class="btn" style="background:var(--success); color:#fff; width:100%; margin-top:20px;" onclick="closePaymentModal()">OK, Confirmar</button>
+        </div>
+    </div>
+
+    <!-- NOVOS MODAIS DE CONFIGURAÇÃO -->
+    
+    <!-- Modal Taxas Config -->
+    <div id="settings-fees-modal" class="modal sub-modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Taxas da Maquininha</h3>
+            <p style="font-size:13px; color:#666; margin-bottom:20px;">Defina a porcentagem de acréscimo para o repasse.</p>
+            
+            <div class="form-group">
+                <label class="form-label">Taxa Cartão de Crédito (%)</label>
+                <div style="position:relative;">
+                    <input type="number" id="fee-credit" class="form-input" placeholder="Ex: 4.98" step="0.01">
+                    <i class="fas fa-percentage" style="position:absolute; right:15px; top:12px; color:#999;"></i>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Taxa Cartão de Débito (%)</label>
+                <div style="position:relative;">
+                    <input type="number" id="fee-debit" class="form-input" placeholder="Ex: 1.99" step="0.01">
+                    <i class="fas fa-percentage" style="position:absolute; right:15px; top:12px; color:#999;"></i>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn" style="background:#eee; flex:1;" onclick="closeSettingsFeesModal()">Cancelar</button>
+                <button class="btn" style="background:var(--primary); flex:1;" onclick="savePaymentFees()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Mensagens Config -->
+    <div id="settings-messages-modal" class="modal sub-modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Mensagens de Status</h3>
+            <p style="font-size:13px; color:#666; margin-bottom:20px;">Personalize o texto enviado no WhatsApp.</p>
+            
+            <div class="form-group">
+                <label class="form-label">Saiu para Entrega (Delivery)</label>
+                <textarea id="msg-delivering" class="form-input" rows="3" placeholder="Olá {nome}! Seu pedido saiu para entrega."></textarea>
+                <small style="color:#999; font-size:11px;">Use <b>{nome}</b> para o nome do cliente.</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Pronto para Retirada (Balcão)</label>
+                <textarea id="msg-ready" class="form-input" rows="3" placeholder="Olá {nome}! Seu pedido está pronto."></textarea>
+                <small style="color:#999; font-size:11px;">Use <b>{nome}</b> para o nome do cliente.</small>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn" style="background:#eee; flex:1;" onclick="closeSettingsMessagesModal()">Cancelar</button>
+                <button class="btn" style="background:#25D366; color:white; flex:1;" onclick="saveMessageTemplates()">Salvar</button>
+            </div>
         </div>
     </div>
 
@@ -1755,6 +1798,39 @@
         }
         function toggleStoreStatus() { db.collection(COL_SETTINGS).doc('store').set({isOpen:document.getElementById('store-toggle').checked},{merge:true}); }
         function toggleManualOverride() { db.collection(COL_SETTINGS).doc('store').set({manualOverride:document.getElementById('manual-override').checked},{merge:true}); }
+        
+        // --- FUNÇÕES DOS NOVOS MODAIS DE CONFIGURAÇÃO ---
+        function openSettingsFeesModal() { document.getElementById('settings-fees-modal').classList.add('open'); }
+        function closeSettingsFeesModal() { document.getElementById('settings-fees-modal').classList.remove('open'); }
+        
+        function openSettingsMessagesModal() { document.getElementById('settings-messages-modal').classList.add('open'); }
+        function closeSettingsMessagesModal() { document.getElementById('settings-messages-modal').classList.remove('open'); }
+
+        // Atualizando as funções de salvar para fechar os modais
+        function savePaymentFees() {
+            const c = parseFloat(document.getElementById('fee-credit').value) || 0;
+            const d = parseFloat(document.getElementById('fee-debit').value) || 0;
+            
+            db.collection(COL_SETTINGS).doc('payment_fees').set({ credit: c, debit: d })
+              .then(() => {
+                  showToast("Taxas salvas!");
+                  closeSettingsFeesModal(); // Fecha o modal
+              })
+              .catch(e => alert("Erro ao salvar taxas: " + e.message));
+        }
+
+        function saveMessageTemplates() {
+            const del = document.getElementById('msg-delivering').value;
+            const rdy = document.getElementById('msg-ready').value;
+            
+            db.collection(COL_SETTINGS).doc('messages').set({ delivering: del, ready: rdy })
+              .then(() => {
+                  showToast("Mensagens salvas!");
+                  closeSettingsMessagesModal(); // Fecha o modal
+              })
+              .catch(e => alert("Erro: " + e.message));
+        }
+
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
     </script>
 </body>
