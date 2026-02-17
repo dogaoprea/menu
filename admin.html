@@ -402,8 +402,8 @@
                     <div style="margin-bottom:15px;">
                         <label style="display:block; margin-bottom:5px; font-size:12px; font-weight:600; color:#555;">Data do Expediente</label>
                         <input type="date" id="filter-ref-date" class="form-input">
-                        <small style="color:#888; font-size:11px; display:block; margin-top:4px;">
-                            <i class="far fa-clock"></i> Filtra das 18h deste dia até as 04h do dia seguinte.
+                        <small id="history-filter-desc" style="color:#888; font-size:11px; display:block; margin-top:4px;">
+                            <i class="far fa-clock"></i> Filtra das 18:00 até as 04:00.
                         </small>
                     </div>
 
@@ -514,6 +514,20 @@
                         <div>
                             <h3 style="margin:0; font-size:16px; color:#333;">Mensagens Automáticas</h3>
                             <small style="color:#888;">Textos de status do pedido</small>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right" style="color:#ddd;"></i>
+                </div>
+
+                 <!-- Menu Item: Horário Expediente -->
+                 <div class="card" onclick="openSettingsHoursModal()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding: 20px; transition: transform 0.2s;">
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <div style="background:#e3f2fd; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#2196F3; font-size: 20px;">
+                            <i class="far fa-clock"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin:0; font-size:16px; color:#333;">Horário de Expediente</h3>
+                            <small style="color:#888;">Configurar filtro do histórico</small>
                         </div>
                     </div>
                     <i class="fas fa-chevron-right" style="color:#ddd;"></i>
@@ -812,6 +826,32 @@
         </div>
     </div>
 
+    <!-- Novo Modal Horario Expediente -->
+    <div id="settings-hours-modal" class="modal sub-modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">Horário de Expediente</h3>
+            <p style="font-size:13px; color:#666; margin-bottom:20px;">
+                Configura o filtro do histórico. <br>
+                <b style="color:var(--primary-dark);">Nota:</b> Se o fim for menor ou igual ao início, o sistema considera que é no dia seguinte.
+            </p>
+            
+            <div class="form-group">
+                <label class="form-label">Horário de Início</label>
+                <input type="time" id="shift-start" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Horário de Término</label>
+                <input type="time" id="shift-end" class="form-input">
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn" style="background:#eee; flex:1;" onclick="closeSettingsHoursModal()">Cancelar</button>
+                <button class="btn" style="background:var(--primary); flex:1;" onclick="saveShiftHours()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast"><i class="fas fa-check"></i> Salvo!</div>
 
     <script>
@@ -862,6 +902,10 @@
             delivering: "Olá {nome}! 🛵💨 Seu pedido saiu para entrega.", 
             ready: "Olá {nome}! 🍔🥡 Seu pedido está pronto para retirada." 
         };
+        // Horário Padrão (será sobrescrito pelo banco)
+        let shiftStart = "18:00";
+        let shiftEnd = "04:00";
+
         let historyStatusFilter = 'all';
 
         // --- AUTH ---
@@ -962,6 +1006,23 @@
                 if(msgDel) msgDel.value = msgTemplates.delivering;
                 if(msgReady) msgReady.value = msgTemplates.ready;
             });
+            
+            // Carrega o Horário de Expediente
+            db.collection(COL_SETTINGS).doc('hours').onSnapshot(doc => {
+                if(doc.exists) {
+                    const data = doc.data();
+                    if(data.start) shiftStart = data.start;
+                    if(data.end) shiftEnd = data.end;
+                }
+                // Atualiza inputs
+                const inStart = document.getElementById('shift-start');
+                const inEnd = document.getElementById('shift-end');
+                if(inStart) inStart.value = shiftStart;
+                if(inEnd) inEnd.value = shiftEnd;
+
+                // Atualiza texto de ajuda no Histórico
+                updateHistoryFilterText();
+            });
 
             db.collection(COL_SETTINGS).doc('categories').onSnapshot(doc => {
                 if (doc.exists && doc.data().list) categoriesConfig = doc.data().list;
@@ -983,6 +1044,13 @@
                 if(document.getElementById('tab-customers').classList.contains('active')) renderCustomers();
                 updateCustomerSuggestions(); 
             });
+        }
+        
+        function updateHistoryFilterText() {
+            const el = document.getElementById('history-filter-desc');
+            if(el) {
+                el.innerHTML = `<i class="far fa-clock"></i> Filtra das ${shiftStart} até as ${shiftEnd} (conforme Configurações).`;
+            }
         }
         
         // --- FUNÇÕES DE CLIENTES ---
@@ -1086,6 +1154,21 @@
                   closeSettingsMessagesModal(); // Fecha o modal
               })
               .catch(e => alert("Erro: " + e.message));
+        }
+        
+        function saveShiftHours() {
+            const s = document.getElementById('shift-start').value;
+            const e = document.getElementById('shift-end').value;
+            
+            if(!s || !e) return alert("Preencha ambos os horários.");
+            
+            db.collection(COL_SETTINGS).doc('hours').set({ start: s, end: e })
+              .then(() => {
+                  showToast("Horário salvo!");
+                  closeSettingsHoursModal();
+                  // A UI atualizará via onSnapshot
+              })
+              .catch(err => alert("Erro ao salvar: " + err.message));
         }
         
         // --- SUGESTÃO DE CLIENTES ---
@@ -1201,9 +1284,18 @@
             }
 
             if (historyRefDate) {
-                const start = new Date(historyRefDate + 'T18:00:00');
-                const end = new Date(historyRefDate + 'T04:00:00');
-                end.setDate(end.getDate() + 1);
+                // Monta Data Inicio e Fim baseada nas configurações
+                // Ex: Ref 2023-10-25 + Start 18:00
+                const start = new Date(historyRefDate + 'T' + shiftStart + ':00');
+                
+                // Ex: Ref 2023-10-25 + End 04:00
+                // Se End (04:00) <= Start (18:00), significa dia seguinte
+                let end = new Date(historyRefDate + 'T' + shiftEnd + ':00');
+                
+                // Lógica de "Virada de dia"
+                if (shiftEnd <= shiftStart) {
+                    end.setDate(end.getDate() + 1);
+                }
 
                 filteredOrders = filteredOrders.filter(order => {
                     const d = order.timestamp ? new Date(order.timestamp.seconds * 1000) : new Date(0);
@@ -1552,7 +1644,14 @@
         
         // --- SELEÇÃO DE CARDÁPIO (ATUALIZADA COM OPÇÕES) ---
         function openMenuSelectionModal() {
+            renderMenuSelectionList();
+            document.getElementById('menu-selection-modal').classList.add('open');
+        }
+
+        function renderMenuSelectionList() {
             const container = document.getElementById('menu-selection-list');
+            // Tenta manter a posição do scroll ao atualizar
+            const previousScroll = container.scrollTop;
             container.innerHTML = '';
             
             const activeItems = currentItems.filter(i => i.available !== false);
@@ -1561,19 +1660,65 @@
                 const items = activeItems.filter(i => i.category === cat.id);
                 if (items.length) {
                     items.sort((a,b) => a.name.localeCompare(b.name));
-                    container.innerHTML += `<div style="background:#f0f0f0; padding:8px 15px; font-weight:800; font-family:'Bebas Neue'; font-size:18px; color:#555; position:sticky; top:0;">${cat.label}</div>`;
+                    // REMOVIDO: position:sticky; top:0; (Cabeçalho agora rola junto)
+                    container.innerHTML += `<div style="background:#f0f0f0; padding:8px 15px; font-weight:800; font-family:'Bebas Neue'; font-size:18px; color:#555;">${cat.label}</div>`;
                     
                     items.forEach(i => {
+                        // CORREÇÃO: Conta a quantidade total somando as propriedades .qty
+                        const qty = editingOrderCart
+                            .filter(cartItem => cartItem.id === i.id)
+                            .reduce((sum, cartItem) => sum + cartItem.qty, 0);
+                        
+                        // REMOVIDO: Preço
+                        // ADICIONADO: Controles de Quantidade
                         container.innerHTML += `
-                            <div onclick="selectMenuItem('${i.id}')" style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; cursor:pointer; background:white;">
-                                <span style="font-weight:600; font-size:15px;">${i.name}</span>
-                                <span style="font-weight:700; color:var(--primary-dark);">R$ ${i.price.toFixed(2)}</span>
+                            <div style="padding:10px 15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:white;">
+                                <div style="flex:1;">
+                                    <span style="font-weight:600; font-size:15px; display:block;">${i.name}</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button onclick="adjustMenuQty('${i.id}', -1)" style="width:34px; height:34px; border-radius:50%; border:1px solid #ddd; background:white; color:${qty>0?'#d32f2f':'#ccc'}; font-weight:bold; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;" ${qty===0?'disabled':''}>-</button>
+                                    
+                                    <span style="font-weight:700; font-size:16px; min-width:24px; text-align:center;">${qty}</span>
+                                    
+                                    <button onclick="selectMenuItem('${i.id}')" style="width:34px; height:34px; border-radius:50%; border:none; background:var(--primary); color:white; font-weight:bold; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;">+</button>
+                                </div>
                             </div>
                         `;
                     });
                 }
             });
-            document.getElementById('menu-selection-modal').classList.add('open');
+            
+            // Restaura scroll
+            if (previousScroll > 0) container.scrollTop = previousScroll;
+        }
+
+        function adjustMenuQty(id, delta) {
+            if (delta < 0) {
+                // CORREÇÃO: Decrementa quantidade ou remove se for 1 (LIFO)
+                let targetIdx = -1;
+                for (let i = editingOrderCart.length - 1; i >= 0; i--) {
+                    if (editingOrderCart[i].id === id) {
+                        targetIdx = i;
+                        break;
+                    }
+                }
+
+                if (targetIdx !== -1) {
+                    if (editingOrderCart[targetIdx].qty > 1) {
+                        editingOrderCart[targetIdx].qty--;
+                    } else {
+                        editingOrderCart.splice(targetIdx, 1);
+                    }
+                    
+                    renderEditOrderItems(); // Atualiza carrinho principal
+                    renderMenuSelectionList(); // Atualiza contadores na lista
+                    showToast("Item removido");
+                }
+            } else {
+                // Adicionar item (usa a lógica padrão que já verifica opções)
+                selectMenuItem(id);
+            }
         }
 
         function closeMenuSelectionModal() { document.getElementById('menu-selection-modal').classList.remove('open'); }
@@ -1661,17 +1806,34 @@
         }
 
         function addItemToCartFinal(item, optionsText) {
-            editingOrderCart.push({
-                id: item.id, 
-                name: item.name, 
-                price: item.price, 
-                qty: 1, 
-                obs: '', 
-                selectedOption: optionsText, 
-                _uuid: Math.random()
-            });
+            // CORREÇÃO: Verifica se já existe item igual (mesmo ID, Opções e sem Obs) para agrupar
+            const existingIndex = editingOrderCart.findIndex(i => 
+                i.id === item.id && 
+                i.selectedOption === optionsText && 
+                (!i.obs || i.obs.trim() === '') 
+            );
+
+            if (existingIndex !== -1) {
+                editingOrderCart[existingIndex].qty++;
+            } else {
+                editingOrderCart.push({
+                    id: item.id, 
+                    name: item.name, 
+                    price: item.price, 
+                    qty: 1, 
+                    obs: '', 
+                    selectedOption: optionsText, 
+                    _uuid: Math.random()
+                });
+            }
+            
             renderEditOrderItems();
             showToast(`+1 ${item.name}`);
+            
+            // Se o modal de seleção estiver aberto, atualiza os contadores
+            if(document.getElementById('menu-selection-modal').classList.contains('open')) {
+                renderMenuSelectionList();
+            }
         }
 
         // --- CUSTOM ITEM & PAGAMENTO ---
@@ -1994,6 +2156,9 @@
         
         function openSettingsMessagesModal() { document.getElementById('settings-messages-modal').classList.add('open'); }
         function closeSettingsMessagesModal() { document.getElementById('settings-messages-modal').classList.remove('open'); }
+
+        function openSettingsHoursModal() { document.getElementById('settings-hours-modal').classList.add('open'); }
+        function closeSettingsHoursModal() { document.getElementById('settings-hours-modal').classList.remove('open'); }
 
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
     </script>
